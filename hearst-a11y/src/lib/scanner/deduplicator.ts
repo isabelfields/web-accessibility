@@ -1,0 +1,129 @@
+import { RawViolation, ViolationPattern, StrippedViolation } from '@/types'
+import { getKnownFix, partitionByKnowledge } from './known-fixes'
+import { stripViolation, normalizeSelector } from './strip-html'
+import { getClaudeSuggestions } from '../claude/suggestions'
+
+/**
+ * Takes raw violations from multiple pages and returns deduplicated patterns
+ * with fix suggestions — using hardcoded rules where possible, Claude otherwise.
+ *
+ * Pipeline:
+ * 1. Strip raw HTML from all violations (optimization 2)
+ * 2. Fingerprint each: rule + normalized selector → unique pattern key
+ * 3. Group all instances by fingerprint
+ * 4. Apply known fixes (optimization 3) — no API call
+ * 5. Batch-send unknown violations to Claude in one call per ~20 violations
+ */
+export async function deduplicateAndFix(
+  pageViolations: Array<{ url: string; violations: RawViolation[] }>
+): Promise<{
+  patterns: ViolationPattern[]
+  claudeCallCount: number
+  estimatedCostUsd: number
+}> {
+  // Step 1 & 2: Strip and fingerprint all violations
+  const patternMap = new Map<string, {
+    stripped: StrippedViolation
+    occurrences: number
+    affectedPages: Set<string>
+  }>()
+
+  for (const { url, violations } of pageViolations) {
+    for (const violation of violations) {
+      const stripped = stripViolation(violation)
+      const fingerprint = `${stripped.rule}::${stripped.selector}`
+
+      if (patternMap.has(fingerprint)) {
+        const existing = patternMap.get(fingerprint)!
+        existing.occurrences++
+        existing.affectedPages.add(url)
+      } else {
+        patternMap.set(fingerprint, {
+          stripped,
+          occurrences: 1,
+          affectedPages: new Set([url]),
+        })
+      }
+    }
+  }
+
+  // Step 3: Split by whether we know the fix
+  const fingerprints = [...patternMap.keys()]
+  const ruleIds = fingerprints.map(fp => fp.split('::')[0])
+  const { known: knownRuleIds, unknown: unknownRuleIds } = partitionByKnowledge(ruleIds)
+
+  const knownFingerprints = fingerprints.filter(fp => knownRuleIds.includes(fp.split('::')[0]))
+  const unknownFingerprints = fingerprints.filter(fp => unknownRuleIds.includes(fp.split('::')[0]))
+
+  const patterns: ViolationPattern[] = []
+
+  // Step 4: Apply known fixes (free, no Claude)
+  for (const fp of knownFingerprints) {
+    const entry = patternMap.get(fp)!
+    const fix = getKnownFix(entry.stripped.rule)!
+    patterns.push({
+      fingerprint: fp,
+      rule: entry.stripped.rule,
+      impact: entry.stripped.impact,
+      description: entry.stripped.description,
+      fixSuggestion: fix,
+      isHardcoded: true,
+      occurrences: entry.occurrences,
+      affectedPages: [...entry.affectedPages],
+    })
+  }
+
+  // Step 5: Batch-send unknown violations to Claude
+  let claudeCallCount = 0
+  let totalInputTokens = 0
+  let totalOutputTokens = 0
+
+  if (unknownFingerprints.length > 0) {
+    // Batch into chunks of 20 to stay within a reasonable prompt size
+    const BATCH_SIZE = 20
+    const batches = chunk(unknownFingerprints, BATCH_SIZE)
+
+    for (const batch of batches) {
+      const items = batch.map(fp => {
+        const entry = patternMap.get(fp)!
+        return { fingerprint: fp, ...entry.stripped }
+      })
+
+      const result = await getClaudeSuggestions(items)
+      claudeCallCount++
+      totalInputTokens += result.inputTokens
+      totalOutputTokens += result.outputTokens
+
+      for (const { fingerprint, fixSuggestion } of result.suggestions) {
+        const entry = patternMap.get(fingerprint)!
+        patterns.push({
+          fingerprint,
+          rule: entry.stripped.rule,
+          impact: entry.stripped.impact,
+          description: entry.stripped.description,
+          fixSuggestion,
+          isHardcoded: false,
+          occurrences: entry.occurrences,
+          affectedPages: [...entry.affectedPages],
+        })
+      }
+    }
+  }
+
+  // Rough cost estimate: Sonnet input $3/MTok, output $15/MTok
+  const estimatedCostUsd =
+    (totalInputTokens / 1_000_000) * 3 +
+    (totalOutputTokens / 1_000_000) * 15
+
+  // Sort by impact severity
+  const impactOrder: Record<string, number> = { critical: 0, serious: 1, moderate: 2, minor: 3 }
+  patterns.sort((a, b) => (impactOrder[a.impact] ?? 9) - (impactOrder[b.impact] ?? 9))
+
+  return { patterns, claudeCallCount, estimatedCostUsd }
+}
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const result: T[][] = []
+  for (let i = 0; i < arr.length; i += size) result.push(arr.slice(i, i + size))
+  return result
+}
