@@ -19,7 +19,7 @@ async function scanPageList(pages: SitePage[]): Promise<{
     try {
       const ctx = await browser.newContext()
       const pw = await ctx.newPage()
-      await pw.goto(page.url, { waitUntil: 'networkidle', timeout: 30000 })
+      await pw.goto(page.url, { waitUntil: 'domcontentloaded', timeout: 20000 })
       const results_axe = await new AxeBuilder({ page: pw })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
         .analyze()

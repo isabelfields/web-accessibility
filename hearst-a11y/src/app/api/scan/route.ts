@@ -98,3 +98,15 @@ export async function GET(req: NextRequest) {
   `
   return NextResponse.json(jobs)
 }
+
+export async function DELETE(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const jobId = searchParams.get('jobId')
+  if (!jobId) return NextResponse.json({ error: 'Missing jobId' }, { status: 400 })
+
+  await sql`
+    UPDATE scan_jobs SET status = 'cancelled', completed_at = NOW()
+    WHERE id = ${jobId} AND status IN ('queued', 'running')
+  `
+  return NextResponse.json({ cancelled: true })
+}
