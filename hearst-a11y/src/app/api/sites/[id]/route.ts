@@ -13,15 +13,13 @@ const UpdateSiteSchema = z.object({
   pages: z.array(SitePageSchema).min(1).optional(),
 })
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params
+type RouteContext = { params: Promise<{ id: string }> }
+
+export async function GET(_req: NextRequest, { params }: RouteContext) {
+  const { id } = await params
   const [site] = await sql`SELECT * FROM sites WHERE id = ${id}`
   if (!site) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  // Fetch last 20 scans for history + trend
   const scans = await sql`
     SELECT id, score, status, pages_scanned, raw_violation_count,
            unique_pattern_count, estimated_cost_usd, started_at, completed_at, triggered_by
@@ -34,11 +32,8 @@ export async function GET(
   return NextResponse.json({ ...site, scanHistory: scans })
 }
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params
+export async function PUT(req: NextRequest, { params }: RouteContext) {
+  const { id } = await params
   const body = await req.json()
   const parsed = UpdateSiteSchema.safeParse(body)
   if (!parsed.success) {
@@ -73,11 +68,8 @@ export async function PUT(
   return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
 }
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params
+export async function DELETE(_req: NextRequest, { params }: RouteContext) {
+  const { id } = await params
   await sql`DELETE FROM sites WHERE id = ${id}`
   return NextResponse.json({ deleted: true })
 }
