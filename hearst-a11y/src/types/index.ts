@@ -49,7 +49,7 @@ export interface ScanJob {
   id: string
   siteId?: string
   rootUrl: string
-  status: 'queued' | 'running' | 'complete' | 'failed'
+  status: 'queued' | 'running' | 'complete' | 'failed' | 'cancelled'
   score: number
   pagesScanned: number
   pagesSkipped: number

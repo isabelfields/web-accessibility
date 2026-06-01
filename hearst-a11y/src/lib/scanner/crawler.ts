@@ -49,7 +49,7 @@ export async function crawlAndScan(rootUrl: string): Promise<{
 
           try {
             await page.goto(url, {
-              waitUntil: 'networkidle',
+              waitUntil: 'domcontentloaded',
               timeout: PAGE_TIMEOUT,
             })
 
