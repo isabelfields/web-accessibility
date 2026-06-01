@@ -1,5 +1,7 @@
 import { sql } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 async function getSchedules() {
   const schedules = await sql`SELECT * FROM schedules ORDER BY created_at DESC`
   return schedules

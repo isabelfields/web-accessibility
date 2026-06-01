@@ -1,6 +1,8 @@
 import { sql } from '@/lib/db'
 import { SiteCard } from '@/components/SiteCard'
 
+export const dynamic = 'force-dynamic'
+
 async function getData() {
   const [sites, recentScans, statsRow] = await Promise.all([
     sql`SELECT * FROM sites ORDER BY created_at DESC`.then(async (sites) => {

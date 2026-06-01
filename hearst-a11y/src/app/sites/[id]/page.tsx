@@ -1,5 +1,7 @@
 import { sql } from '@/lib/db'
 import { notFound } from 'next/navigation'
+
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { ScoreGauge } from '@/components/ScoreGauge'
 import { TrendSparkline } from '@/components/TrendSparkline'
