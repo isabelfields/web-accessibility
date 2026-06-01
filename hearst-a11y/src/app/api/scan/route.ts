@@ -43,16 +43,14 @@ export async function POST(req: NextRequest) {
 
   // Run scan async
   runScan(jobId, rootUrl, async (update) => {
-    const sets: string[] = []
-    const values: unknown[] = []
-    let i = 1
-
-    if (update.status) { sets.push(`status = $${i++}`); values.push(update.status) }
-    if (update.pagesScanned !== undefined) { sets.push(`pages_scanned = $${i++}`); values.push(update.pagesScanned) }
-    if (update.pagesSkipped !== undefined) { sets.push(`pages_skipped = $${i++}`); values.push(update.pagesSkipped) }
-
-    if (sets.length > 0) {
-      await sql`UPDATE scan_jobs SET ${sql.unsafe(sets.join(', '))} WHERE id = ${jobId}`
+    if (update.status) {
+      await sql`UPDATE scan_jobs SET status = ${update.status} WHERE id = ${jobId}`
+    }
+    if (update.pagesScanned !== undefined) {
+      await sql`UPDATE scan_jobs SET pages_scanned = ${update.pagesScanned} WHERE id = ${jobId}`
+    }
+    if (update.pagesSkipped !== undefined) {
+      await sql`UPDATE scan_jobs SET pages_skipped = ${update.pagesSkipped} WHERE id = ${jobId}`
     }
   }, pages).then(async (result) => {
     await sql`
