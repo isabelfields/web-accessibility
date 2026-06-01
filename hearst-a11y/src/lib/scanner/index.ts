@@ -9,7 +9,7 @@ async function scanPageList(pages: SitePage[]): Promise<{
   pagesSkipped: number
 }> {
   const { chromium } = await import('playwright')
-  const { injectAxe, getViolations } = await import('@axe-core/playwright')
+  const AxeBuilder = (await import('@axe-core/playwright')).default
 
   const browser = await chromium.launch({ headless: true })
   const results: PageScanResult[] = []
@@ -19,14 +19,14 @@ async function scanPageList(pages: SitePage[]): Promise<{
       const ctx = await browser.newContext()
       const pw = await ctx.newPage()
       await pw.goto(page.url, { waitUntil: 'networkidle', timeout: 30000 })
-      await injectAxe(pw)
-      const violations = await getViolations(pw, undefined, {
-        runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] },
-      })
+      const results_axe = await new AxeBuilder({ page: pw })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze()
+      const violations = results_axe.violations
       results.push({
         url: page.url,
         domFingerprint: '',
-        violations: violations as RawViolation[],
+        violations: violations as unknown as RawViolation[],
         scannedAt: new Date().toISOString(),
         skipped: false,
       })
