@@ -29,10 +29,8 @@ export async function crawlAndScan(rootUrl: string): Promise<{
   const results: PageScanResult[] = []
   let pagesSkipped = 0
 
-  const browser = await chromium.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  })
+  const wsEndpoint = `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`
+  const browser = await chromium.connectOverCDP(wsEndpoint)
 
   try {
     while (queue.length > 0 && visited.size < MAX_PAGES) {

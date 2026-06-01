@@ -11,7 +11,8 @@ async function scanPageList(pages: SitePage[]): Promise<{
   const { chromium } = await import('playwright')
   const AxeBuilder = (await import('@axe-core/playwright')).default
 
-  const browser = await chromium.launch({ headless: true })
+  const wsEndpoint = `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`
+  const browser = await chromium.connectOverCDP(wsEndpoint)
   const results: PageScanResult[] = []
 
   for (const page of pages) {
