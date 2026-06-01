@@ -1,10 +1,59 @@
-import { ScanJob } from '@/types'
+import { ScanJob, SitePage, PageScanResult, RawViolation } from '@/types'
 import { crawlAndScan } from './crawler'
 import { deduplicateAndFix } from './deduplicator'
+import { calculateScore } from '@/lib/score'
+
+async function scanPageList(pages: SitePage[]): Promise<{
+  results: PageScanResult[]
+  pagesScanned: number
+  pagesSkipped: number
+}> {
+  const { chromium } = await import('playwright')
+  const { injectAxe, getViolations } = await import('@axe-core/playwright')
+
+  const browser = await chromium.launch({ headless: true })
+  const results: PageScanResult[] = []
+
+  for (const page of pages) {
+    try {
+      const ctx = await browser.newContext()
+      const pw = await ctx.newPage()
+      await pw.goto(page.url, { waitUntil: 'networkidle', timeout: 30000 })
+      await injectAxe(pw)
+      const violations = await getViolations(pw, undefined, {
+        runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] },
+      })
+      results.push({
+        url: page.url,
+        domFingerprint: '',
+        violations: violations as RawViolation[],
+        scannedAt: new Date().toISOString(),
+        skipped: false,
+      })
+      await ctx.close()
+    } catch (err) {
+      results.push({
+        url: page.url,
+        domFingerprint: '',
+        violations: [],
+        scannedAt: new Date().toISOString(),
+        skipped: true,
+        skippedReason: err instanceof Error ? err.message : 'Unknown error',
+      })
+    }
+  }
+
+  await browser.close()
+  return {
+    results,
+    pagesScanned: results.filter(r => !r.skipped).length,
+    pagesSkipped: results.filter(r => r.skipped).length,
+  }
+}
 
 /**
  * Full scan pipeline:
- * 1. Crawl site (BFS, max 50 pages, skip near-dupes)
+ * 1. Crawl site (BFS, max 50 pages, skip near-dupes) OR scan explicit page list
  * 2. Deduplicate violations across all pages
  * 3. Apply known fixes (free) or call Claude (batched, stripped)
  * 4. Return complete ScanJob result
@@ -12,14 +61,17 @@ import { deduplicateAndFix } from './deduplicator'
 export async function runScan(
   jobId: string,
   rootUrl: string,
-  onProgress?: (update: Partial<ScanJob>) => void
+  onProgress?: (update: Partial<ScanJob>) => void,
+  pages?: SitePage[]
 ): Promise<ScanJob> {
   const startedAt = new Date().toISOString()
 
   onProgress?.({ status: 'running', startedAt })
 
-  // Phase 1: Crawl
-  const { results, pagesScanned, pagesSkipped } = await crawlAndScan(rootUrl)
+  // Phase 1: Crawl or scan explicit pages
+  const { results, pagesScanned, pagesSkipped } = pages
+    ? await scanPageList(pages)
+    : await crawlAndScan(rootUrl)
 
   onProgress?.({
     pagesScanned,
@@ -35,18 +87,21 @@ export async function runScan(
   }))
 
   const rawViolationCount = pageViolations.reduce(
-    (sum, p) => sum + p.violations.length, 0
+    (sum, p) => sum + p.violations.length,
+    0
   )
 
   const { patterns, claudeCallCount, estimatedCostUsd } =
     await deduplicateAndFix(pageViolations)
 
+  const score = calculateScore(patterns)
   const completedAt = new Date().toISOString()
 
   return {
     id: jobId,
     rootUrl,
     status: 'complete',
+    score,
     pagesScanned,
     pagesSkipped,
     totalPages: results.length,

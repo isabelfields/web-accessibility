@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { neon } from '@neondatabase/serverless'
+import { sql } from '@/lib/db'
 import { runScan } from '@/lib/scanner'
+import { SitePage } from '@/types'
 
 const RequestSchema = z.object({
-  url: z.string().url(),
+  url: z.string().url().optional(),
+  siteId: z.string().uuid().optional(),
   scheduleId: z.string().uuid().optional(),
+}).refine(data => data.url || data.siteId, {
+  message: 'Either url or siteId is required',
 })
 
 export async function POST(req: NextRequest) {
@@ -13,24 +17,32 @@ export async function POST(req: NextRequest) {
   const parsed = RequestSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { url, scheduleId } = parsed.data
-  const sql = neon(process.env.DATABASE_URL!)
+  const { url, siteId, scheduleId } = parsed.data
+
+  let rootUrl = url ?? ''
+  let pages: SitePage[] | undefined
+
+  if (siteId) {
+    const [site] = await sql`SELECT * FROM sites WHERE id = ${siteId}`
+    if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 })
+    rootUrl = (site.pages as SitePage[])[0]?.url ?? rootUrl
+    pages = site.pages as SitePage[]
+  }
 
   // Create the job record
   const [job] = await sql`
-    INSERT INTO scan_jobs (root_url, status, triggered_by, schedule_id)
-    VALUES (${url}, 'queued', ${scheduleId ? 'schedule' : 'manual'}, ${scheduleId ?? null})
+    INSERT INTO scan_jobs (root_url, status, triggered_by, schedule_id, site_id)
+    VALUES (${rootUrl}, 'queued', ${scheduleId ? 'schedule' : 'manual'}, ${scheduleId ?? null}, ${siteId ?? null})
     RETURNING id
   `
 
   const jobId = job.id
 
-  // Run scan async (in production this would be a queue worker)
-  // For Vercel, use background functions or an external queue
-  runScan(jobId, url, async (update) => {
+  // Run scan async
+  runScan(jobId, rootUrl, async (update) => {
     const sets: string[] = []
     const values: unknown[] = []
     let i = 1
@@ -42,10 +54,11 @@ export async function POST(req: NextRequest) {
     if (sets.length > 0) {
       await sql`UPDATE scan_jobs SET ${sql.unsafe(sets.join(', '))} WHERE id = ${jobId}`
     }
-  }).then(async (result) => {
+  }, pages).then(async (result) => {
     await sql`
       UPDATE scan_jobs SET
         status = 'complete',
+        score = ${result.score},
         pages_scanned = ${result.pagesScanned},
         pages_skipped = ${result.pagesSkipped},
         total_pages = ${result.totalPages},
@@ -69,7 +82,6 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const jobId = searchParams.get('jobId')
-  const sql = neon(process.env.DATABASE_URL!)
 
   if (jobId) {
     const [job] = await sql`SELECT * FROM scan_jobs WHERE id = ${jobId}`
@@ -79,7 +91,7 @@ export async function GET(req: NextRequest) {
 
   // List recent scans
   const jobs = await sql`
-    SELECT id, root_url, status, pages_scanned, pages_skipped,
+    SELECT id, root_url, site_id, status, score, pages_scanned, pages_skipped,
            raw_violation_count, unique_pattern_count, estimated_cost_usd,
            started_at, completed_at, triggered_by
     FROM scan_jobs

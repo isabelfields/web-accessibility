@@ -47,8 +47,10 @@ export interface PageScanResult {
 
 export interface ScanJob {
   id: string
+  siteId?: string
   rootUrl: string
   status: 'queued' | 'running' | 'complete' | 'failed'
+  score: number
   pagesScanned: number
   pagesSkipped: number
   totalPages: number
@@ -72,4 +74,34 @@ export interface Schedule {
   nextRunAt: string
   enabled: boolean
   createdAt: string
+}
+
+export interface SitePage {
+  url: string
+  label: string       // e.g. "Homepage", "Article Template"
+  templateType: 'homepage' | 'article' | 'gallery' | 'category' | 'other'
+}
+
+export interface Site {
+  id: string
+  name: string        // e.g. "Elle.com"
+  pages: SitePage[]
+  scheduleId?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ScanSummary {
+  id: string
+  siteId?: string
+  rootUrl: string
+  status: string
+  score: number
+  pagesScanned: number
+  rawViolationCount: number
+  uniquePatternCount: number
+  estimatedCostUsd: number
+  startedAt: string
+  completedAt?: string
+  triggeredBy: string
 }
