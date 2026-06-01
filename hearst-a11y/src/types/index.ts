@@ -82,9 +82,29 @@ export interface SitePage {
   templateType: 'homepage' | 'article' | 'gallery' | 'category' | 'other'
 }
 
+export type HearstDivision =
+  | 'Corporate'
+  | 'Fitch'
+  | 'Magazines'
+  | 'Television'
+  | 'Newspapers'
+  | 'Transportation'
+  | 'Healthcare'
+  | 'HearstLab'
+  | 'Level Up'
+  | 'Hearst Ventures'
+  | 'Western Properties'
+
+export const HEARST_DIVISIONS: HearstDivision[] = [
+  'Corporate', 'Fitch', 'Magazines', 'Television', 'Newspapers',
+  'Transportation', 'Healthcare', 'HearstLab', 'Level Up',
+  'Hearst Ventures', 'Western Properties',
+]
+
 export interface Site {
   id: string
-  name: string        // e.g. "Elle.com"
+  name: string
+  division?: HearstDivision
   pages: SitePage[]
   scheduleId?: string
   createdAt: string

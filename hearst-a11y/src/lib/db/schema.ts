@@ -37,6 +37,7 @@ export const schedules = pgTable('schedules', {
 export const sites = pgTable('sites', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
+  division: text('division'),
   pages: jsonb('pages').default([]),  // SitePage[]
   scheduleId: uuid('schedule_id'),
   createdAt: timestamp('created_at').defaultNow(),
