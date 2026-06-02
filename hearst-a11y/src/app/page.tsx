@@ -136,34 +136,34 @@ export default async function DashboardPage({
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Sites</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{sites.length}</div>
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Sites</div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{sites.length}</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Pages Monitored</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{stats.totalPages}</div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Pages Monitored</div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{stats.totalPages}</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Avg Score</div>
-          <div className={`text-3xl font-bold mt-1 ${stats.avgScore !== null ? scoreColor(stats.avgScore) : 'text-gray-400'}`}>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Avg Score</div>
+          <div className={`text-2xl font-bold mt-1 ${stats.avgScore !== null ? scoreColor(stats.avgScore) : 'text-gray-400'}`}>
             {stats.avgScore !== null ? stats.avgScore : '—'}
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Errors Caught</div>
-          <div className="text-3xl font-bold text-red-500 mt-1">{stats.totalErrors}</div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Errors Caught</div>
+          <div className="text-2xl font-bold text-red-500 mt-1">{stats.totalErrors}</div>
           <div className="text-xs text-gray-400 mt-0.5">across latest scans</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Errors Resolved</div>
-          <div className="text-3xl font-bold text-green-600 mt-1">{stats.errorsResolved}</div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Errors Resolved</div>
+          <div className="text-2xl font-bold text-green-600 mt-1">{stats.errorsResolved}</div>
           <div className="text-xs text-gray-400 mt-0.5">vs previous scan</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Scans This Month</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{scans.filter((s: any) => new Date(s.started_at) > new Date(Date.now() - 30*24*60*60*1000)).length}</div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Scans This Month</div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{scans.filter((s: any) => new Date(s.started_at) > new Date(Date.now() - 30*24*60*60*1000)).length}</div>
         </div>
       </div>
 

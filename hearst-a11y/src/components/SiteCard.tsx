@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { ScoreGauge } from './ScoreGauge'
 
 interface LatestScan {
   score: number
@@ -13,54 +12,75 @@ interface SiteCardProps {
   site: {
     id: string
     name: string
+    division?: string
     pages: { url: string; label: string; templateType: string }[]
     created_at: string
     latestScan: LatestScan | null
   }
 }
 
+function scoreColor(score: number) {
+  if (score >= 90) return 'text-green-600'
+  if (score >= 80) return 'text-lime-600'
+  if (score >= 70) return 'text-yellow-600'
+  if (score >= 60) return 'text-orange-500'
+  return 'text-red-500'
+}
+
 export function SiteCard({ site }: SiteCardProps) {
   const { latestScan } = site
+  const pageCount = site.pages?.length ?? 0
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col gap-4">
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">{site.name}</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {site.pages?.length ?? 0} page{(site.pages?.length ?? 0) !== 1 ? 's' : ''} configured
-          </p>
+    <Link
+      href={`/sites/${site.id}`}
+      className="block bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition-all group"
+    >
+      <div className="flex items-start justify-between gap-4">
+        {/* Left: name + meta */}
+        <div className="min-w-0">
+          <div className="font-semibold text-gray-900 text-sm leading-tight truncate">{site.name}</div>
+          <div className="text-xs text-gray-400 mt-0.5">
+            {pageCount} page{pageCount !== 1 ? 's' : ''}
+            {site.division ? ` · ${site.division}` : ''}
+          </div>
         </div>
+
+        {/* Middle: score */}
         {latestScan ? (
-          <ScoreGauge score={latestScan.score ?? 0} size={100} />
+          <div className="text-center shrink-0">
+            <div className={`text-2xl font-bold leading-none ${scoreColor(latestScan.score ?? 0)}`}>
+              {Math.round(latestScan.score ?? 0)}
+            </div>
+            <div className="text-xs text-gray-400 mt-0.5 uppercase tracking-wider">Score</div>
+          </div>
         ) : (
-          <div className="w-24 h-24 flex items-center justify-center rounded-full border-4 border-gray-200 text-gray-400 text-xs text-center">
-            No scans yet
+          <div className="text-center shrink-0">
+            <div className="text-2xl font-bold text-gray-300">—</div>
+            <div className="text-xs text-gray-400 mt-0.5 uppercase tracking-wider">Score</div>
           </div>
         )}
       </div>
 
+      {/* Stats row */}
       {latestScan ? (
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="text-gray-500 text-xs">Patterns</div>
-            <div className="font-semibold text-gray-800">{latestScan.unique_pattern_count}</div>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="text-gray-500 text-xs">Raw violations</div>
-            <div className="font-semibold text-gray-800">{latestScan.raw_violation_count}</div>
-          </div>
+        <div className="mt-4 flex items-center gap-4 text-xs">
+          <span className="text-red-500 font-medium">
+            {latestScan.raw_violation_count} violation{latestScan.raw_violation_count !== 1 ? 's' : ''}
+          </span>
+          <span className="text-gray-400">
+            {latestScan.unique_pattern_count} issue type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
+          </span>
+          <span className="ml-auto text-brand-500 font-medium group-hover:underline">
+            View →
+          </span>
         </div>
       ) : (
-        <div className="text-sm text-gray-400 italic">Run a scan to see accessibility data.</div>
+        <div className="mt-4 flex items-center justify-between text-xs">
+          <span className="text-gray-400 italic">No scans yet</span>
+          <span className="text-brand-500 font-medium group-hover:underline">View →</span>
+        </div>
       )}
-
-      <Link
-        href={`/sites/${site.id}`}
-        className="mt-auto inline-flex items-center justify-center px-4 py-2 rounded-lg bg-brand-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors"
-      >
-        View Details
-      </Link>
-    </div>
+    </Link>
   )
 }
