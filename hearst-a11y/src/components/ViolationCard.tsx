@@ -109,17 +109,24 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
             <span className="text-xs font-medium text-gray-700">{ruleInfo.wcag}</span>
           </div>
 
-          {/* Element screenshot */}
-          {pattern.sampleScreenshot && (
+          {/* Element screenshot + HTML */}
+          {(pattern.sampleScreenshot || pattern.sampleHtml) && (
             <div>
               <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">The element</div>
-              <div className="bg-white rounded-lg border border-gray-200 p-2 inline-block max-w-full">
-                <img
-                  src={`data:image/jpeg;base64,${pattern.sampleScreenshot}`}
-                  alt="Screenshot of the failing element"
-                  className="max-w-full max-h-40 rounded object-contain"
-                />
-              </div>
+              {pattern.sampleScreenshot && (
+                <div className="bg-white rounded-lg border border-gray-200 p-2 inline-block max-w-full mb-2">
+                  <img
+                    src={`data:image/jpeg;base64,${pattern.sampleScreenshot}`}
+                    alt="Screenshot of the failing element"
+                    className="max-w-full max-h-40 rounded object-contain"
+                  />
+                </div>
+              )}
+              {pattern.sampleHtml && (
+                <pre className="text-xs bg-gray-900 text-green-300 rounded-lg px-3 py-2 overflow-x-auto whitespace-pre-wrap break-all">
+                  {pattern.sampleHtml}
+                </pre>
+              )}
             </div>
           )}
 
