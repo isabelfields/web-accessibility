@@ -142,19 +142,25 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             </div>
 
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-              <div className="text-sm font-medium text-gray-500 mb-3">By Severity</div>
-              {(['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
-                const count = byImpact[impact].reduce((s, p) => s + p.occurrences, 0)
-                if (count === 0) return null
-                return (
-                  <div key={impact} className="flex items-center justify-between mb-2">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${impactColor(impact)}`}>
-                      {impact.charAt(0).toUpperCase() + impact.slice(1)}
-                    </span>
-                    <span className="text-sm font-semibold text-gray-700">{count}</span>
-                  </div>
-                )
-              })}
+              <div className="text-sm font-medium text-gray-500 mb-4">By Severity</div>
+              <div className="space-y-3">
+                {(['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
+                  const count = byImpact[impact].reduce((s, p) => s + p.occurrences, 0)
+                  const barColor = impact === 'critical' ? 'bg-red-500' : impact === 'serious' ? 'bg-orange-400' : impact === 'moderate' ? 'bg-amber-400' : 'bg-blue-400'
+                  const pct = totalViolations > 0 ? Math.round((count / totalViolations) * 100) : 0
+                  return (
+                    <div key={impact}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-gray-500 capitalize">{impact}</span>
+                        <span className="font-semibold text-gray-700">{count}</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
@@ -197,26 +203,27 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           )}
 
           {/* Violations */}
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Issues Found</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-800">Issues Found</h2>
+            <span className="text-sm text-gray-400">{patterns.length} issue type{patterns.length !== 1 ? 's' : ''} · {totalViolations} total</span>
+          </div>
           {patterns.length === 0 ? (
             <div className="bg-white rounded-xl border border-dashed border-gray-300 p-12 text-center text-gray-400">
               No violations found — great job!
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-8">
               {(['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
                 const group = byImpact[impact]
                 if (group.length === 0) return null
+                const dotColor = impact === 'critical' ? 'bg-red-500' : impact === 'serious' ? 'bg-orange-400' : impact === 'moderate' ? 'bg-amber-400' : 'bg-blue-400'
                 return (
                   <div key={impact}>
                     <div className="flex items-center gap-2 mb-3">
-                      <h3 className="text-sm font-semibold text-gray-700">
-                        {impact === 'critical' ? '🔴 Critical' :
-                         impact === 'serious' ? '🟠 Serious' :
-                         impact === 'moderate' ? '🟡 Moderate' : '🔵 Minor'}
-                      </h3>
-                      <span className="text-sm text-gray-400">
-                        {group.length} issue type{group.length !== 1 ? 's' : ''}
+                      <span className={`w-2 h-2 rounded-full ${dotColor}`} />
+                      <h3 className="text-sm font-semibold text-gray-700 capitalize">{impact}</h3>
+                      <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                        {group.length} type{group.length !== 1 ? 's' : ''}
                       </span>
                     </div>
                     <div className="space-y-2">
