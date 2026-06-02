@@ -7,6 +7,7 @@ import { ScoreGauge } from '@/components/ScoreGauge'
 import { TrendSparkline } from '@/components/TrendSparkline'
 import { RunScanButton } from '@/components/RunScanButton'
 import { CancelScanButton } from '@/components/CancelScanButton'
+import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { ViolationCard } from '@/components/ViolationCard'
 import type { ViolationPattern, SitePage } from '@/types'
 
@@ -191,7 +192,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                   </tr>
                 ) : (
                   scans.map((scan: any) => (
-                    <tr key={scan.id} className="hover:bg-gray-50">
+                    <tr key={scan.id} className="hover:bg-gray-50 group">
                       <td className="px-4 py-3 text-gray-700">{formatDate(scan.started_at)}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -211,9 +212,14 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                       <td className="px-4 py-3 text-right text-gray-600">{scan.unique_pattern_count ?? 0}</td>
                       <td className="px-4 py-3 text-gray-500 capitalize">{scan.triggered_by}</td>
                       <td className="px-4 py-3 text-right">
-                        {(scan.status === 'running' || scan.status === 'queued') && (
-                          <CancelScanButton jobId={scan.id} />
-                        )}
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {(scan.status === 'running' || scan.status === 'queued') && (
+                            <CancelScanButton jobId={scan.id} />
+                          )}
+                          {(scan.status === 'failed' || scan.status === 'cancelled') && (
+                            <DeleteScanButton jobId={scan.id} />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))

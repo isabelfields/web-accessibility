@@ -1,5 +1,7 @@
 import { sql } from '@/lib/db'
+import Link from 'next/link'
 import { SiteCard } from '@/components/SiteCard'
+import { DeleteScanButton } from '@/components/DeleteScanButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -115,25 +117,35 @@ export default async function DashboardPage() {
               <th className="text-right px-4 py-3 text-gray-600 font-medium">Score</th>
               <th className="text-right px-4 py-3 text-gray-600 font-medium">Pages</th>
               <th className="text-right px-4 py-3 text-gray-600 font-medium">Started</th>
+              <th className="px-2 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {recentScans.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-gray-400">No scans yet.</td>
+                <td colSpan={6} className="text-center py-8 text-gray-400">No scans yet.</td>
               </tr>
             ) : (
               recentScans.map((scan: any) => (
-                <tr key={scan.id} className="hover:bg-gray-50">
+                <tr key={scan.id} className="hover:bg-gray-50 group">
                   <td className="px-4 py-3">
-                    <div className="font-medium text-gray-800">{scan.site_name ?? scan.root_url}</div>
-                    {scan.site_name && <div className="text-xs text-gray-400 truncate max-w-xs">{scan.root_url}</div>}
+                    {scan.site_id ? (
+                      <Link href={`/sites/${scan.site_id}`} className="block hover:underline">
+                        <div className="font-medium text-blue-700">{scan.site_name ?? scan.root_url}</div>
+                        {scan.site_name && <div className="text-xs text-gray-400 truncate max-w-xs">{scan.root_url}</div>}
+                      </Link>
+                    ) : (
+                      <div>
+                        <div className="font-medium text-gray-800">{scan.root_url}</div>
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                       scan.status === 'complete' ? 'bg-green-100 text-green-700' :
                       scan.status === 'running' ? 'bg-blue-100 text-blue-700' :
                       scan.status === 'failed' ? 'bg-red-100 text-red-700' :
+                      scan.status === 'cancelled' ? 'bg-gray-100 text-gray-500' :
                       'bg-gray-100 text-gray-600'
                     }`}>
                       {scan.status}
@@ -144,6 +156,9 @@ export default async function DashboardPage() {
                   </td>
                   <td className="px-4 py-3 text-right text-gray-600">{scan.pages_scanned ?? 0}</td>
                   <td className="px-4 py-3 text-right text-gray-500">{formatDate(scan.started_at)}</td>
+                  <td className="px-2 py-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                    <DeleteScanButton jobId={scan.id} />
+                  </td>
                 </tr>
               ))
             )}
