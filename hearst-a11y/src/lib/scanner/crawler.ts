@@ -42,12 +42,13 @@ export async function crawlAndScan(rootUrl: string): Promise<{
           if (visited.has(url) || visited.size >= MAX_PAGES) return
           visited.add(url)
 
-          const context = await browser.newContext({
-            userAgent: 'HearstA11yScanner/1.0 (+https://hearst.com/accessibility)',
-          })
-          const page = await context.newPage()
-
+          let context: Awaited<ReturnType<typeof browser.newContext>> | undefined
           try {
+            context = await browser.newContext({
+              userAgent: 'HearstA11yScanner/1.0 (+https://hearst.com/accessibility)',
+            })
+            const page = await context.newPage()
+
             await page.goto(url, {
               waitUntil: 'domcontentloaded',
               timeout: PAGE_TIMEOUT,
@@ -130,7 +131,7 @@ export async function crawlAndScan(rootUrl: string): Promise<{
               skippedReason: `Failed to scan: ${err instanceof Error ? err.message : 'Unknown error'}`,
             })
           } finally {
-            await context.close()
+            await context?.close()
           }
         })
       )
