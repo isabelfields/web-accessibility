@@ -18,14 +18,21 @@ export default function RootLayout({
         <div className="flex min-h-screen">
           {/* Sidebar */}
           <aside className="w-60 bg-brand-900 text-white flex flex-col fixed inset-y-0 left-0 z-10">
-            <div className="px-6 py-6 border-b border-blue-800">
-              <div className="text-2xl font-bold tracking-tight">A11y</div>
-              <div className="text-xs text-blue-300 mt-0.5">Accessibility Monitor</div>
+            <div className="px-6 py-5 border-b border-brand-700">
+              {/* Hearst logo — white version via CSS filter */}
+              <img
+                src="/hearst-logo.svg"
+                alt="Hearst"
+                className="h-7 w-auto brightness-0 invert mb-2"
+              />
+              <div className="text-xs text-brand-100 font-medium tracking-wide uppercase opacity-70">
+                Accessibility Monitor
+              </div>
             </div>
             <nav className="flex-1 px-4 py-6 space-y-1">
               <Link
                 href="/"
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-blue-100 hover:bg-blue-800 hover:text-white transition-colors"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-brand-100 hover:bg-brand-700 hover:text-white transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -35,7 +42,7 @@ export default function RootLayout({
               </Link>
               <Link
                 href="/sites"
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-blue-100 hover:bg-blue-800 hover:text-white transition-colors"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-brand-100 hover:bg-brand-700 hover:text-white transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -45,7 +52,7 @@ export default function RootLayout({
               </Link>
               <Link
                 href="/schedules"
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-blue-100 hover:bg-blue-800 hover:text-white transition-colors"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-brand-100 hover:bg-brand-700 hover:text-white transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -54,8 +61,8 @@ export default function RootLayout({
                 Schedules
               </Link>
             </nav>
-            <div className="px-6 py-4 border-t border-blue-800">
-              <div className="text-xs text-blue-400">Hearst Communications</div>
+            <div className="px-6 py-4 border-t border-brand-700">
+              <div className="text-xs text-brand-100 opacity-50">© Hearst Communications</div>
             </div>
           </aside>
 
