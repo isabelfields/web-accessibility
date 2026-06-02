@@ -127,12 +127,12 @@ export default async function DashboardPage() {
               </tr>
             ) : (
               recentScans.map((scan: any) => (
-                <tr key={scan.id} className="hover:bg-gray-50 group cursor-pointer">
+                <tr key={scan.id} className="hover:bg-gray-50 group cursor-pointer relative">
                   <td className="px-4 py-3">
-                    <Link href={`/scans/${scan.id}`} className="block hover:underline">
-                      <div className="font-medium text-blue-700">{scan.site_name ?? scan.root_url}</div>
-                      {scan.site_name && <div className="text-xs text-gray-400 truncate max-w-xs">{scan.root_url}</div>}
-                    </Link>
+                    {/* Stretch link covers the whole row via absolute positioning */}
+                    <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan for ${scan.site_name ?? scan.root_url}`} />
+                    <div className="font-medium text-blue-700">{scan.site_name ?? scan.root_url}</div>
+                    {scan.site_name && <div className="text-xs text-gray-400 truncate max-w-xs">{scan.root_url}</div>}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -150,7 +150,7 @@ export default async function DashboardPage() {
                   </td>
                   <td className="px-4 py-3 text-right text-gray-600">{scan.pages_scanned ?? 0}</td>
                   <td className="px-4 py-3 text-right text-gray-500">{formatDate(scan.started_at)}</td>
-                  <td className="px-2 py-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                  <td className="px-2 py-3 text-right relative z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <DeleteScanButton jobId={scan.id} />
                   </td>
                 </tr>
