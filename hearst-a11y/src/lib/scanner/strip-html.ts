@@ -19,8 +19,11 @@ import { RawViolation, StrippedViolation } from '@/types'
 
 export function stripViolation(violation: RawViolation): StrippedViolation {
   const node = violation.nodes[0] // representative node
-  const selector = normalizeSelector(node?.target?.[0] ?? '')
-  const context = extractContext(violation.id, node?.html ?? '', node?.failureSummary ?? '')
+  const rawTarget = node?.target?.[0]
+  const selector = normalizeSelector(Array.isArray(rawTarget) ? rawTarget[0] : rawTarget)
+  const html = typeof node?.html === 'string' ? node.html : ''
+  const failureSummary = typeof node?.failureSummary === 'string' ? node.failureSummary : ''
+  const context = extractContext(violation.id, html, failureSummary)
 
   return {
     rule: violation.id,
@@ -42,8 +45,8 @@ export function stripViolation(violation: RawViolation): StrippedViolation {
  *   "input[type=text]"             → "input[type=text]"
  *   "a.nav-link"                   → "a"
  */
-export function normalizeSelector(selector: string): string {
-  if (!selector) return 'unknown'
+export function normalizeSelector(selector: unknown): string {
+  if (!selector || typeof selector !== 'string') return 'unknown'
 
   // Get the tag name (everything before the first . # [ )
   const tagMatch = selector.match(/^([a-zA-Z][a-zA-Z0-9]*)/i)
