@@ -168,7 +168,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                       <th className="text-left px-4 py-3 text-gray-600 font-medium">Page</th>
                       <th className="text-left px-4 py-3 text-gray-600 font-medium">URL</th>
                       <th className="text-right px-4 py-3 text-gray-600 font-medium">Score</th>
-                      <th className="text-right px-4 py-3 text-gray-600 font-medium">Violations</th>
+                      <th className="text-right px-4 py-3 text-gray-600 font-medium">Issues</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
