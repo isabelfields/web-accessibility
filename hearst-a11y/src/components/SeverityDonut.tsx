@@ -3,10 +3,10 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const COLORS = {
-  critical: '#4338ca',
-  serious:  '#2563eb',
-  moderate: '#0ea5e9',
-  minor:    '#22d3ee',
+  critical: '#ef4444',
+  serious:  '#f87171',
+  moderate: '#fbbf24',
+  minor:    '#93c5fd',
 }
 
 interface Props {
@@ -42,7 +42,7 @@ export function SeverityDonut({ counts }: Props) {
           ))}
         </Pie>
         <Tooltip
-          formatter={(val) => { const n = Number(val); return [`${n} (${Math.round(n/total*100)}%)`] }}
+          formatter={(val: number, name: string) => [`${val} (${Math.round(val/total*100)}%)`, name]}
           contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #f3f4f6', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
         />
         <Legend
