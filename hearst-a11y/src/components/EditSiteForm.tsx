@@ -7,7 +7,7 @@ import { HEARST_DIVISIONS, HearstDivision } from '@/types'
 interface PageRow {
   url: string
   label: string
-  templateType: 'homepage' | 'article' | 'gallery' | 'category' | 'other'
+  templateType: 'homepage' | 'article' | 'gallery' | 'category' | 'commerce' | 'video' | 'search' | 'other'
 }
 
 interface Site {
@@ -155,8 +155,11 @@ export function EditSiteForm({ site, onClose }: { site: Site; onClose: () => voi
                     >
                       <option value="homepage">Homepage</option>
                       <option value="article">Article</option>
+                      <option value="commerce">Commerce / Product</option>
                       <option value="gallery">Gallery</option>
                       <option value="category">Category</option>
+                      <option value="video">Video</option>
+                      <option value="search">Search Results</option>
                       <option value="other">Other</option>
                     </select>
                   </div>
