@@ -90,7 +90,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   }
 
   return (
-    <div className="p-8 max-w-5xl">
+    <div className="px-8 py-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
         <Link href="/" className="hover:text-gray-700">Dashboard</Link>
