@@ -115,14 +115,16 @@ export default async function ScanDetailPage({ params }: RouteContext) {
         <>
           {/* Score + Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col items-center">
-              <div className="text-sm font-medium text-gray-500 mb-1">WCAG AA Score</div>
-              <div className="text-xs text-gray-400 mb-3">0–100, higher is better</div>
-              <ScoreGauge score={scan.score ?? 0} size={140} />
+            <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col items-center justify-center">
+              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">WCAG AA Score</div>
+              <div className={`text-5xl font-bold leading-none mt-2 ${scoreColor(scan.score ?? 0)}`}>
+                {Math.round(scan.score ?? 0)}
+              </div>
+              <div className="text-xs text-gray-400 mt-2">0–100, higher is better</div>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-3">
-              <div className="text-sm font-medium text-gray-500">Summary</div>
+            <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Summary</div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Pages scanned</span>
                 <span className="font-semibold">{scan.pages_scanned ?? 0}</span>
@@ -141,8 +143,8 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-              <div className="text-sm font-medium text-gray-500 mb-4">By Severity</div>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">By Severity</div>
               <div className="space-y-3">
                 {(['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
                   const count = byImpact[impact].reduce((s, p) => s + p.occurrences, 0)
