@@ -80,8 +80,8 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
         </div>
         <div className="flex items-center gap-4 shrink-0">
           <div className="text-right hidden sm:block">
-            <div className="text-sm font-semibold text-gray-700">{pattern.occurrences} violation{pattern.occurrences !== 1 ? 's' : ''}</div>
-            <div className="text-xs text-gray-400">{pattern.affectedPages?.length ?? 0} page{(pattern.affectedPages?.length ?? 0) !== 1 ? 's' : ''} affected</div>
+            <div className="text-sm font-semibold text-gray-700">found on {pattern.affectedPages?.length ?? pattern.occurrences} page{(pattern.affectedPages?.length ?? pattern.occurrences) !== 1 ? 's' : ''}</div>
+            <div className="text-xs text-gray-400">{pattern.occurrences} instance{pattern.occurrences !== 1 ? 's' : ''} of this issue</div>
           </div>
           <svg
             className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}
