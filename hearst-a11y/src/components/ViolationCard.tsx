@@ -37,7 +37,8 @@ const IMPACT_LABELS: Record<string, { label: string; color: string; bg: string; 
 const WCAG_RULES: Record<string, { name: string; wcag: string; what: string }> = {
   'html-has-lang': { name: 'Page Language', wcag: 'WCAG 3.1.1 (AA)', what: "The page must declare what language it's written in so screen readers pronounce words correctly." },
   'image-alt': { name: 'Image Alt Text', wcag: 'WCAG 1.1.1 (A)', what: 'Images must have a text description so screen reader users know what the image shows.' },
-  'color-contrast': { name: 'Color Contrast', wcag: 'WCAG 1.4.3 (AA)', what: 'Text must have enough contrast against its background so people with low vision can read it.' },
+  'color-contrast': { name: 'Low Color Contrast', wcag: 'WCAG 1.4.3 (AA)', what: 'Text does not have sufficient contrast against its background. A ratio of at least 4.5:1 is required for normal text and 3:1 for large text so people with low vision can read it.' },
+  'color-contrast-enhanced': { name: 'Low Color Contrast (Enhanced)', wcag: 'WCAG 1.4.6 (AAA)', what: 'Text does not meet the enhanced contrast ratio of 7:1 for normal text or 4.5:1 for large text.' },
   'button-name': { name: 'Button Label', wcag: 'WCAG 4.1.2 (A)', what: 'Buttons must have a visible or hidden label so screen reader users know what the button does.' },
   'label': { name: 'Form Field Label', wcag: 'WCAG 1.3.1 (A)', what: 'Form inputs must have labels so screen reader users know what information to enter.' },
   'link-name': { name: 'Link Text', wcag: 'WCAG 2.4.4 (A)', what: 'Links must have descriptive text so screen reader users know where the link goes.' },
