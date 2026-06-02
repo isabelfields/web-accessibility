@@ -226,7 +226,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                           {(scan.status === 'running' || scan.status === 'queued') && (
                             <CancelScanButton jobId={scan.id} />
                           )}
-                          {(scan.status === 'failed' || scan.status === 'cancelled') && (
+                          {scan.status !== 'running' && scan.status !== 'queued' && (
                             <DeleteScanButton jobId={scan.id} />
                           )}
                         </div>

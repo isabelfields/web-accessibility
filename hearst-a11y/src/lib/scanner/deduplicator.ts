@@ -1,4 +1,4 @@
-import { RawViolation, ViolationPattern, ViolationNode, StrippedViolation } from '@/types'
+import { RawViolation, ViolationPattern, PatternNode, StrippedViolation } from '@/types'
 import { getKnownFix, partitionByKnowledge } from './known-fixes'
 import { stripViolation, normalizeSelector } from './strip-html'
 import { getClaudeSuggestions } from '../claude/suggestions'
@@ -28,7 +28,7 @@ export async function deduplicateAndFix(
     stripped: StrippedViolation
     occurrences: number
     affectedPages: Set<string>
-    nodes: ViolationNode[]
+    nodes: PatternNode[]
   }>()
 
   for (const { url, violations } of pageViolations) {
@@ -37,7 +37,7 @@ export async function deduplicateAndFix(
       const fingerprint = stripped.rule  // one card per rule type
 
       // Collect each failing node (cap at 50 per rule to keep DB size sane)
-      const newNodes: ViolationNode[] = (violation.nodes ?? []).slice(0, 50).map(n => ({
+      const newNodes: PatternNode[] = (violation.nodes ?? []).slice(0, 50).map(n => ({
         html: n.html ?? '',
         url,
         screenshot: (violation as any).sampleScreenshot,
