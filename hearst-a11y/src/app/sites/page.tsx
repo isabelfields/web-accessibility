@@ -5,12 +5,15 @@ import Link from 'next/link'
 import { AddSiteForm } from '@/components/AddSiteForm'
 import { EditSiteForm } from '@/components/EditSiteForm'
 import type { SitePage } from '@/types'
+import { HEARST_DIVISIONS } from '@/types'
 
 interface Site {
   id: string
   name: string
+  division: string | null
   pages: SitePage[]
   created_at: string
+  previousScore: number | null
   latestScan: {
     score: number
     status: string
@@ -32,11 +35,28 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+function ScoreDelta({ current, previous }: { current: number; previous: number | null }) {
+  if (previous == null) return null
+  const delta = Math.round(current) - Math.round(previous)
+  if (delta === 0) return <span className="text-xs text-gray-300 ml-1.5">—</span>
+  const up = delta > 0
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ml-1.5 ${up ? 'text-green-500' : 'text-red-500'}`}>
+      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+          d={up ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'} />
+      </svg>
+      {Math.abs(delta)}
+    </span>
+  )
+}
+
 export default function SitesPage() {
   const [sites, setSites] = useState<Site[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingSite, setEditingSite] = useState<Site | null>(null)
+  const [divisionFilter, setDivisionFilter] = useState('')
 
   async function load() {
     setLoading(true)
@@ -54,12 +74,15 @@ export default function SitesPage() {
     load()
   }
 
+  const activeDivisions = [...new Set(sites.map(s => s.division).filter(Boolean))] as string[]
+  const filtered = divisionFilter ? sites.filter(s => s.division === divisionFilter) : sites
+
   return (
-    <div className="p-8">
+    <div className="px-8 py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Sites</h1>
-          <p className="text-gray-500 text-sm mt-1">Manage your monitored web properties</p>
+          <h1 className="text-xl font-semibold tracking-tight text-gray-900">Sites</h1>
+          <p className="text-gray-400 text-sm mt-0.5">Manage your monitored web properties</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
@@ -79,10 +102,38 @@ export default function SitesPage() {
         <EditSiteForm site={editingSite} onClose={() => { setEditingSite(null); load() }} />
       )}
 
+      {/* Division filter */}
+      {activeDivisions.length > 0 && (
+        <div className="flex items-center gap-3 mb-5">
+          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</span>
+          <div className="inline-flex bg-gray-100 rounded-lg p-0.5">
+            <button
+              onClick={() => setDivisionFilter('')}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                !divisionFilter ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              All
+            </button>
+            {activeDivisions.map(div => (
+              <button
+                key={div}
+                onClick={() => setDivisionFilter(div)}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  divisionFilter === div ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {div}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-20 text-gray-400">Loading...</div>
       ) : sites.length === 0 ? (
-        <div className="bg-white rounded-xl border border-dashed border-gray-300 p-16 text-center">
+        <div className="rounded-xl border border-dashed border-gray-200 p-16 text-center">
           <div className="text-gray-400 text-lg mb-3">No sites configured yet</div>
           <p className="text-gray-400 text-sm mb-6">Add your first site to start monitoring accessibility.</p>
           <button
@@ -93,43 +144,59 @@ export default function SitesPage() {
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="rounded-xl border border-gray-100 overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left px-4 py-3 text-gray-600 font-medium">Site</th>
-                <th className="text-left px-4 py-3 text-gray-600 font-medium">Pages</th>
-                <th className="text-right px-4 py-3 text-gray-600 font-medium">Latest Score</th>
-                <th className="text-right px-4 py-3 text-gray-600 font-medium">Last Scan</th>
-                <th className="text-right px-4 py-3 text-gray-600 font-medium">Added</th>
+            <thead>
+              <tr className="border-b border-gray-100">
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Site</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Pages</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Score</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Last Scan</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Added</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
-              {sites.map(site => (
-                <tr key={site.id} className="hover:bg-gray-50">
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map(site => (
+                <tr key={site.id} className="hover:bg-gray-50/60 transition-colors">
                   <td className="px-4 py-3">
                     <Link href={`/sites/${site.id}`} className="font-medium text-brand-500 hover:text-blue-700">
                       {site.name}
                     </Link>
                   </td>
+                  <td className="px-4 py-3">
+                    {site.division
+                      ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{site.division}</span>
+                      : <span className="text-gray-300">—</span>
+                    }
+                  </td>
                   <td className="px-4 py-3 text-gray-500">
                     {site.pages?.length ?? 0} page{(site.pages?.length ?? 0) !== 1 ? 's' : ''}
                   </td>
-                  <td className={`px-4 py-3 text-right font-semibold ${site.latestScan ? scoreColor(site.latestScan.score) : 'text-gray-400'}`}>
-                    {site.latestScan ? Math.round(site.latestScan.score) : '—'}
+                  <td className="px-4 py-3 text-right">
+                    {site.latestScan ? (
+                      <span className="inline-flex items-center justify-end">
+                        <span className={`font-semibold tabular-nums ${scoreColor(site.latestScan.score)}`}>
+                          {Math.round(site.latestScan.score)}
+                        </span>
+                        <ScoreDelta current={site.latestScan.score} previous={site.previousScore} />
+                      </span>
+                    ) : (
+                      <span className="text-gray-300">—</span>
+                    )}
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-500">
+                  <td className="px-4 py-3 text-right text-gray-400">
                     {site.latestScan ? formatDate(site.latestScan.started_at) : '—'}
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-500">
+                  <td className="px-4 py-3 text-right text-gray-400">
                     {formatDate(site.created_at)}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">
                       <button
                         onClick={() => setEditingSite(site)}
-                        className="text-blue-500 hover:text-blue-700 text-xs font-medium"
+                        className="text-brand-500 hover:text-blue-700 text-xs font-medium"
                       >
                         Edit
                       </button>
