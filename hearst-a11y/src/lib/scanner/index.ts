@@ -82,12 +82,15 @@ async function scanPageList(pages: SitePage[]): Promise<{
       })
       await ctx.close()
     } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err)
+      console.error(`[scanner] Failed to scan ${page.url}:`, errorMsg)
       pageScores.push({
         url: page.url,
         label: page.label,
         score: null as any,
         violationCount: null as any,
-      })
+        error: errorMsg,
+      } as any)
       results.push({
         url: page.url,
         domFingerprint: '',

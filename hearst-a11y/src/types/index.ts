@@ -41,8 +41,9 @@ export interface ViolationPattern {
 export interface PageScore {
   url: string
   label?: string
-  score: number
-  violationCount: number
+  score: number | null
+  violationCount: number | null
+  error?: string
 }
 
 export interface PageScanResult {

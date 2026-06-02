@@ -180,6 +180,11 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                             className="text-blue-600 hover:underline truncate max-w-xs block">
                             {ps.url}
                           </a>
+                          {ps.error && (
+                            <div className="text-xs text-red-500 mt-0.5 truncate max-w-xs" title={ps.error}>
+                              ⚠ {ps.error.length > 80 ? ps.error.slice(0, 80) + '…' : ps.error}
+                            </div>
+                          )}
                         </td>
                         <td className={`px-4 py-3 text-right font-bold ${ps.score != null ? scoreColor(ps.score) : 'text-gray-400'}`}>
                           {ps.score != null ? ps.score : <span className="text-xs font-normal bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Failed</span>}
