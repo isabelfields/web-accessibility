@@ -6,7 +6,7 @@ import { EditSiteForm } from './EditSiteForm'
 interface SitePage {
   url: string
   label: string
-  templateType: 'homepage' | 'article' | 'gallery' | 'category' | 'other'
+  templateType: 'homepage' | 'article' | 'gallery' | 'category' | 'commerce' | 'video' | 'search' | 'other'
 }
 
 interface Site {
