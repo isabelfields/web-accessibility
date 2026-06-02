@@ -115,67 +115,93 @@ export default async function DashboardPage({
   const { sites, scans, activeDivisions, stats } = await getData(division)
   const showDivisionCol = !division
 
+  const scansThisMonth = scans.filter((s: any) => new Date(s.started_at) > new Date(Date.now() - 30*24*60*60*1000)).length
+
   return (
-    <div className="p-8">
-      <div className="flex items-start justify-between mb-6">
+    <div className="px-8 py-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Accessibility Dashboard</h1>
-          <p className="text-gray-500 text-sm mt-1">
+          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">Accessibility Dashboard</h1>
+          <p className="text-sm text-gray-400 mt-0.5">
             {division ? `${division} division` : 'All Hearst properties'}
           </p>
         </div>
-      </div>
-
-      {/* Division filter */}
-      {activeDivisions.length > 0 && (
-        <div className="mb-6">
+        {activeDivisions.length > 0 && (
           <Suspense>
             <DivisionFilter activeDivisions={activeDivisions} />
           </Suspense>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Sites</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">{sites.length}</div>
+      {/* Stats — single row */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-7">
+        {/* Sites */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Sites</span>
+            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+          </div>
+          <div className="text-2xl font-bold text-gray-900 tabular-nums">{sites.length}</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Pages Monitored</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">{stats.totalPages}</div>
+        {/* Pages */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Pages</span>
+            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <div className="text-2xl font-bold text-gray-900 tabular-nums">{stats.totalPages}</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Avg Score</div>
-          <div className={`text-2xl font-bold mt-1 ${stats.avgScore !== null ? scoreColor(stats.avgScore) : 'text-gray-400'}`}>
+        {/* Avg Score */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Avg Score</span>
+            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </div>
+          <div className={`text-2xl font-bold tabular-nums ${stats.avgScore !== null ? scoreColor(stats.avgScore) : 'text-gray-300'}`}>
             {stats.avgScore !== null ? stats.avgScore : '—'}
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Errors Caught</div>
-          <div className="text-2xl font-bold text-red-500 mt-1">{stats.totalErrors}</div>
-          <div className="text-xs text-gray-400 mt-0.5">across latest scans</div>
+        {/* Errors Caught */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Errors</span>
+            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          </div>
+          <div className="text-2xl font-bold text-red-500 tabular-nums">{stats.totalErrors}</div>
+          <div className="text-[10px] text-gray-400 mt-0.5">latest scans</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Errors Resolved</div>
-          <div className="text-2xl font-bold text-green-600 mt-1">{stats.errorsResolved}</div>
-          <div className="text-xs text-gray-400 mt-0.5">vs previous scan</div>
+        {/* Errors Resolved */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Resolved</span>
+            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div className="text-2xl font-bold text-green-600 tabular-nums">{stats.errorsResolved}</div>
+          <div className="text-[10px] text-gray-400 mt-0.5">vs prev scan</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Scans This Month</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">{scans.filter((s: any) => new Date(s.started_at) > new Date(Date.now() - 30*24*60*60*1000)).length}</div>
+        {/* Scans */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Scans</span>
+            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div className="text-2xl font-bold text-gray-900 tabular-nums">{scansThisMonth}</div>
+          <div className="text-[10px] text-gray-400 mt-0.5">this month</div>
         </div>
       </div>
 
       {/* Site cards */}
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Sites</h2>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Sites</h2>
+      </div>
       {sites.length === 0 ? (
         <div className="bg-white rounded-xl border border-dashed border-gray-300 p-12 text-center text-gray-400">
           {division ? `No sites in ${division} yet.` : 'No sites yet.'}{' '}
           <a href="/sites" className="text-brand-500 underline">Add a site</a>.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-7">
           {sites.map((site: any) => (
             <SiteCard key={site.id} site={site} />
           ))}
@@ -183,7 +209,7 @@ export default async function DashboardPage({
       )}
 
       {/* Recent scans */}
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Scans</h2>
+      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Recent Scans</h2>
       <div className="rounded-xl border border-gray-200 overflow-hidden bg-white">
         <table className="w-full text-sm">
           <thead className="bg-gray-50/80">
@@ -210,9 +236,9 @@ export default async function DashboardPage({
             ) : (
               scans.map((scan: any) => (
                 <tr key={scan.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors group cursor-pointer relative">
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-2.5">
                     <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan for ${scan.site_name ?? scan.root_url}`} />
-                    <div className="font-medium text-blue-700">{scan.site_name ?? scan.root_url}</div>
+                    <div className="font-medium text-brand-500 text-sm">{scan.site_name ?? scan.root_url}</div>
                     {scan.site_name && <div className="text-xs text-gray-400 truncate max-w-xs">{scan.root_url}</div>}
                   </td>
                   {showDivisionCol && (
@@ -221,14 +247,14 @@ export default async function DashboardPage({
                     </td>
                   )}
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      scan.status === 'complete' ? 'bg-green-100 text-green-700' :
-                      scan.status === 'running' ? 'bg-blue-100 text-blue-700' :
-                      scan.status === 'failed' ? 'bg-red-100 text-red-700' :
-                      scan.status === 'cancelled' ? 'bg-gray-100 text-gray-500' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
-                      {scan.status}
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                        scan.status === 'complete' ? 'bg-green-500' :
+                        scan.status === 'running' ? 'bg-blue-400' :
+                        scan.status === 'failed' ? 'bg-red-500' :
+                        'bg-gray-300'
+                      }`} />
+                      <span className="text-xs text-gray-600 capitalize">{scan.status}</span>
                     </span>
                   </td>
                   <td className={`px-4 py-3 text-right font-semibold ${scan.score ? scoreColor(scan.score) : 'text-gray-400'}`}>

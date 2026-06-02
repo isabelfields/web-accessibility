@@ -76,7 +76,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <div className="p-8">
+    <div className="px-8 py-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
