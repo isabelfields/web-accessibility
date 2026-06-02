@@ -25,7 +25,7 @@ export interface StrippedViolation {
 }
 
 // Fingerprint key = rule::normalizedSelector
-export interface ViolationNode {
+export interface PatternNode {
   html: string
   url: string            // which page this element was found on
   screenshot?: string    // base64 JPEG
@@ -40,7 +40,7 @@ export interface ViolationPattern {
   isHardcoded: boolean
   occurrences: number
   affectedPages: string[]
-  nodes: ViolationNode[] // every failing element, each individually fixable
+  nodes: PatternNode[]   // every failing element, each individually fixable
   sampleHtml?: string    // kept for backwards compat with old scan records
   sampleScreenshot?: string
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ViolationCard } from './ViolationCard'
-import type { ViolationPattern, PageScore } from '@/types'
+import type { ViolationPattern, PageScore, PatternNode } from '@/types'
 
 interface Props {
   pageScore: PageScore
