@@ -182,7 +182,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                   <th className="text-left px-4 py-3 text-gray-600 font-medium">Status</th>
                   <th className="text-right px-4 py-3 text-gray-600 font-medium">Score</th>
                   <th className="text-right px-4 py-3 text-gray-600 font-medium">Pages</th>
-                  <th className="text-right px-4 py-3 text-gray-600 font-medium">Patterns</th>
+                  <th className="text-right px-4 py-3 text-gray-600 font-medium">Issues</th>
                   <th className="text-left px-4 py-3 text-gray-600 font-medium">Triggered By</th>
                   <th className="px-4 py-3"></th>
                 </tr>
@@ -194,8 +194,11 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                   </tr>
                 ) : (
                   scans.map((scan: any) => (
-                    <tr key={scan.id} className="hover:bg-gray-50 group">
-                      <td className="px-4 py-3 text-gray-700">{formatDate(scan.started_at)}</td>
+                    <tr key={scan.id} className="hover:bg-gray-50 group relative cursor-pointer">
+                      <td className="px-4 py-3 text-gray-700">
+                        <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan from ${formatDate(scan.started_at)}`} />
+                        {formatDate(scan.started_at)}
+                      </td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                           scan.status === 'complete' ? 'bg-green-100 text-green-700' :
@@ -211,9 +214,9 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                         {scan.score ? Math.round(scan.score) : '—'}
                       </td>
                       <td className="px-4 py-3 text-right text-gray-600">{scan.pages_scanned ?? 0}</td>
-                      <td className="px-4 py-3 text-right text-gray-600">{scan.unique_pattern_count ?? 0}</td>
+                      <td className="px-4 py-3 text-right text-gray-600">{scan.raw_violation_count ?? 0}</td>
                       <td className="px-4 py-3 text-gray-500 capitalize">{scan.triggered_by}</td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-right relative z-10">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           {(scan.status === 'running' || scan.status === 'queued') && (
                             <CancelScanButton jobId={scan.id} />
