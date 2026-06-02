@@ -1,12 +1,14 @@
 import { sql } from '@/lib/db'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { SiteCard } from '@/components/SiteCard'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
+import { DivisionFilter } from '@/components/DivisionFilter'
 
 export const dynamic = 'force-dynamic'
 
-async function getData() {
-  const [sites, recentScans, statsRow] = await Promise.all([
+async function getData(division?: string) {
+  const [allSites, recentScans, statsRow] = await Promise.all([
     sql`SELECT * FROM sites ORDER BY created_at DESC`.then(async (sites) => {
       return Promise.all(
         sites.map(async (site) => {
@@ -21,13 +23,13 @@ async function getData() {
       )
     }),
     sql`
-      SELECT sj.id, sj.root_url, s.name as site_name, sj.status, sj.score,
-             sj.pages_scanned, sj.raw_violation_count, sj.unique_pattern_count,
-             sj.started_at, sj.completed_at, sj.triggered_by
+      SELECT sj.id, sj.root_url, s.name as site_name, s.division,
+             sj.status, sj.score, sj.pages_scanned, sj.raw_violation_count,
+             sj.started_at, sj.triggered_by
       FROM scan_jobs sj
       LEFT JOIN sites s ON s.id = sj.site_id
       ORDER BY sj.started_at DESC
-      LIMIT 10
+      LIMIT 20
     `,
     sql`
       SELECT
@@ -42,7 +44,41 @@ async function getData() {
     `.catch(() => [{ total_sites: 0, avg_score: null, scans_this_month: 0 }]),
   ])
 
-  return { sites, recentScans, stats: statsRow[0] ?? { total_sites: 0, avg_score: null, scans_this_month: 0 } }
+  // Collect divisions that actually have sites (for filter pills)
+  const activeDivisions = [...new Set(
+    allSites.map((s: any) => s.division).filter(Boolean)
+  )] as string[]
+
+  // Filter by division if one is selected
+  const sites = division
+    ? allSites.filter((s: any) => s.division === division)
+    : allSites
+
+  const scans = division
+    ? recentScans.filter((s: any) => s.division === division)
+    : recentScans
+
+  // Filtered stats
+  const filteredSites = sites
+  const filteredScores = filteredSites
+    .map((s: any) => s.latestScan?.score)
+    .filter((sc: any) => sc != null) as number[]
+  const filteredAvg = filteredScores.length
+    ? Math.round(filteredScores.reduce((a, b) => a + b, 0) / filteredScores.length)
+    : null
+
+  return {
+    sites,
+    scans,
+    activeDivisions,
+    stats: {
+      total_sites: filteredSites.length,
+      avg_score: filteredAvg,
+      scans_this_month: division
+        ? scans.length
+        : statsRow[0]?.scans_this_month ?? 0,
+    },
+  }
 }
 
 function formatDate(d: string | Date | null) {
@@ -58,28 +94,47 @@ function scoreColor(score: number) {
   return 'text-red-500'
 }
 
-export default async function DashboardPage() {
-  const { sites, recentScans, stats } = await getData()
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ division?: string }>
+}) {
+  const { division } = await searchParams
+  const { sites, scans, activeDivisions, stats } = await getData(division)
 
-  const avgScore = stats.avg_score ? Number(stats.avg_score) : null
+  const avgScore = stats.avg_score
+  const showDivisionCol = !division
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Accessibility Dashboard</h1>
-        <p className="text-gray-500 text-sm mt-1">Hearst property accessibility at a glance</p>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Accessibility Dashboard</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            {division ? `${division} division` : 'All Hearst properties'}
+          </p>
+        </div>
       </div>
+
+      {/* Division filter */}
+      {activeDivisions.length > 0 && (
+        <div className="mb-6">
+          <Suspense>
+            <DivisionFilter activeDivisions={activeDivisions} />
+          </Suspense>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
           <div className="text-sm text-gray-500">Total Sites</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{stats.total_sites ?? 0}</div>
+          <div className="text-3xl font-bold text-gray-900 mt-1">{stats.total_sites}</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
           <div className="text-sm text-gray-500">Avg Score</div>
           <div className={`text-3xl font-bold mt-1 ${avgScore !== null ? scoreColor(avgScore) : 'text-gray-400'}`}>
-            {avgScore !== null ? Math.round(avgScore) : '—'}
+            {avgScore !== null ? avgScore : '—'}
           </div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
@@ -96,7 +151,8 @@ export default async function DashboardPage() {
       <h2 className="text-lg font-semibold text-gray-800 mb-4">Sites</h2>
       {sites.length === 0 ? (
         <div className="bg-white rounded-xl border border-dashed border-gray-300 p-12 text-center text-gray-400">
-          No sites yet. <a href="/sites" className="text-brand-500 underline">Add your first site</a>.
+          {division ? `No sites in ${division} yet.` : 'No sites yet.'}{' '}
+          <a href="/sites" className="text-brand-500 underline">Add a site</a>.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-10">
@@ -113,27 +169,37 @@ export default async function DashboardPage() {
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="text-left px-4 py-3 text-gray-600 font-medium">Site / URL</th>
+              {showDivisionCol && (
+                <th className="text-left px-4 py-3 text-gray-600 font-medium">Division</th>
+              )}
               <th className="text-left px-4 py-3 text-gray-600 font-medium">Status</th>
               <th className="text-right px-4 py-3 text-gray-600 font-medium">Score</th>
               <th className="text-right px-4 py-3 text-gray-600 font-medium">Pages</th>
+              <th className="text-right px-4 py-3 text-gray-600 font-medium">Violations</th>
               <th className="text-right px-4 py-3 text-gray-600 font-medium">Started</th>
               <th className="px-2 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {recentScans.length === 0 ? (
+            {scans.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-8 text-gray-400">No scans yet.</td>
+                <td colSpan={showDivisionCol ? 8 : 7} className="text-center py-8 text-gray-400">
+                  No scans yet.
+                </td>
               </tr>
             ) : (
-              recentScans.map((scan: any) => (
+              scans.map((scan: any) => (
                 <tr key={scan.id} className="hover:bg-gray-50 group cursor-pointer relative">
                   <td className="px-4 py-3">
-                    {/* Stretch link covers the whole row via absolute positioning */}
                     <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan for ${scan.site_name ?? scan.root_url}`} />
                     <div className="font-medium text-blue-700">{scan.site_name ?? scan.root_url}</div>
                     {scan.site_name && <div className="text-xs text-gray-400 truncate max-w-xs">{scan.root_url}</div>}
                   </td>
+                  {showDivisionCol && (
+                    <td className="px-4 py-3 text-gray-500">
+                      {scan.division ?? <span className="text-gray-300">—</span>}
+                    </td>
+                  )}
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                       scan.status === 'complete' ? 'bg-green-100 text-green-700' :
@@ -149,6 +215,7 @@ export default async function DashboardPage() {
                     {scan.score ? Math.round(scan.score) : '—'}
                   </td>
                   <td className="px-4 py-3 text-right text-gray-600">{scan.pages_scanned ?? 0}</td>
+                  <td className="px-4 py-3 text-right text-gray-600">{scan.raw_violation_count ?? '—'}</td>
                   <td className="px-4 py-3 text-right text-gray-500">{formatDate(scan.started_at)}</td>
                   <td className="px-2 py-3 text-right relative z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <DeleteScanButton jobId={scan.id} />
