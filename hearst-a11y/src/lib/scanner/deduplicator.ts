@@ -94,14 +94,16 @@ export async function deduplicateAndFix(
       totalInputTokens += result.inputTokens
       totalOutputTokens += result.outputTokens
 
-      for (const { fingerprint, fixSuggestion } of result.suggestions) {
+      const suggestionMap = new Map(result.suggestions.map(s => [s.fingerprint, s.fixSuggestion]))
+
+      for (const fingerprint of batch) {
         const entry = patternMap.get(fingerprint)!
         patterns.push({
           fingerprint,
           rule: entry.stripped.rule,
           impact: entry.stripped.impact,
           description: entry.stripped.description,
-          fixSuggestion,
+          fixSuggestion: suggestionMap.get(fingerprint) ?? 'Review this element and ensure it meets WCAG AA requirements.',
           isHardcoded: false,
           occurrences: entry.occurrences,
           affectedPages: [...entry.affectedPages],
