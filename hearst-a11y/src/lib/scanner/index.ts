@@ -18,9 +18,10 @@ async function scanPageList(pages: SitePage[]): Promise<{
   const pageScores: PageScore[] = []
 
   async function scanOnePage(page: SitePage, retry = false): Promise<{ pageScore: PageScore; result: PageScanResult }> {
-    const ctx = await browser.newContext()
-    const pw = await ctx.newPage()
+    let ctx: Awaited<ReturnType<typeof browser.newContext>> | undefined
     try {
+      ctx = await browser.newContext()
+      const pw = await ctx.newPage()
       await pw.goto(page.url, { waitUntil: 'domcontentloaded', timeout: 20000 })
 
       const axeResults = await new AxeBuilder({ page: pw })
@@ -65,13 +66,13 @@ async function scanPageList(pages: SitePage[]): Promise<{
       const pageScore = Math.max(0, Math.round(100 - pagePenalty))
       const rawForScore = violations.reduce((sum, v) => sum + v.nodes.length, 0)
 
-      await ctx.close()
+      await ctx?.close()
       return {
         pageScore: { url: page.url, label: page.label, score: pageScore, violationCount: rawForScore },
         result: { url: page.url, domFingerprint: '', violations, scannedAt: new Date().toISOString(), skipped: false },
       }
     } catch (err) {
-      await ctx.close().catch(() => {})
+      await ctx?.close().catch(() => {})
       // Reconnect and retry once if the browser connection dropped
       if (!retry && err instanceof Error && (
         err.message.includes('Target page') ||
