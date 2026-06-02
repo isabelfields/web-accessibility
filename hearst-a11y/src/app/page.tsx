@@ -127,18 +127,12 @@ export default async function DashboardPage() {
               </tr>
             ) : (
               recentScans.map((scan: any) => (
-                <tr key={scan.id} className="hover:bg-gray-50 group">
+                <tr key={scan.id} className="hover:bg-gray-50 group cursor-pointer">
                   <td className="px-4 py-3">
-                    {scan.site_id ? (
-                      <Link href={`/sites/${scan.site_id}`} className="block hover:underline">
-                        <div className="font-medium text-blue-700">{scan.site_name ?? scan.root_url}</div>
-                        {scan.site_name && <div className="text-xs text-gray-400 truncate max-w-xs">{scan.root_url}</div>}
-                      </Link>
-                    ) : (
-                      <div>
-                        <div className="font-medium text-gray-800">{scan.root_url}</div>
-                      </div>
-                    )}
+                    <Link href={`/scans/${scan.id}`} className="block hover:underline">
+                      <div className="font-medium text-blue-700">{scan.site_name ?? scan.root_url}</div>
+                      {scan.site_name && <div className="text-xs text-gray-400 truncate max-w-xs">{scan.root_url}</div>}
+                    </Link>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
