@@ -42,7 +42,7 @@ export function SeverityDonut({ counts }: Props) {
           ))}
         </Pie>
         <Tooltip
-          formatter={(val: number, name: string) => [`${val} (${Math.round(val/total*100)}%)`, name]}
+          formatter={(val: number | undefined, name: string) => val == null ? [name, name] : [`${val} (${Math.round(val/total*100)}%)`, name]}
           contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #f3f4f6', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
         />
         <Legend
