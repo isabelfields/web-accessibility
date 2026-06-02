@@ -144,7 +144,7 @@ export default function SitesPage() {
           </button>
         </div>
       ) : (
-        <div className="rounded-xl border border-gray-100 overflow-hidden">
+        <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">

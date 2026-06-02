@@ -140,7 +140,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           {/* Score + Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
             {/* Score */}
-            <div className="rounded-xl border border-gray-100 p-6 flex flex-col items-center justify-center">
+            <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6 flex flex-col items-center justify-center">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Score</div>
               <div className={`text-5xl font-bold leading-none tabular-nums ${scoreColor(scan.score ?? 0)}`}>
                 {Math.round(scan.score ?? 0)}
@@ -149,7 +149,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             </div>
 
             {/* Violations summary */}
-            <div className="rounded-xl border border-gray-100 p-6 flex flex-col justify-between">
+            <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6 flex flex-col justify-between">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Violations</div>
               <div className="text-4xl font-bold text-gray-900 tabular-nums leading-none">{totalViolations}</div>
               <div className="mt-3 space-y-1.5 text-xs text-gray-400">
@@ -159,7 +159,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             </div>
 
             {/* WCAG A / AA / AAA */}
-            <div className="rounded-xl border border-gray-100 p-6">
+            <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">By WCAG Level</div>
               <div className="flex items-end gap-5">
                 <div>
@@ -178,7 +178,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             </div>
 
             {/* Severity bar */}
-            <div className="rounded-xl border border-gray-100 p-6">
+            <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">By Severity</div>
               <SeverityBar counts={severityCounts} height="h-3" />
             </div>
@@ -188,14 +188,14 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           {pageScores.length > 0 && (
             <div className="mb-8">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Page Scores</h2>
-              <div className="rounded-xl border border-gray-100 overflow-hidden">
+              <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-100">
                       <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Page</th>
                       <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">URL</th>
                       <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Score</th>
-                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Issues</th>
+                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Violations</th>
                     </tr>
                   </thead>
                   <tbody>

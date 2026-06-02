@@ -67,7 +67,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
   const hiddenCount = nodes.length - SHOW_LIMIT
 
   return (
-    <div className={`rounded-xl border border-gray-100 border-l-[3px] ${impact.border} overflow-hidden`}>
+    <div className={`rounded-xl border border-gray-200 shadow-sm bg-white border-l-[3px] ${impact.border} overflow-hidden`}>
 
       {/* ── Collapsed header row ── */}
       <button

@@ -34,7 +34,7 @@ export function SiteCard({ site }: SiteCardProps) {
   return (
     <Link
       href={`/sites/${site.id}`}
-      className="block bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition-all group"
+      className="block bg-white border border-gray-200 shadow-sm rounded-xl p-5 hover:shadow-md hover:border-gray-300 transition-all group"
     >
       <div className="flex items-start justify-between gap-4">
         {/* Left: name + meta */}
