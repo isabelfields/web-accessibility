@@ -55,13 +55,13 @@ async function scanPageList(pages: SitePage[]): Promise<{
         }
       }
 
+      // Score per unique rule type (same formula as calculateScore) so page scores are comparable to overall score
       let pagePenalty = 0
       for (const v of violations) {
-        const count = v.nodes.length
-        if (v.impact === 'critical') pagePenalty += 8 * count
-        else if (v.impact === 'serious') pagePenalty += 5 * count
-        else if (v.impact === 'moderate') pagePenalty += 2 * count
-        else pagePenalty += 0.5 * count
+        if (v.impact === 'critical') pagePenalty += 8
+        else if (v.impact === 'serious') pagePenalty += 5
+        else if (v.impact === 'moderate') pagePenalty += 2
+        else pagePenalty += 0.5
       }
       const pageScore = Math.max(0, Math.round(100 - pagePenalty))
       const rawForScore = violations.reduce((sum, v) => sum + v.nodes.length, 0)

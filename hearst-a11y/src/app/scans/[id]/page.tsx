@@ -195,7 +195,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                       <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Page</th>
                       <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">URL</th>
                       <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Score</th>
-                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Issues</th>
+                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Violations</th>
                     </tr>
                   </thead>
                   <tbody>
