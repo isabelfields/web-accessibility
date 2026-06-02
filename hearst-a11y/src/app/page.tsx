@@ -8,7 +8,7 @@ import { DivisionFilter } from '@/components/DivisionFilter'
 export const dynamic = 'force-dynamic'
 
 async function getData(division?: string) {
-  const [allSites, recentScans, statsRow] = await Promise.all([
+  const [allSites, recentScans, resolvedRow] = await Promise.all([
     sql`SELECT * FROM sites ORDER BY created_at DESC`.then(async (sites) => {
       return Promise.all(
         sites.map(async (site) => {
@@ -18,7 +18,12 @@ async function getData(division?: string) {
             WHERE site_id = ${site.id} AND status = 'complete'
             ORDER BY started_at DESC LIMIT 1
           `
-          return { ...site, latestScan: latest ?? null }
+          const [prev] = await sql`
+            SELECT raw_violation_count FROM scan_jobs
+            WHERE site_id = ${site.id} AND status = 'complete'
+            ORDER BY started_at DESC LIMIT 1 OFFSET 1
+          `
+          return { ...site, latestScan: latest ?? null, prevScan: prev ?? null }
         })
       )
     }),
@@ -31,25 +36,26 @@ async function getData(division?: string) {
       ORDER BY sj.started_at DESC
       LIMIT 20
     `,
+    // Errors resolved: sum of positive reductions between latest and previous scan per site
     sql`
-      SELECT
-        COUNT(DISTINCT s.id) AS total_sites,
-        ROUND(AVG(latest.score)::numeric, 1) AS avg_score,
-        COUNT(CASE WHEN sj.started_at >= NOW() - INTERVAL '30 days' THEN 1 END) AS scans_this_month
-      FROM sites s
-      LEFT JOIN LATERAL (
-        SELECT score FROM scan_jobs WHERE site_id = s.id AND status = 'complete' ORDER BY started_at DESC LIMIT 1
-      ) latest ON true
-      LEFT JOIN scan_jobs sj ON sj.site_id = s.id
-    `.catch(() => [{ total_sites: 0, avg_score: null, scans_this_month: 0 }]),
+      SELECT COALESCE(SUM(GREATEST(0, prev.raw_violation_count - latest.raw_violation_count)), 0) AS resolved
+      FROM (
+        SELECT DISTINCT ON (site_id) site_id, raw_violation_count
+        FROM scan_jobs WHERE status = 'complete'
+        ORDER BY site_id, started_at DESC
+      ) latest
+      JOIN (
+        SELECT site_id, raw_violation_count,
+               ROW_NUMBER() OVER (PARTITION BY site_id ORDER BY started_at DESC) AS rn
+        FROM scan_jobs WHERE status = 'complete'
+      ) prev ON prev.site_id = latest.site_id AND prev.rn = 2
+    `.catch(() => [{ resolved: 0 }]),
   ])
 
-  // Collect divisions that actually have sites (for filter pills)
   const activeDivisions = [...new Set(
     allSites.map((s: any) => s.division).filter(Boolean)
   )] as string[]
 
-  // Filter by division if one is selected
   const sites = division
     ? allSites.filter((s: any) => s.division === division)
     : allSites
@@ -58,26 +64,32 @@ async function getData(division?: string) {
     ? recentScans.filter((s: any) => s.division === division)
     : recentScans
 
-  // Filtered stats
-  const filteredSites = sites
-  const filteredScores = filteredSites
+  // Compute stats from filtered sites
+  const filteredScores = sites
     .map((s: any) => s.latestScan?.score)
     .filter((sc: any) => sc != null) as number[]
-  const filteredAvg = filteredScores.length
+  const avgScore = filteredScores.length
     ? Math.round(filteredScores.reduce((a, b) => a + b, 0) / filteredScores.length)
     : null
+
+  const totalPages = sites.reduce((sum: number, s: any) =>
+    sum + (Array.isArray(s.pages) ? s.pages.length : 0), 0)
+
+  const totalErrors = sites.reduce((sum: number, s: any) =>
+    sum + (s.latestScan?.raw_violation_count ?? 0), 0)
+
+  // Errors resolved: per-site diff, filtered by division
+  const errorsResolved = sites.reduce((sum: number, s: any) => {
+    const latest = s.latestScan?.raw_violation_count ?? 0
+    const prev = s.prevScan?.raw_violation_count ?? latest
+    return sum + Math.max(0, prev - latest)
+  }, 0)
 
   return {
     sites,
     scans,
     activeDivisions,
-    stats: {
-      total_sites: filteredSites.length,
-      avg_score: filteredAvg,
-      scans_this_month: division
-        ? scans.length
-        : statsRow[0]?.scans_this_month ?? 0,
-    },
+    stats: { avgScore, totalPages, totalErrors, errorsResolved },
   }
 }
 
@@ -101,8 +113,6 @@ export default async function DashboardPage({
 }) {
   const { division } = await searchParams
   const { sites, scans, activeDivisions, stats } = await getData(division)
-
-  const avgScore = stats.avg_score
   const showDivisionCol = !division
 
   return (
@@ -126,24 +136,34 @@ export default async function DashboardPage({
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Total Sites</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{stats.total_sites}</div>
+          <div className="text-sm text-gray-500">Sites</div>
+          <div className="text-3xl font-bold text-gray-900 mt-1">{sites.length}</div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <div className="text-sm text-gray-500">Pages Monitored</div>
+          <div className="text-3xl font-bold text-gray-900 mt-1">{stats.totalPages}</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
           <div className="text-sm text-gray-500">Avg Score</div>
-          <div className={`text-3xl font-bold mt-1 ${avgScore !== null ? scoreColor(avgScore) : 'text-gray-400'}`}>
-            {avgScore !== null ? avgScore : '—'}
+          <div className={`text-3xl font-bold mt-1 ${stats.avgScore !== null ? scoreColor(stats.avgScore) : 'text-gray-400'}`}>
+            {stats.avgScore !== null ? stats.avgScore : '—'}
           </div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Scans This Month</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{stats.scans_this_month ?? 0}</div>
+          <div className="text-sm text-gray-500">Errors Caught</div>
+          <div className="text-3xl font-bold text-red-500 mt-1">{stats.totalErrors}</div>
+          <div className="text-xs text-gray-400 mt-0.5">across latest scans</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Sites Monitored</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{sites.length}</div>
+          <div className="text-sm text-gray-500">Errors Resolved</div>
+          <div className="text-3xl font-bold text-green-600 mt-1">{stats.errorsResolved}</div>
+          <div className="text-xs text-gray-400 mt-0.5">vs previous scan</div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <div className="text-sm text-gray-500">Scans This Month</div>
+          <div className="text-3xl font-bold text-gray-900 mt-1">{scans.filter((s: any) => new Date(s.started_at) > new Date(Date.now() - 30*24*60*60*1000)).length}</div>
         </div>
       </div>
 
