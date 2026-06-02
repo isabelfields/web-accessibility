@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { HEARST_DIVISIONS, HearstDivision } from '@/types'
+import { HEARST_DIVISIONS } from '@/types'
 
 export function DivisionFilter({ activeDivisions }: { activeDivisions: string[] }) {
   const router = useRouter()
@@ -10,42 +10,41 @@ export function DivisionFilter({ activeDivisions }: { activeDivisions: string[] 
 
   function select(div: string) {
     const params = new URLSearchParams(searchParams.toString())
-    if (div) {
-      params.set('division', div)
-    } else {
-      params.delete('division')
-    }
+    if (div) params.set('division', div)
+    else params.delete('division')
     router.push(`/?${params.toString()}`)
   }
 
   const options = HEARST_DIVISIONS.filter(d => activeDivisions.includes(d))
 
   return (
-    <div className="flex flex-wrap gap-2 items-center">
-      <span className="text-sm text-gray-500 mr-1">Filter by division:</span>
-      <button
-        onClick={() => select('')}
-        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-          !current
-            ? 'bg-brand-500 text-white'
-            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-        }`}
-      >
-        All
-      </button>
-      {options.map(div => (
+    <div className="flex items-center gap-3">
+      <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Division</span>
+      <div className="inline-flex bg-gray-100 rounded-lg p-0.5">
         <button
-          key={div}
-          onClick={() => select(div)}
-          className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-            current === div
-              ? 'bg-brand-500 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          onClick={() => select('')}
+          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+            !current
+              ? 'bg-white shadow-sm text-gray-900'
+              : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          {div}
+          All
         </button>
-      ))}
+        {options.map(div => (
+          <button
+            key={div}
+            onClick={() => select(div)}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+              current === div
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {div}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
