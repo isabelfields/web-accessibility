@@ -10,6 +10,7 @@ import { CancelScanButton } from '@/components/CancelScanButton'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { ViolationCard } from '@/components/ViolationCard'
 import { EditSiteButton } from '@/components/EditSiteButton'
+import { PageViolationsModal } from '@/components/PageViolationsModal'
 import type { ViolationPattern, SitePage } from '@/types'
 
 async function getSiteData(id: string) {
@@ -262,14 +263,10 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                     <tr key={i} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-800">{page.label}</td>
                       <td className="px-4 py-3">
-                        <a
-                          href={page.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline truncate max-w-xs block"
-                        >
-                          {page.url}
-                        </a>
+                        <PageViolationsModal
+                          pageScore={ps ?? { url: page.url, label: page.label, score: null as any, violationCount: null as any }}
+                          patterns={patterns}
+                        />
                       </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
