@@ -27,7 +27,16 @@ async function scanPageList(pages: SitePage[]): Promise<{
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
         .analyze()
 
-      const violations = axeResults.violations as unknown as RawViolation[]
+      // Include incomplete results for contrast-only rules — axe marks these as
+      // "needs review" when it can't compute contrast (CSS vars, gradients, etc.)
+      const contrastIncomplete = (axeResults.incomplete ?? [])
+        .filter((r: any) => r.id === 'color-contrast')
+        .map((r: any) => ({ ...r, impact: r.impact ?? 'serious' }))
+
+      const violations = [
+        ...axeResults.violations,
+        ...contrastIncomplete,
+      ] as unknown as RawViolation[]
 
       // Take element screenshots for the first node of each violation
       for (const violation of violations) {
