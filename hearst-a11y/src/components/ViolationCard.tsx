@@ -35,7 +35,7 @@ const IMPACT_LABELS: Record<string, { label: string; color: string; bg: string; 
 }
 
 const WCAG_RULES: Record<string, { name: string; wcag: string; what: string }> = {
-  'html-has-lang': { name: 'Page Language', wcag: 'WCAG 3.1.1 (AA)', what: 'The page must declare what language it's written in so screen readers pronounce words correctly.' },
+  'html-has-lang': { name: 'Page Language', wcag: 'WCAG 3.1.1 (AA)', what: "The page must declare what language it's written in so screen readers pronounce words correctly." },
   'image-alt': { name: 'Image Alt Text', wcag: 'WCAG 1.1.1 (A)', what: 'Images must have a text description so screen reader users know what the image shows.' },
   'color-contrast': { name: 'Color Contrast', wcag: 'WCAG 1.4.3 (AA)', what: 'Text must have enough contrast against its background so people with low vision can read it.' },
   'button-name': { name: 'Button Label', wcag: 'WCAG 4.1.2 (A)', what: 'Buttons must have a visible or hidden label so screen reader users know what the button does.' },
