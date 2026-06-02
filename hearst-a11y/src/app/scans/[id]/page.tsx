@@ -138,49 +138,49 @@ export default async function ScanDetailPage({ params }: RouteContext) {
       ) : (
         <>
           {/* Score + Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
             {/* Score */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col items-center justify-center">
-              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Score</div>
+            <div className="rounded-xl border border-gray-100 p-6 flex flex-col items-center justify-center">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Score</div>
               <div className={`text-5xl font-bold leading-none tabular-nums ${scoreColor(scan.score ?? 0)}`}>
                 {Math.round(scan.score ?? 0)}
               </div>
-              <div className="text-xs text-gray-400 mt-2">/ 100</div>
+              <div className="text-xs text-gray-300 mt-2">/ 100</div>
             </div>
 
             {/* Violations summary */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col justify-between">
-              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">Violations</div>
+            <div className="rounded-xl border border-gray-100 p-6 flex flex-col justify-between">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Violations</div>
               <div className="text-4xl font-bold text-gray-900 tabular-nums leading-none">{totalViolations}</div>
-              <div className="mt-3 space-y-1 text-xs text-gray-500">
-                <div className="flex justify-between"><span>Issue types</span><span className="font-semibold text-gray-700">{scan.unique_pattern_count ?? 0}</span></div>
-                <div className="flex justify-between"><span>Pages scanned</span><span className="font-semibold text-gray-700">{scan.pages_scanned ?? 0}</span></div>
+              <div className="mt-3 space-y-1.5 text-xs text-gray-400">
+                <div className="flex justify-between"><span>Issue types</span><span className="font-semibold text-gray-600">{scan.unique_pattern_count ?? 0}</span></div>
+                <div className="flex justify-between"><span>Pages scanned</span><span className="font-semibold text-gray-600">{scan.pages_scanned ?? 0}</span></div>
               </div>
             </div>
 
             {/* WCAG A / AA / AAA */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">By WCAG Level</div>
-              <div className="flex items-end gap-4">
+            <div className="rounded-xl border border-gray-100 p-6">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">By WCAG Level</div>
+              <div className="flex items-end gap-5">
                 <div>
                   <div className="text-2xl font-bold text-gray-900 tabular-nums">{wcagLevels.A}</div>
-                  <div className="text-xs font-semibold text-gray-400 mt-0.5">A</div>
+                  <div className="text-[11px] font-semibold text-gray-400 mt-0.5">Level A</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-gray-900 tabular-nums">{wcagLevels.AA}</div>
-                  <div className="text-xs font-semibold text-gray-400 mt-0.5">AA</div>
+                  <div className="text-[11px] font-semibold text-gray-400 mt-0.5">Level AA</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-gray-900 tabular-nums">{wcagLevels.AAA}</div>
-                  <div className="text-xs font-semibold text-gray-400 mt-0.5">AAA</div>
+                  <div className="text-[11px] font-semibold text-gray-400 mt-0.5">Level AAA</div>
                 </div>
               </div>
             </div>
 
             {/* Severity bar */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">Issues by severity</div>
-              <SeverityBar counts={severityCounts} height="h-4" />
+            <div className="rounded-xl border border-gray-100 p-6">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">By Severity</div>
+              <SeverityBar counts={severityCounts} height="h-3" />
             </div>
           </div>
 
@@ -188,14 +188,14 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           {pageScores.length > 0 && (
             <div className="mb-8">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Page Scores</h2>
-              <div className="rounded-xl border border-gray-200 overflow-hidden bg-white">
+              <div className="rounded-xl border border-gray-100 overflow-hidden">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50/80">
-                    <tr>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Page</th>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">URL</th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Score</th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Issues</th>
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Page</th>
+                      <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">URL</th>
+                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Score</th>
+                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Issues</th>
                     </tr>
                   </thead>
                   <tbody>
