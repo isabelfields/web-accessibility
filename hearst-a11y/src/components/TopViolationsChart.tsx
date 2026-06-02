@@ -18,7 +18,7 @@ export function TopViolationsChart({ violations }: Props) {
     return <div className="flex items-center justify-center h-40 text-sm text-gray-300">No violations found</div>
   }
 
-  const data = violations.slice(0, 8).map(v => ({
+  const data = violations.slice(0, 5).map(v => ({
     rule: v.rule.replace(/-/g, ' '),
     count: v.count,
     impact: v.impact,
@@ -43,7 +43,7 @@ export function TopViolationsChart({ violations }: Props) {
         />
         <Tooltip
           contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #f3f4f6', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
-          formatter={(val) => [Number(val), 'occurrences']}
+          formatter={(val) => [Number(val), 'affected sites']}
         />
         <Bar dataKey="count" radius={[0, 4, 4, 0]} maxBarSize={16}>
           {data.map((entry, i) => (

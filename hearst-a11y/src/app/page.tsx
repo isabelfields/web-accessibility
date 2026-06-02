@@ -89,9 +89,9 @@ async function getData(division?: string) {
       if (impact in severityCounts) severityCounts[impact] += p.occurrences
       const existing = violationMap.get(p.rule)
       if (existing) {
-        existing.count += p.occurrences
+        existing.count += 1
       } else {
-        violationMap.set(p.rule, { count: p.occurrences, impact: p.impact })
+        violationMap.set(p.rule, { count: 1, impact: p.impact })
       }
     }
   }
