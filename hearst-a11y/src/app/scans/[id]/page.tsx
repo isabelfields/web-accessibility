@@ -200,21 +200,23 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                   </thead>
                   <tbody>
                     {pageScores.map((ps, i) => (
-                      <tr key={i} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-800">{ps.label ?? '—'}</td>
-                        <td className="px-4 py-3">
-                          <PageViolationsModal pageScore={ps} patterns={patterns} />
-                          {ps.error && (
-                            <div className="text-xs text-red-500 mt-0.5 truncate max-w-xs" title={ps.error}>
-                              ⚠ {ps.error.length > 80 ? ps.error.slice(0, 80) + '…' : ps.error}
-                            </div>
-                          )}
-                        </td>
-                        <td className={`px-4 py-3 text-right font-bold ${ps.score != null ? scoreColor(ps.score) : 'text-gray-400'}`}>
-                          {ps.score != null ? ps.score : <span className="text-xs font-normal bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Failed</span>}
-                        </td>
-                        <td className="px-4 py-3 text-right text-gray-600">{ps.violationCount ?? '—'}</td>
-                      </tr>
+                      <PageViolationsModal key={i} pageScore={ps} patterns={patterns}>
+                        <tr className={`border-t border-gray-100 transition-colors ${ps.score != null ? 'hover:bg-gray-50/70 cursor-pointer' : ''}`}>
+                          <td className="px-4 py-3 font-medium text-gray-800">{ps.label ?? '—'}</td>
+                          <td className="px-4 py-3">
+                            <span className="text-brand-500 truncate block max-w-sm">{ps.url}</span>
+                            {ps.error && (
+                              <div className="text-xs text-red-500 mt-0.5 truncate max-w-sm" title={ps.error}>
+                                ⚠ {ps.error.length > 80 ? ps.error.slice(0, 80) + '…' : ps.error}
+                              </div>
+                            )}
+                          </td>
+                          <td className={`px-4 py-3 text-right font-bold ${ps.score != null ? scoreColor(ps.score) : 'text-gray-400'}`}>
+                            {ps.score != null ? ps.score : <span className="text-xs font-normal bg-red-50 text-red-500 px-2 py-0.5 rounded-md">Failed</span>}
+                          </td>
+                          <td className="px-4 py-3 text-right text-gray-600">{ps.violationCount ?? '—'}</td>
+                        </tr>
+                      </PageViolationsModal>
                     ))}
                   </tbody>
                 </table>

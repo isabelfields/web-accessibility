@@ -2,14 +2,16 @@
 
 import { useState } from 'react'
 import { ViolationCard } from './ViolationCard'
-import type { ViolationPattern, PageScore, PatternNode } from '@/types'
+import type { ViolationPattern, PageScore } from '@/types'
 
 interface Props {
   pageScore: PageScore
   patterns: ViolationPattern[]
+  /** If provided, renders as the clickable trigger instead of the default URL button */
+  children?: React.ReactNode
 }
 
-export function PageViolationsModal({ pageScore, patterns }: Props) {
+export function PageViolationsModal({ pageScore, patterns, children }: Props) {
   const [open, setOpen] = useState(false)
 
   const pagePatterns = patterns.filter(p =>
@@ -19,26 +21,34 @@ export function PageViolationsModal({ pageScore, patterns }: Props) {
 
   const hasData = pageScore.score != null
 
+  const trigger = children ?? (
+    <button
+      onClick={() => hasData && setOpen(true)}
+      className={`text-left hover:underline truncate max-w-xs block ${hasData ? 'text-brand-500 cursor-pointer' : 'text-blue-300 cursor-default'}`}
+      title={pageScore.url}
+      disabled={!hasData}
+    >
+      {pageScore.url}
+    </button>
+  )
+
   return (
     <>
-      <button
-        onClick={() => hasData && setOpen(true)}
-        className={`text-left hover:underline truncate max-w-xs block ${hasData ? 'text-blue-600 cursor-pointer' : 'text-blue-400 cursor-default'}`}
-        title={pageScore.url}
-        disabled={!hasData}
-      >
-        {pageScore.url}
-      </button>
+      {children ? (
+        <div onClick={() => hasData && setOpen(true)} className={hasData ? 'cursor-pointer' : ''}>
+          {children}
+        </div>
+      ) : trigger}
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl mx-4 max-h-[85vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setOpen(false)}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl mx-4 max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="flex items-start justify-between px-6 py-4 border-b flex-shrink-0">
               <div>
                 <h2 className="text-base font-semibold text-gray-900">{pageScore.label ?? 'Page'}</h2>
                 <a href={pageScore.url} target="_blank" rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:underline break-all">
+                  className="text-sm text-brand-500 hover:underline break-all">
                   {pageScore.url}
                 </a>
                 <div className="flex items-center gap-3 mt-1">
