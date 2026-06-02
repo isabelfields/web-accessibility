@@ -57,26 +57,28 @@ export function PageViolationsModal({ pageScore, patterns }: Props) {
             </div>
 
             {/* Body */}
-            <div className="overflow-y-auto p-6 space-y-3">
+            <div className="overflow-y-auto px-6 py-5 space-y-5">
               {pagePatterns.length === 0 ? (
-                <div className="text-center py-10 text-gray-400">No violations found on this page.</div>
+                <div className="text-center py-10 text-gray-400 text-sm">No violations found on this page.</div>
               ) : (
                 (['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
                   const group = pagePatterns.filter(p => p.impact === impact)
                   if (group.length === 0) return null
+                  const cfg = {
+                    critical: { bar: 'bg-red-500',    text: 'text-red-600',    label: 'Critical' },
+                    serious:  { bar: 'bg-orange-400', text: 'text-orange-600', label: 'Serious' },
+                    moderate: { bar: 'bg-amber-400',  text: 'text-amber-600',  label: 'Moderate' },
+                    minor:    { bar: 'bg-blue-400',   text: 'text-blue-600',   label: 'Minor' },
+                  }[impact]
                   return (
                     <div key={impact}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-sm font-semibold text-gray-700">
-                          {impact === 'critical' ? '🔴 Critical' :
-                           impact === 'serious' ? '🟠 Serious' :
-                           impact === 'moderate' ? '🟡 Moderate' : '🔵 Minor'}
-                        </h3>
+                      <div className="flex items-center gap-2 mb-2 px-1">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.bar}`} />
+                        <span className={`text-xs font-semibold uppercase tracking-wider ${cfg.text}`}>{cfg.label}</span>
                         <span className="text-xs text-gray-400">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         {group.map(p => {
-                          // Show only nodes from this specific page
                           const pageNodes = p.nodes?.filter(n => n.url === pageScore.url) ?? []
                           const patternForPage = {
                             ...p,
