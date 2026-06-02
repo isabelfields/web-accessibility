@@ -1,7 +1,6 @@
 import { sql } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ScoreGauge } from '@/components/ScoreGauge'
 import { ViolationCard } from '@/components/ViolationCard'
 import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
@@ -170,19 +169,19 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           {pageScores.length > 0 && (
             <div className="mb-8">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Page Scores</h2>
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="rounded-xl border border-gray-200 overflow-hidden bg-white">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-gray-50/80">
                     <tr>
-                      <th className="text-left px-4 py-3 text-gray-600 font-medium">Page</th>
-                      <th className="text-left px-4 py-3 text-gray-600 font-medium">URL</th>
-                      <th className="text-right px-4 py-3 text-gray-600 font-medium">Score</th>
-                      <th className="text-right px-4 py-3 text-gray-600 font-medium">Issues</th>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Page</th>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">URL</th>
+                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Score</th>
+                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Issues</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody>
                     {pageScores.map((ps, i) => (
-                      <tr key={i} className="hover:bg-gray-50">
+                      <tr key={i} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
                         <td className="px-4 py-3 font-medium text-gray-800">{ps.label ?? '—'}</td>
                         <td className="px-4 py-3">
                           <PageViolationsModal pageScore={ps} patterns={patterns} />

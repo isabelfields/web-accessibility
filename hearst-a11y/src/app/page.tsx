@@ -184,23 +184,23 @@ export default async function DashboardPage({
 
       {/* Recent scans */}
       <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Scans</h2>
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-gray-200 overflow-hidden bg-white">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gray-50/80">
             <tr>
-              <th className="text-left px-4 py-3 text-gray-600 font-medium">Site / URL</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Site / URL</th>
               {showDivisionCol && (
-                <th className="text-left px-4 py-3 text-gray-600 font-medium">Division</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Division</th>
               )}
-              <th className="text-left px-4 py-3 text-gray-600 font-medium">Status</th>
-              <th className="text-right px-4 py-3 text-gray-600 font-medium">Score</th>
-              <th className="text-right px-4 py-3 text-gray-600 font-medium">Pages</th>
-              <th className="text-right px-4 py-3 text-gray-600 font-medium">Violations</th>
-              <th className="text-right px-4 py-3 text-gray-600 font-medium">Started</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+              <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Score</th>
+              <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Pages</th>
+              <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Violations</th>
+              <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Started</th>
               <th className="px-2 py-3"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody>
             {scans.length === 0 ? (
               <tr>
                 <td colSpan={showDivisionCol ? 8 : 7} className="text-center py-8 text-gray-400">
@@ -209,7 +209,7 @@ export default async function DashboardPage({
               </tr>
             ) : (
               scans.map((scan: any) => (
-                <tr key={scan.id} className="hover:bg-gray-50 group cursor-pointer relative">
+                <tr key={scan.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors group cursor-pointer relative">
                   <td className="px-4 py-3">
                     <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan for ${scan.site_name ?? scan.root_url}`} />
                     <div className="font-medium text-blue-700">{scan.site_name ?? scan.root_url}</div>
