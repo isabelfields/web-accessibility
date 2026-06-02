@@ -13,7 +13,7 @@ interface PageRow {
 interface Site {
   id: string
   name: string
-  division?: string
+  division?: string | null
   pages: PageRow[]
 }
 

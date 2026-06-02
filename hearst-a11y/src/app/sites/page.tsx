@@ -10,7 +10,7 @@ import { HEARST_DIVISIONS } from '@/types'
 interface Site {
   id: string
   name: string
-  division: string | null
+  division?: string | null
   pages: SitePage[]
   created_at: string
   previousScore: number | null
