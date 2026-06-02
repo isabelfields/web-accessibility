@@ -181,10 +181,10 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                             {ps.url}
                           </a>
                         </td>
-                        <td className={`px-4 py-3 text-right font-bold ${scoreColor(ps.score)}`}>
-                          {ps.score}
+                        <td className={`px-4 py-3 text-right font-bold ${ps.score != null ? scoreColor(ps.score) : 'text-gray-400'}`}>
+                          {ps.score != null ? ps.score : <span className="text-xs font-normal bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Failed</span>}
                         </td>
-                        <td className="px-4 py-3 text-right text-gray-600">{ps.violationCount}</td>
+                        <td className="px-4 py-3 text-right text-gray-600">{ps.violationCount ?? '—'}</td>
                       </tr>
                     ))}
                   </tbody>

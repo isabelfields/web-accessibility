@@ -272,11 +272,11 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                           {page.templateType}
                         </span>
                       </td>
-                      <td className={`px-4 py-3 text-right font-bold ${ps ? scoreColor(ps.score) : 'text-gray-300'}`}>
-                        {ps ? ps.score : '—'}
+                      <td className={`px-4 py-3 text-right font-bold ${ps && ps.score != null ? scoreColor(ps.score) : 'text-gray-300'}`}>
+                        {!ps ? '—' : ps.score != null ? ps.score : <span className="text-xs font-normal bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Failed</span>}
                       </td>
                       <td className="px-4 py-3 text-right text-gray-600">
-                        {ps ? ps.violationCount : '—'}
+                        {ps ? (ps.violationCount ?? '—') : '—'}
                       </td>
                     </tr>
                     )
