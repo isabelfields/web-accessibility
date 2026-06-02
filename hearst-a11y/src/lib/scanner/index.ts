@@ -2,6 +2,7 @@ import { ScanJob, SitePage, PageScanResult, RawViolation, PageScore } from '@/ty
 import { crawlAndScan } from './crawler'
 import { deduplicateAndFix } from './deduplicator'
 import { calculateScore } from '@/lib/score'
+import { runPa11y, mergeViolations } from './pa11y-runner'
 
 async function scanPageList(pages: SitePage[]): Promise<{
   results: PageScanResult[]
@@ -23,11 +24,17 @@ async function scanPageList(pages: SitePage[]): Promise<{
       const pw = await ctx.newPage()
       await pw.goto(page.url, { waitUntil: 'domcontentloaded', timeout: 20000 })
 
-      const axeResults = await new AxeBuilder({ page: pw })
-        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
-        .analyze()
+      const [axeResults, pa11yViolations] = await Promise.all([
+        new AxeBuilder({ page: pw })
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
+          .analyze(),
+        runPa11y(page.url),
+      ])
 
-      const violations = axeResults.violations as unknown as RawViolation[]
+      const violations = mergeViolations(
+        axeResults.violations as unknown as RawViolation[],
+        pa11yViolations
+      )
 
       // Take element screenshots for the first node of each violation
       for (const violation of violations) {
