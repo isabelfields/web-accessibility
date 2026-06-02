@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
         claude_call_count = ${result.claudeCallCount},
         estimated_cost_usd = ${result.estimatedCostUsd},
         patterns = ${JSON.stringify(result.patterns)},
+        page_scores = ${JSON.stringify(result.pageScores)},
         completed_at = NOW()
       WHERE id = ${jobId}
     `

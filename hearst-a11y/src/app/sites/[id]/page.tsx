@@ -61,6 +61,8 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
   const completedScans = scans.filter((s: any) => s.status === 'complete')
   const latestScan = completedScans[0] ?? null
+  const pageScores: Array<{ url: string; label?: string; score: number; violationCount: number }> =
+    latestScan?.page_scores ?? []
   const latestScore = latestScan?.score ?? 0
   const trendScores = completedScans.slice(0, 10).reverse().map((s: any) => s.score ?? 0)
 
@@ -121,7 +123,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                 <span className="font-semibold">{latestScan.raw_violation_count}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Unique patterns</span>
+                <span className="text-gray-500">Unique issues</span>
                 <span className="font-semibold">{latestScan.unique_pattern_count}</span>
               </div>
               <div className="flex justify-between">
@@ -155,7 +157,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                       <h3 className="text-sm font-semibold text-gray-700">
                         {impact === 'critical' ? '🔴 Critical' : impact === 'serious' ? '🟠 Serious' : impact === 'moderate' ? '🟡 Moderate' : '🔵 Minor'}
                       </h3>
-                      <span className="text-sm text-gray-400">{group.length} issue{group.length !== 1 ? 's' : ''}</span>
+                      <span className="text-sm text-gray-400">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                     </div>
                     <div className="space-y-2">
                       {group.map(p => (
@@ -242,10 +244,14 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                     <th className="text-left px-4 py-3 text-gray-600 font-medium">Label</th>
                     <th className="text-left px-4 py-3 text-gray-600 font-medium">URL</th>
                     <th className="text-left px-4 py-3 text-gray-600 font-medium">Template Type</th>
+                    <th className="text-right px-4 py-3 text-gray-600 font-medium">Score</th>
+                    <th className="text-right px-4 py-3 text-gray-600 font-medium">Violations</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {pages.map((page, i) => (
+                  {pages.map((page, i) => {
+                    const ps = pageScores.find(s => s.url === page.url)
+                    return (
                     <tr key={i} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-800">{page.label}</td>
                       <td className="px-4 py-3">
@@ -253,7 +259,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                           href={page.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-brand-500 hover:text-blue-700 truncate max-w-xs block"
+                          className="text-blue-600 hover:underline truncate max-w-xs block"
                         >
                           {page.url}
                         </a>
@@ -263,8 +269,15 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                           {page.templateType}
                         </span>
                       </td>
+                      <td className={`px-4 py-3 text-right font-bold ${ps ? scoreColor(ps.score) : 'text-gray-300'}`}>
+                        {ps ? ps.score : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-600">
+                        {ps ? ps.violationCount : '—'}
+                      </td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

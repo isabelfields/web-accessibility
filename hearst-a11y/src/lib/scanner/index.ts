@@ -1,10 +1,11 @@
-import { ScanJob, SitePage, PageScanResult, RawViolation } from '@/types'
+import { ScanJob, SitePage, PageScanResult, RawViolation, PageScore } from '@/types'
 import { crawlAndScan } from './crawler'
 import { deduplicateAndFix } from './deduplicator'
 import { calculateScore } from '@/lib/score'
 
 async function scanPageList(pages: SitePage[]): Promise<{
   results: PageScanResult[]
+  pageScores: PageScore[]
   pagesScanned: number
   pagesSkipped: number
 }> {
@@ -14,25 +15,79 @@ async function scanPageList(pages: SitePage[]): Promise<{
   const wsEndpoint = `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`
   const browser = await chromium.connectOverCDP(wsEndpoint)
   const results: PageScanResult[] = []
+  const pageScores: PageScore[] = []
 
   for (const page of pages) {
     try {
       const ctx = await browser.newContext()
       const pw = await ctx.newPage()
       await pw.goto(page.url, { waitUntil: 'domcontentloaded', timeout: 20000 })
-      const results_axe = await new AxeBuilder({ page: pw })
+
+      const axeResults = await new AxeBuilder({ page: pw })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
         .analyze()
-      const violations = results_axe.violations
+
+      const violations = axeResults.violations as unknown as RawViolation[]
+
+      // Take element screenshots for the first node of each violation
+      for (const violation of violations) {
+        const firstTarget = violation.nodes[0]?.target?.[0]
+        if (firstTarget && typeof firstTarget === 'string') {
+          try {
+            const el = pw.locator(firstTarget).first()
+            const box = await el.boundingBox()
+            if (box && box.width > 0 && box.height > 0) {
+              const shot = await el.screenshot({ type: 'jpeg', quality: 65 })
+              const b64 = shot.toString('base64')
+              if (b64.length < 60000) { // skip if > ~45KB
+                ;(violation as any).sampleScreenshot = b64
+              }
+            }
+          } catch {
+            // silently skip — element may not be findable
+          }
+        }
+      }
+
+      // Per-page score
+      const pageViolationsForScore = violations.map(v => ({
+        url: page.url,
+        violations: [v],
+      }))
+      const rawForScore = violations.reduce((sum, v) => sum + v.nodes.length, 0)
+      // Quick score: use violation count by impact directly
+      let pagePenalty = 0
+      for (const v of violations) {
+        const count = v.nodes.length
+        if (v.impact === 'critical') pagePenalty += 8 * count
+        else if (v.impact === 'serious') pagePenalty += 5 * count
+        else if (v.impact === 'moderate') pagePenalty += 2 * count
+        else pagePenalty += 0.5 * count
+      }
+      const pageScore = Math.max(0, Math.round(100 - pagePenalty))
+
+      pageScores.push({
+        url: page.url,
+        label: page.label,
+        score: pageScore,
+        violationCount: rawForScore,
+      })
+
       results.push({
         url: page.url,
         domFingerprint: '',
-        violations: violations as unknown as RawViolation[],
+        violations,
         scannedAt: new Date().toISOString(),
         skipped: false,
       })
       await ctx.close()
     } catch (err) {
+      pageScores.push({
+        url: page.url,
+        label: page.label,
+        score: 0,
+        violationCount: 0,
+      })
       results.push({
         url: page.url,
         domFingerprint: '',
@@ -47,18 +102,12 @@ async function scanPageList(pages: SitePage[]): Promise<{
   await browser.close()
   return {
     results,
+    pageScores,
     pagesScanned: results.filter(r => !r.skipped).length,
     pagesSkipped: results.filter(r => r.skipped).length,
   }
 }
 
-/**
- * Full scan pipeline:
- * 1. Crawl site (BFS, max 50 pages, skip near-dupes) OR scan explicit page list
- * 2. Deduplicate violations across all pages
- * 3. Apply known fixes (free) or call Claude (batched, stripped)
- * 4. Return complete ScanJob result
- */
 export async function runScan(
   jobId: string,
   rootUrl: string,
@@ -66,34 +115,60 @@ export async function runScan(
   pages?: SitePage[]
 ): Promise<ScanJob> {
   const startedAt = new Date().toISOString()
-
   onProgress?.({ status: 'running', startedAt })
 
-  // Phase 1: Crawl or scan explicit pages
-  const { results, pagesScanned, pagesSkipped } = pages
-    ? await scanPageList(pages)
-    : await crawlAndScan(rootUrl)
+  let pageScores: PageScore[] = []
+  let results: PageScanResult[]
+  let pagesScanned: number
+  let pagesSkipped: number
 
-  onProgress?.({
-    pagesScanned,
-    pagesSkipped,
-    totalPages: results.length,
-  })
+  if (pages) {
+    const out = await scanPageList(pages)
+    results = out.results
+    pageScores = out.pageScores
+    pagesScanned = out.pagesScanned
+    pagesSkipped = out.pagesSkipped
+  } else {
+    const out = await crawlAndScan(rootUrl)
+    results = out.results
+    pagesScanned = out.pagesScanned
+    pagesSkipped = out.pagesSkipped
+  }
 
-  // Phase 2: Deduplicate + fix
+  onProgress?.({ pagesScanned, pagesSkipped, totalPages: results.length })
+
   const scannedResults = results.filter(r => !r.skipped)
   const pageViolations = scannedResults.map(r => ({
     url: r.url,
     violations: r.violations,
   }))
 
-  const rawViolationCount = pageViolations.reduce(
-    (sum, p) => sum + p.violations.length,
-    0
-  )
+  const rawViolationCount = pageViolations.reduce((sum, p) => sum + p.violations.length, 0)
 
-  const { patterns, claudeCallCount, estimatedCostUsd } =
-    await deduplicateAndFix(pageViolations)
+  const { patterns, claudeCallCount, estimatedCostUsd } = await deduplicateAndFix(pageViolations)
+
+  // Attach sampleHtml and sampleScreenshot to each pattern
+  const violationsByFingerprint = new Map<string, { html: string; screenshot?: string }>()
+  for (const { violations } of pageViolations) {
+    for (const v of violations) {
+      const fp = `${v.id}::${v.nodes[0]?.target?.[0] ?? ''}`
+      if (!violationsByFingerprint.has(v.id)) {
+        violationsByFingerprint.set(v.id, {
+          html: v.nodes[0]?.html ?? '',
+          screenshot: (v as any).sampleScreenshot,
+        })
+      }
+    }
+  }
+
+  for (const pattern of patterns) {
+    const ruleId = pattern.fingerprint.split('::')[0]
+    const match = violationsByFingerprint.get(ruleId)
+    if (match) {
+      pattern.sampleHtml = match.html
+      pattern.sampleScreenshot = match.screenshot
+    }
+  }
 
   const score = calculateScore(patterns)
   const completedAt = new Date().toISOString()
@@ -103,6 +178,7 @@ export async function runScan(
     rootUrl,
     status: 'complete',
     score,
+    pageScores,
     pagesScanned,
     pagesSkipped,
     totalPages: results.length,
