@@ -7,6 +7,7 @@ import { ScoreGauge } from '@/components/ScoreGauge'
 import { TrendSparkline } from '@/components/TrendSparkline'
 import { RunScanButton } from '@/components/RunScanButton'
 import { CancelScanButton } from '@/components/CancelScanButton'
+import { ViolationCard } from '@/components/ViolationCard'
 import type { ViolationPattern, SitePage } from '@/types'
 
 async function getSiteData(id: string) {
@@ -92,7 +93,8 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
       {/* Score + Trend */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col items-center">
-          <div className="text-sm font-medium text-gray-500 mb-3">Accessibility Score</div>
+          <div className="text-sm font-medium text-gray-500 mb-1">WCAG AA Score</div>
+          <div className="text-xs text-gray-400 mb-3">0–100, higher is better</div>
           <ScoreGauge score={latestScore} size={160} />
         </div>
 
@@ -149,30 +151,14 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                 return (
                   <div key={impact}>
                     <div className="flex items-center gap-2 mb-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${impactColor(impact)}`}>
-                        {impact.charAt(0).toUpperCase() + impact.slice(1)}
-                      </span>
-                      <span className="text-sm text-gray-500">{group.length} pattern{group.length !== 1 ? 's' : ''}</span>
+                      <h3 className="text-sm font-semibold text-gray-700">
+                        {impact === 'critical' ? '🔴 Critical' : impact === 'serious' ? '🟠 Serious' : impact === 'moderate' ? '🟡 Moderate' : '🔵 Minor'}
+                      </h3>
+                      <span className="text-sm text-gray-400">{group.length} issue{group.length !== 1 ? 's' : ''}</span>
                     </div>
                     <div className="space-y-2">
                       {group.map(p => (
-                        <div key={p.fingerprint} className="bg-white rounded-lg border border-gray-200 p-4">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1">
-                              <div className="font-mono text-sm text-gray-800 font-medium">{p.rule}</div>
-                              <div className="text-sm text-gray-600 mt-1">{p.description}</div>
-                              {p.fixSuggestion && (
-                                <div className="mt-2 text-sm text-blue-700 bg-blue-50 rounded-lg px-3 py-2 border border-blue-100">
-                                  <span className="font-medium">Fix: </span>{p.fixSuggestion}
-                                </div>
-                              )}
-                            </div>
-                            <div className="text-right shrink-0">
-                              <div className="text-sm font-semibold text-gray-700">{p.occurrences} occurrence{p.occurrences !== 1 ? 's' : ''}</div>
-                              <div className="text-xs text-gray-400">{p.affectedPages?.length ?? 0} page{(p.affectedPages?.length ?? 0) !== 1 ? 's' : ''}</div>
-                            </div>
-                          </div>
-                        </div>
+                        <ViolationCard key={p.fingerprint} pattern={p} />
                       ))}
                     </div>
                   </div>
