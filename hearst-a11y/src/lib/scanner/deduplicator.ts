@@ -22,6 +22,8 @@ export async function deduplicateAndFix(
   estimatedCostUsd: number
 }> {
   // Step 1 & 2: Strip and fingerprint all violations
+  // Fingerprint by rule ID only — same rule on different selectors is the same
+  // issue type. occurrences = total failing element nodes across all instances.
   const patternMap = new Map<string, {
     stripped: StrippedViolation
     occurrences: number
@@ -31,16 +33,17 @@ export async function deduplicateAndFix(
   for (const { url, violations } of pageViolations) {
     for (const violation of violations) {
       const stripped = stripViolation(violation)
-      const fingerprint = `${stripped.rule}::${stripped.selector}`
+      const fingerprint = stripped.rule   // one card per rule, not per rule+selector
+      const nodeCount = Math.max(1, violation.nodes?.length ?? 1)
 
       if (patternMap.has(fingerprint)) {
         const existing = patternMap.get(fingerprint)!
-        existing.occurrences++
+        existing.occurrences += nodeCount
         existing.affectedPages.add(url)
       } else {
         patternMap.set(fingerprint, {
           stripped,
-          occurrences: 1,
+          occurrences: nodeCount,
           affectedPages: new Set([url]),
         })
       }
