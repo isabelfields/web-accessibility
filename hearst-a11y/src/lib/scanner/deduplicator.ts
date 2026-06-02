@@ -1,4 +1,4 @@
-import { RawViolation, ViolationPattern, StrippedViolation } from '@/types'
+import { RawViolation, ViolationPattern, ViolationNode, StrippedViolation } from '@/types'
 import { getKnownFix, partitionByKnowledge } from './known-fixes'
 import { stripViolation, normalizeSelector } from './strip-html'
 import { getClaudeSuggestions } from '../claude/suggestions'
@@ -28,23 +28,35 @@ export async function deduplicateAndFix(
     stripped: StrippedViolation
     occurrences: number
     affectedPages: Set<string>
+    nodes: ViolationNode[]
   }>()
 
   for (const { url, violations } of pageViolations) {
     for (const violation of violations) {
       const stripped = stripViolation(violation)
-      const fingerprint = stripped.rule   // one card per rule, not per rule+selector
-      const nodeCount = Math.max(1, violation.nodes?.length ?? 1)
+      const fingerprint = stripped.rule  // one card per rule type
+
+      // Collect each failing node (cap at 50 per rule to keep DB size sane)
+      const newNodes: ViolationNode[] = (violation.nodes ?? []).slice(0, 50).map(n => ({
+        html: n.html ?? '',
+        url,
+        screenshot: (violation as any).sampleScreenshot,
+      }))
+      const nodeCount = Math.max(1, newNodes.length)
 
       if (patternMap.has(fingerprint)) {
         const existing = patternMap.get(fingerprint)!
         existing.occurrences += nodeCount
         existing.affectedPages.add(url)
+        // Cap total stored nodes at 50 across all pages
+        const remaining = 50 - existing.nodes.length
+        if (remaining > 0) existing.nodes.push(...newNodes.slice(0, remaining))
       } else {
         patternMap.set(fingerprint, {
           stripped,
           occurrences: nodeCount,
           affectedPages: new Set([url]),
+          nodes: newNodes,
         })
       }
     }
@@ -73,6 +85,7 @@ export async function deduplicateAndFix(
       isHardcoded: true,
       occurrences: entry.occurrences,
       affectedPages: [...entry.affectedPages],
+      nodes: entry.nodes,
     })
   }
 
@@ -110,6 +123,7 @@ export async function deduplicateAndFix(
           isHardcoded: false,
           occurrences: entry.occurrences,
           affectedPages: [...entry.affectedPages],
+          nodes: entry.nodes,
         })
       }
     }
