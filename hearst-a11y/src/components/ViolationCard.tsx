@@ -109,24 +109,44 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
             <span className="text-xs font-medium text-gray-700">{ruleInfo.wcag}</span>
           </div>
 
-          {/* Element screenshot + HTML */}
-          {(pattern.sampleScreenshot || pattern.sampleHtml) && (
+          {/* Failing elements — one per instance */}
+          {(pattern.nodes?.length > 0 || pattern.sampleHtml) && (
             <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">The element</div>
-              {pattern.sampleScreenshot && (
-                <div className="bg-white rounded-lg border border-gray-200 p-2 inline-block max-w-full mb-2">
-                  <img
-                    src={`data:image/jpeg;base64,${pattern.sampleScreenshot}`}
-                    alt="Screenshot of the failing element"
-                    className="max-w-full max-h-40 rounded object-contain"
-                  />
-                </div>
-              )}
-              {pattern.sampleHtml && (
-                <pre className="text-xs bg-gray-900 text-green-300 rounded-lg px-3 py-2 overflow-x-auto whitespace-pre-wrap break-all">
-                  {pattern.sampleHtml}
-                </pre>
-              )}
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                Failing elements ({pattern.nodes?.length ?? 1})
+              </div>
+              <div className="space-y-2">
+                {(pattern.nodes?.length > 0
+                  ? pattern.nodes
+                  : [{ html: pattern.sampleHtml ?? '', url: pattern.affectedPages?.[0] ?? '', screenshot: pattern.sampleScreenshot }]
+                ).map((node, i) => (
+                  <div key={i} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                    <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 border-b border-gray-200">
+                      <span className="text-xs font-medium text-gray-500">Element {i + 1}</span>
+                      {node.url && (
+                        <a href={node.url} target="_blank" rel="noopener noreferrer"
+                          className="text-xs text-blue-500 hover:underline truncate max-w-xs">
+                          {new URL(node.url).pathname || '/'}
+                        </a>
+                      )}
+                    </div>
+                    {node.screenshot && (
+                      <div className="p-2 border-b border-gray-100">
+                        <img
+                          src={`data:image/jpeg;base64,${node.screenshot}`}
+                          alt={`Screenshot of element ${i + 1}`}
+                          className="max-w-full max-h-32 rounded object-contain"
+                        />
+                      </div>
+                    )}
+                    {node.html && (
+                      <pre className="text-xs bg-gray-900 text-green-300 px-3 py-2 overflow-x-auto whitespace-pre-wrap break-all m-0">
+                        {node.html}
+                      </pre>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

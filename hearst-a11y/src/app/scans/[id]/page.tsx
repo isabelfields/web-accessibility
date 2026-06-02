@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ScoreGauge } from '@/components/ScoreGauge'
 import { ViolationCard } from '@/components/ViolationCard'
+import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import type { ViolationPattern, PageScore } from '@/types'
 
@@ -176,10 +177,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                       <tr key={i} className="hover:bg-gray-50">
                         <td className="px-4 py-3 font-medium text-gray-800">{ps.label ?? '—'}</td>
                         <td className="px-4 py-3">
-                          <a href={ps.url} target="_blank" rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline truncate max-w-xs block">
-                            {ps.url}
-                          </a>
+                          <PageViolationsModal pageScore={ps} patterns={patterns} />
                           {ps.error && (
                             <div className="text-xs text-red-500 mt-0.5 truncate max-w-xs" title={ps.error}>
                               ⚠ {ps.error.length > 80 ? ps.error.slice(0, 80) + '…' : ps.error}

@@ -25,17 +25,24 @@ export interface StrippedViolation {
 }
 
 // Fingerprint key = rule::normalizedSelector
+export interface ViolationNode {
+  html: string
+  url: string            // which page this element was found on
+  screenshot?: string    // base64 JPEG
+}
+
 export interface ViolationPattern {
-  fingerprint: string    // "color-contrast::a.nav-link"
+  fingerprint: string
   rule: string
   impact: ImpactLevel
   description: string
   fixSuggestion: string  // from Claude or hardcoded rules
-  isHardcoded: boolean   // true = came from KNOWN_FIXES, false = Claude generated
+  isHardcoded: boolean
   occurrences: number
   affectedPages: string[]
-  sampleHtml?: string        // raw HTML of one failing element
-  sampleScreenshot?: string  // base64 JPEG of the element
+  nodes: ViolationNode[] // every failing element, each individually fixable
+  sampleHtml?: string    // kept for backwards compat with old scan records
+  sampleScreenshot?: string
 }
 
 export interface PageScore {
