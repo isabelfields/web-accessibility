@@ -41,18 +41,22 @@ export async function POST(req: NextRequest) {
 
   const jobId = job.id
 
-  // Run scan async
-  runScan(jobId, rootUrl, async (update) => {
-    if (update.status) {
-      await sql`UPDATE scan_jobs SET status = ${update.status} WHERE id = ${jobId}`
+  // Run scan synchronously within the request (Vercel kills background work after response)
+  try {
+    await sql`UPDATE scan_jobs SET status = 'running' WHERE id = ${jobId}`
+
+    const result = await runScan(jobId, rootUrl, async (update) => {
+      if (update.pagesScanned !== undefined) {
+        await sql`UPDATE scan_jobs SET pages_scanned = ${update.pagesScanned} WHERE id = ${jobId}`
+      }
+    }, pages)
+
+    // Check if cancelled mid-scan
+    const [current] = await sql`SELECT status FROM scan_jobs WHERE id = ${jobId}`
+    if (current?.status === 'cancelled') {
+      return NextResponse.json({ jobId, status: 'cancelled' })
     }
-    if (update.pagesScanned !== undefined) {
-      await sql`UPDATE scan_jobs SET pages_scanned = ${update.pagesScanned} WHERE id = ${jobId}`
-    }
-    if (update.pagesSkipped !== undefined) {
-      await sql`UPDATE scan_jobs SET pages_skipped = ${update.pagesSkipped} WHERE id = ${jobId}`
-    }
-  }, pages).then(async (result) => {
+
     await sql`
       UPDATE scan_jobs SET
         status = 'complete',
@@ -68,13 +72,14 @@ export async function POST(req: NextRequest) {
         completed_at = NOW()
       WHERE id = ${jobId}
     `
-  }).catch(async (err) => {
+    return NextResponse.json({ jobId, status: 'complete' })
+  } catch (err) {
     await sql`
-      UPDATE scan_jobs SET status = 'failed', error = ${err.message} WHERE id = ${jobId}
+      UPDATE scan_jobs SET status = 'failed', error = ${err instanceof Error ? err.message : 'Unknown error'}, completed_at = NOW()
+      WHERE id = ${jobId}
     `
-  })
-
-  return NextResponse.json({ jobId, status: 'queued' }, { status: 202 })
+    return NextResponse.json({ jobId, status: 'failed' }, { status: 500 })
+  }
 }
 
 export async function GET(req: NextRequest) {
