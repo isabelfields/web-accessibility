@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, cloneElement, isValidElement } from 'react'
 import { ViolationCard } from './ViolationCard'
 import type { ViolationPattern, PageScore } from '@/types'
 
@@ -8,7 +8,7 @@ interface Props {
   pageScore: PageScore
   patterns: ViolationPattern[]
   /** If provided, renders as the clickable trigger instead of the default URL button */
-  children?: React.ReactNode
+  children?: React.ReactElement
 }
 
 export function PageViolationsModal({ pageScore, patterns, children }: Props) {
@@ -21,24 +21,26 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
 
   const hasData = pageScore.score != null
 
-  const trigger = children ?? (
-    <button
-      onClick={() => hasData && setOpen(true)}
-      className={`text-left hover:underline truncate max-w-xs block ${hasData ? 'text-brand-500 cursor-pointer' : 'text-blue-300 cursor-default'}`}
-      title={pageScore.url}
-      disabled={!hasData}
-    >
-      {pageScore.url}
-    </button>
-  )
+  const trigger = children
+    ? isValidElement(children)
+      ? cloneElement(children as React.ReactElement<React.HTMLAttributes<HTMLElement>>, {
+          onClick: () => hasData && setOpen(true),
+        })
+      : children
+    : (
+      <button
+        onClick={() => hasData && setOpen(true)}
+        className={`text-left hover:underline truncate max-w-xs block ${hasData ? 'text-brand-500 cursor-pointer' : 'text-blue-300 cursor-default'}`}
+        title={pageScore.url}
+        disabled={!hasData}
+      >
+        {pageScore.url}
+      </button>
+    )
 
   return (
     <>
-      {children ? (
-        <div onClick={() => hasData && setOpen(true)} className={hasData ? 'cursor-pointer' : ''}>
-          {children}
-        </div>
-      ) : trigger}
+      {trigger}
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setOpen(false)}>
