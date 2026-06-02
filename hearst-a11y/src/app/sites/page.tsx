@@ -133,7 +133,7 @@ export default function SitesPage() {
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">
                       <button
-                        onClick={() => setEditingSite(site)}
+                        onClick={() => setEditingSite(site as any)}
                         className="text-blue-500 hover:text-blue-700 text-xs font-medium"
                       >
                         Edit
