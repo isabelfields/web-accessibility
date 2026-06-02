@@ -154,7 +154,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
             Rule ID: <span className="font-mono">{pattern.rule}</span>
             {' · '}
             <a
-              href={`https://dequeuniversity.com/rules/axe/${pattern.rule}`}
+              href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}?application=axeAPI`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-500 hover:underline"
