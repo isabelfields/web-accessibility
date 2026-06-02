@@ -43,7 +43,7 @@ export function TopViolationsChart({ violations }: Props) {
         />
         <Tooltip
           contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #f3f4f6', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
-          formatter={(val: number) => [val, 'occurrences']}
+          formatter={(val) => [Number(val), 'occurrences']}
         />
         <Bar dataKey="count" radius={[0, 4, 4, 0]} maxBarSize={16}>
           {data.map((entry, i) => (
