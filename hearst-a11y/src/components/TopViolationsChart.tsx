@@ -7,10 +7,10 @@ interface Props {
 }
 
 const IMPACT_COLOR: Record<string, string> = {
-  critical: '#ef4444',
-  serious:  '#f87171',
-  moderate: '#fbbf24',
-  minor:    '#93c5fd',
+  critical: '#e11d48',
+  serious:  '#9333ea',
+  moderate: '#0891b2',
+  minor:    '#059669',
 }
 
 export function TopViolationsChart({ violations }: Props) {
