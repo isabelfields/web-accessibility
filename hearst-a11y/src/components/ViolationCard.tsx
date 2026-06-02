@@ -49,11 +49,11 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
   const hasElements = pattern.nodes?.length > 0 || pattern.sampleHtml
 
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 border-l-4 ${impact.border} overflow-hidden transition-shadow hover:shadow-sm`}>
+    <div className={`bg-white rounded-xl border border-gray-150 border-l-[3px] ${impact.border} overflow-hidden shadow-sm hover:shadow-md transition-all`}>
       {/* Collapsed row */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full text-left px-5 py-4 flex items-center gap-4"
+        className="w-full text-left px-5 py-[14px] flex items-center gap-4"
       >
         {/* Severity tag */}
         <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${impact.tag}`}>

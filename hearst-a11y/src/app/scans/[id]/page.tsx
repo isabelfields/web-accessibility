@@ -213,21 +213,19 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               No violations found — great job!
             </div>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-5">
               {(['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
                 const group = byImpact[impact]
                 if (group.length === 0) return null
-                const dotColor = impact === 'critical' ? 'bg-red-500' : impact === 'serious' ? 'bg-orange-400' : impact === 'moderate' ? 'bg-amber-400' : 'bg-blue-400'
+                const cfg = { critical: { bar: 'bg-red-500', text: 'text-red-600', label: 'Critical' }, serious: { bar: 'bg-orange-400', text: 'text-orange-600', label: 'Serious' }, moderate: { bar: 'bg-amber-400', text: 'text-amber-600', label: 'Moderate' }, minor: { bar: 'bg-blue-400', text: 'text-blue-600', label: 'Minor' } }[impact]
                 return (
                   <div key={impact}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className={`w-2 h-2 rounded-full ${dotColor}`} />
-                      <h3 className="text-sm font-semibold text-gray-700 capitalize">{impact}</h3>
-                      <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                        {group.length} type{group.length !== 1 ? 's' : ''}
-                      </span>
+                    <div className="flex items-center gap-2.5 mb-2.5 px-1">
+                      <span className={`w-1.5 h-1.5 rounded-full ${cfg.bar}`} />
+                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${cfg.text}`}>{cfg.label}</h3>
+                      <span className="text-xs text-gray-400 font-medium">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {group.map(p => (
                         <ViolationCard key={p.fingerprint} pattern={p} />
                       ))}
