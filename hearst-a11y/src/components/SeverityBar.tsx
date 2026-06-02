@@ -1,10 +1,10 @@
 'use client'
 
 const SEGMENTS = [
-  { key: 'critical', label: 'Critical', color: 'bg-rose-600',    hex: '#e11d48' },
-  { key: 'serious',  label: 'Serious',  color: 'bg-purple-600', hex: '#9333ea' },
-  { key: 'moderate', label: 'Moderate', color: 'bg-cyan-600',   hex: '#0891b2' },
-  { key: 'minor',    label: 'Minor',    color: 'bg-emerald-600',hex: '#059669' },
+  { key: 'critical', label: 'Critical', color: 'bg-indigo-700', hex: '#4338ca' },
+  { key: 'serious',  label: 'Serious',  color: 'bg-blue-600',   hex: '#2563eb' },
+  { key: 'moderate', label: 'Moderate', color: 'bg-sky-500',    hex: '#0ea5e9' },
+  { key: 'minor',    label: 'Minor',    color: 'bg-cyan-400',   hex: '#22d3ee' },
 ] as const
 
 interface SeverityBarProps {
