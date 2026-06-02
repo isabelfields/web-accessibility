@@ -2,7 +2,7 @@
 
 const SEGMENTS = [
   { key: 'critical', label: 'Critical', color: 'bg-red-500',    hex: '#ef4444' },
-  { key: 'serious',  label: 'Serious',  color: 'bg-orange-400', hex: '#fb923c' },
+  { key: 'serious',  label: 'Serious',  color: 'bg-red-400',    hex: '#f87171' },
   { key: 'moderate', label: 'Moderate', color: 'bg-amber-400',  hex: '#fbbf24' },
   { key: 'minor',    label: 'Minor',    color: 'bg-blue-300',   hex: '#93c5fd' },
 ] as const

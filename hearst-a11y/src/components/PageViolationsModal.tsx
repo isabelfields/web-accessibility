@@ -78,7 +78,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
                   if (group.length === 0) return null
                   const cfg = {
                     critical: { bar: 'bg-red-500',    text: 'text-red-600',    label: 'Critical' },
-                    serious:  { bar: 'bg-orange-400', text: 'text-orange-600', label: 'Serious' },
+                    serious:  { bar: 'bg-red-400', text: 'text-red-600', label: 'Serious' },
                     moderate: { bar: 'bg-amber-400',  text: 'text-amber-600',  label: 'Moderate' },
                     minor:    { bar: 'bg-blue-400',   text: 'text-blue-600',   label: 'Minor' },
                   }[impact]
