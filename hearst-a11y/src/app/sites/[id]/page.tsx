@@ -101,7 +101,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
       {/* Score + Trend */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6 flex flex-col items-center">
-          <div className="text-sm font-medium text-gray-500 mb-1">WCAG AA Score</div>
+          <div className="text-sm font-medium text-gray-500 mb-1">WCAG 2.2 AA Score</div>
           <div className="text-xs text-gray-400 mb-3">0–100, higher is better</div>
           <ScoreGauge score={latestScore} size={160} />
         </div>

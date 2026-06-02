@@ -84,7 +84,7 @@ export async function crawlAndScan(rootUrl: string): Promise<{
               const results = await window.axe.run(document, {
                 runOnly: {
                   type: 'tag',
-                  values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'],
+                  values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'],
                 },
               })
               return results.violations

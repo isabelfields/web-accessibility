@@ -33,7 +33,7 @@ const WCAG_RULES: Record<string, { name: string; wcag: string; what: string }> =
 }
 
 function getRuleInfo(rule: string) {
-  return WCAG_RULES[rule] ?? { name: rule, wcag: 'WCAG 2.1 AA', what: null }
+  return WCAG_RULES[rule] ?? { name: rule, wcag: 'WCAG 2.2 AA', what: null }
 }
 
 function pagePath(url: string) {
