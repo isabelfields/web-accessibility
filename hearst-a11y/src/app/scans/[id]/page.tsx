@@ -54,7 +54,7 @@ function scoreColor(score: number) {
 function impactColor(impact: string) {
   switch (impact) {
     case 'critical': return 'bg-red-100 text-red-700 border-red-200'
-    case 'serious': return 'bg-orange-100 text-orange-700 border-orange-200'
+    case 'serious': return 'bg-red-100 text-red-700 border-red-200'
     case 'moderate': return 'bg-yellow-100 text-yellow-700 border-yellow-200'
     default: return 'bg-blue-100 text-blue-700 border-blue-200'
   }
@@ -238,7 +238,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               {(['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
                 const group = byImpact[impact]
                 if (group.length === 0) return null
-                const cfg = { critical: { bar: 'bg-red-500', text: 'text-red-600', label: 'Critical' }, serious: { bar: 'bg-orange-400', text: 'text-orange-600', label: 'Serious' }, moderate: { bar: 'bg-amber-400', text: 'text-amber-600', label: 'Moderate' }, minor: { bar: 'bg-blue-400', text: 'text-blue-600', label: 'Minor' } }[impact]
+                const cfg = { critical: { bar: 'bg-red-500', text: 'text-red-600', label: 'Critical' }, serious: { bar: 'bg-red-400', text: 'text-red-600', label: 'Serious' }, moderate: { bar: 'bg-amber-400', text: 'text-amber-600', label: 'Moderate' }, minor: { bar: 'bg-blue-400', text: 'text-blue-600', label: 'Minor' } }[impact]
                 return (
                   <div key={impact}>
                     <div className="flex items-center gap-2.5 mb-2.5 px-1">

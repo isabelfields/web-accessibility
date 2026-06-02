@@ -5,7 +5,7 @@ import type { ViolationPattern } from '@/types'
 
 const IMPACT: Record<string, { label: string; border: string; pill: string; dot: string }> = {
   critical: { label: 'Critical',  border: 'border-l-red-500',    pill: 'bg-red-50 text-red-600 ring-1 ring-inset ring-red-200',    dot: 'bg-red-500' },
-  serious:  { label: 'Serious',   border: 'border-l-orange-400', pill: 'bg-orange-50 text-orange-600 ring-1 ring-inset ring-orange-200', dot: 'bg-orange-400' },
+  serious:  { label: 'Serious',   border: 'border-l-red-400', pill: 'bg-red-50 text-red-600 ring-1 ring-inset ring-red-200', dot: 'bg-red-400' },
   moderate: { label: 'Moderate',  border: 'border-l-amber-400',  pill: 'bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-200',  dot: 'bg-amber-400' },
   minor:    { label: 'Minor',     border: 'border-l-blue-400',   pill: 'bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-200',    dot: 'bg-blue-400' },
 }
