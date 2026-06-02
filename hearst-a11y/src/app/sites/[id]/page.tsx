@@ -70,10 +70,8 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
   // Aggregate violation patterns from latest scan
   const patterns: ViolationPattern[] = latestScan?.patterns ?? []
-  const wcagPatterns = patterns.filter(p => !p.isBestPractice)
-  const bestPracticePatterns = patterns.filter(p => p.isBestPractice)
   const byImpact: Record<string, ViolationPattern[]> = { critical: [], serious: [], moderate: [], minor: [] }
-  for (const p of wcagPatterns) {
+  for (const p of patterns) {
     if (byImpact[p.impact]) byImpact[p.impact].push(p)
   }
 
@@ -103,7 +101,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
       {/* Score + Trend */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6 flex flex-col items-center">
-          <div className="text-sm font-medium text-gray-500 mb-1">WCAG 2.2 AA Score</div>
+          <div className="text-sm font-medium text-gray-500 mb-1">WCAG AA Score</div>
           <div className="text-xs text-gray-400 mb-3">0–100, higher is better</div>
           <ScoreGauge score={latestScore} size={160} />
         </div>
@@ -177,21 +175,6 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
             </div>
           )}
         </div>
-
-        {/* Best Practices */}
-        {bestPracticePatterns.length > 0 && (
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">Best Practices</h2>
-              <span className="text-xs bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded-full">does not affect score</span>
-            </div>
-            <div className="space-y-1.5">
-              {bestPracticePatterns.map(p => (
-                <ViolationCard key={p.fingerprint} pattern={p} />
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Scan History */}
         <div>
