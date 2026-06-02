@@ -64,17 +64,29 @@ export function SiteCard({ site }: SiteCardProps) {
 
       {/* Stats row */}
       {latestScan ? (
-        <div className="mt-4 flex items-center gap-4 text-xs">
-          <span className="text-red-500 font-medium">
-            {latestScan.raw_violation_count} violation{latestScan.raw_violation_count !== 1 ? 's' : ''}
-          </span>
-          <span className="text-gray-400">
-            {latestScan.unique_pattern_count} issue type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
-          </span>
-          <span className="ml-auto text-brand-500 font-medium group-hover:underline">
-            View →
-          </span>
-        </div>
+        <>
+          <div className="mt-4 flex items-center gap-4 text-xs">
+            <span className="text-red-500 font-medium">
+              {latestScan.raw_violation_count} violation{latestScan.raw_violation_count !== 1 ? 's' : ''}
+            </span>
+            <span className="text-gray-400">
+              {latestScan.unique_pattern_count} issue type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
+            </span>
+            <span className="ml-auto text-brand-500 font-medium group-hover:underline">
+              View →
+            </span>
+          </div>
+          {/* Score bar */}
+          <div className="mt-3 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${
+                (latestScan.score ?? 0) >= 90 ? 'bg-green-500' :
+                (latestScan.score ?? 0) >= 70 ? 'bg-yellow-400' : 'bg-red-500'
+              }`}
+              style={{ width: `${Math.round(latestScan.score ?? 0)}%` }}
+            />
+          </div>
+        </>
       ) : (
         <div className="mt-4 flex items-center justify-between text-xs">
           <span className="text-gray-400 italic">No scans yet</span>

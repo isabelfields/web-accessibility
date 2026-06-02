@@ -18,14 +18,14 @@ export default function RootLayout({
         <div className="flex min-h-screen">
           {/* Sidebar */}
           <aside className="w-56 flex flex-col fixed inset-y-0 left-0 z-10 bg-white border-r border-gray-200">
-            {/* Logo strip — dark navy */}
-            <div className="bg-[#1a3a5c] px-6 py-5">
+            {/* Logo strip — Hearst blue */}
+            <div className="bg-brand-500 px-6 py-5">
               <img
                 src="/hearst-logo.svg"
                 alt="Hearst"
                 className="h-7 w-auto brightness-0 invert"
               />
-              <div className="text-xs text-blue-200 font-medium tracking-widest uppercase mt-1.5 opacity-80">
+              <div className="text-xs text-blue-100 font-medium tracking-widest uppercase mt-1.5 opacity-90">
                 Accessibility
               </div>
             </div>

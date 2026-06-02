@@ -4,7 +4,19 @@ import Link from 'next/link'
 import { ViolationCard } from '@/components/ViolationCard'
 import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
+import { SeverityBar } from '@/components/SeverityBar'
 import type { ViolationPattern, PageScore } from '@/types'
+
+const RULE_WCAG_LEVEL: Record<string, 'A' | 'AA' | 'AAA'> = {
+  'image-alt': 'A', 'button-name': 'A', 'label': 'A', 'link-name': 'A',
+  'aria-required-attr': 'A', 'aria-valid-attr-value': 'A', 'aria-required-children': 'A',
+  'aria-required-parent': 'A', 'aria-allowed-attr': 'A', 'document-title': 'A',
+  'frame-title': 'A', 'heading-order': 'A', 'landmark-one-main': 'A',
+  'landmark-no-duplicate-main': 'A', 'landmark-unique': 'A', 'landmark-main-is-top-level': 'A',
+  'region': 'A', 'select-name': 'A', 'tabindex': 'A', 'html-has-lang': 'A', 'input-image-alt': 'A',
+  'color-contrast': 'AA', 'video-caption': 'AA',
+  'color-contrast-enhanced': 'AAA',
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -64,6 +76,19 @@ export default async function ScanDetailPage({ params }: RouteContext) {
 
   const totalViolations = patterns.reduce((sum, p) => sum + p.occurrences, 0)
 
+  const severityCounts = {
+    critical: byImpact.critical.reduce((s, p) => s + p.occurrences, 0),
+    serious:  byImpact.serious.reduce((s, p) => s + p.occurrences, 0),
+    moderate: byImpact.moderate.reduce((s, p) => s + p.occurrences, 0),
+    minor:    byImpact.minor.reduce((s, p) => s + p.occurrences, 0),
+  }
+
+  const wcagLevels = { A: 0, AA: 0, AAA: 0 }
+  for (const p of patterns) {
+    const level = RULE_WCAG_LEVEL[p.rule] ?? 'A'
+    wcagLevels[level] += p.occurrences
+  }
+
   return (
     <div className="p-8 max-w-5xl">
       {/* Breadcrumb */}
@@ -113,55 +138,49 @@ export default async function ScanDetailPage({ params }: RouteContext) {
       ) : (
         <>
           {/* Score + Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col items-center justify-center">
-              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">WCAG AA Score</div>
-              <div className={`text-5xl font-bold leading-none mt-2 ${scoreColor(scan.score ?? 0)}`}>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {/* Score */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col items-center justify-center">
+              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Score</div>
+              <div className={`text-5xl font-bold leading-none tabular-nums ${scoreColor(scan.score ?? 0)}`}>
                 {Math.round(scan.score ?? 0)}
               </div>
-              <div className="text-xs text-gray-400 mt-2">0–100, higher is better</div>
+              <div className="text-xs text-gray-400 mt-2">/ 100</div>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
-              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Summary</div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Pages scanned</span>
-                <span className="font-semibold">{scan.pages_scanned ?? 0}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Total violations</span>
-                <span className="font-semibold">{scan.raw_violation_count ?? 0}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Unique issue types</span>
-                <span className="font-semibold">{scan.unique_pattern_count ?? 0}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Completed</span>
-                <span className="font-semibold">{formatDate(scan.completed_at)}</span>
+            {/* Violations summary */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col justify-between">
+              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">Violations</div>
+              <div className="text-4xl font-bold text-gray-900 tabular-nums leading-none">{totalViolations}</div>
+              <div className="mt-3 space-y-1 text-xs text-gray-500">
+                <div className="flex justify-between"><span>Issue types</span><span className="font-semibold text-gray-700">{scan.unique_pattern_count ?? 0}</span></div>
+                <div className="flex justify-between"><span>Pages scanned</span><span className="font-semibold text-gray-700">{scan.pages_scanned ?? 0}</span></div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">By Severity</div>
-              <div className="space-y-3">
-                {(['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
-                  const count = byImpact[impact].reduce((s, p) => s + p.occurrences, 0)
-                  const barColor = impact === 'critical' ? 'bg-red-500' : impact === 'serious' ? 'bg-orange-400' : impact === 'moderate' ? 'bg-amber-400' : 'bg-blue-400'
-                  const pct = totalViolations > 0 ? Math.round((count / totalViolations) * 100) : 0
-                  return (
-                    <div key={impact}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-500 capitalize">{impact}</span>
-                        <span className="font-semibold text-gray-700">{count}</span>
-                      </div>
-                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
-                      </div>
-                    </div>
-                  )
-                })}
+            {/* WCAG A / AA / AAA */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">By WCAG Level</div>
+              <div className="flex items-end gap-4">
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 tabular-nums">{wcagLevels.A}</div>
+                  <div className="text-xs font-semibold text-gray-400 mt-0.5">A</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 tabular-nums">{wcagLevels.AA}</div>
+                  <div className="text-xs font-semibold text-gray-400 mt-0.5">AA</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 tabular-nums">{wcagLevels.AAA}</div>
+                  <div className="text-xs font-semibold text-gray-400 mt-0.5">AAA</div>
+                </div>
               </div>
+            </div>
+
+            {/* Severity bar */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">Issues by severity</div>
+              <SeverityBar counts={severityCounts} height="h-4" />
             </div>
           </div>
 
