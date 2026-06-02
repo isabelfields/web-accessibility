@@ -5,7 +5,7 @@ import { sql } from '@/lib/db'
 const SitePageSchema = z.object({
   url: z.string().url(),
   label: z.string(),
-  templateType: z.enum(['homepage', 'article', 'gallery', 'category', 'other']),
+  templateType: z.enum(['homepage', 'article', 'gallery', 'category', 'commerce', 'video', 'search', 'other']),
 })
 
 const SiteSchema = z.object({

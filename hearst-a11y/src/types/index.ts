@@ -97,7 +97,7 @@ export interface Schedule {
 export interface SitePage {
   url: string
   label: string       // e.g. "Homepage", "Article Template"
-  templateType: 'homepage' | 'article' | 'gallery' | 'category' | 'other'
+  templateType: 'homepage' | 'article' | 'gallery' | 'category' | 'commerce' | 'video' | 'search' | 'other'
 }
 
 export type HearstDivision =
