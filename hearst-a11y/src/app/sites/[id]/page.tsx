@@ -18,7 +18,7 @@ async function getSiteData(id: string) {
   const scans = await sql`
     SELECT id, score, status, pages_scanned, raw_violation_count,
            unique_pattern_count, estimated_cost_usd, started_at, completed_at,
-           triggered_by, patterns
+           triggered_by, patterns, page_scores
     FROM scan_jobs
     WHERE site_id = ${id}
     ORDER BY started_at DESC
