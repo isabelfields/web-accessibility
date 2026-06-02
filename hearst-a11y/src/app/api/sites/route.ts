@@ -27,7 +27,14 @@ export async function GET() {
         ORDER BY started_at DESC
         LIMIT 1
       `
-      return { ...site, latestScan: latest ?? null }
+      const [previous] = latest ? await sql`
+        SELECT score FROM scan_jobs
+        WHERE site_id = ${site.id} AND status = 'complete'
+          AND started_at < ${latest.started_at}
+        ORDER BY started_at DESC
+        LIMIT 1
+      ` : [null]
+      return { ...site, latestScan: latest ?? null, previousScore: previous?.score ?? null }
     })
   )
 
