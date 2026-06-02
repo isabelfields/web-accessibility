@@ -9,6 +9,7 @@ import { RunScanButton } from '@/components/RunScanButton'
 import { CancelScanButton } from '@/components/CancelScanButton'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { ViolationCard } from '@/components/ViolationCard'
+import { EditSiteButton } from '@/components/EditSiteButton'
 import type { ViolationPattern, SitePage } from '@/types'
 
 async function getSiteData(id: string) {
@@ -90,7 +91,10 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
             </p>
           )}
         </div>
-        <RunScanButton siteId={site.id} />
+        <div className="flex items-center gap-2">
+          <EditSiteButton site={{ id: site.id, name: site.name, division: site.division, pages }} />
+          <RunScanButton siteId={site.id} />
+        </div>
       </div>
 
       {/* Score + Trend */}

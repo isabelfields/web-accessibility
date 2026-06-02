@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { AddSiteForm } from '@/components/AddSiteForm'
+import { EditSiteForm } from '@/components/EditSiteForm'
 
 interface SitePage {
   url: string
@@ -40,6 +41,7 @@ export default function SitesPage() {
   const [sites, setSites] = useState<Site[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [editingSite, setEditingSite] = useState<Site | null>(null)
 
   async function load() {
     setLoading(true)
@@ -77,6 +79,9 @@ export default function SitesPage() {
 
       {showForm && (
         <AddSiteForm onClose={() => { setShowForm(false); load() }} />
+      )}
+      {editingSite && (
+        <EditSiteForm site={editingSite} onClose={() => { setEditingSite(null); load() }} />
       )}
 
       {loading ? (
@@ -126,12 +131,20 @@ export default function SitesPage() {
                     {formatDate(site.created_at)}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => deleteSite(site.id, site.name)}
-                      className="text-red-400 hover:text-red-600 text-xs"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex items-center justify-end gap-3">
+                      <button
+                        onClick={() => setEditingSite(site)}
+                        className="text-blue-500 hover:text-blue-700 text-xs font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteSite(site.id, site.name)}
+                        className="text-red-400 hover:text-red-600 text-xs"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
