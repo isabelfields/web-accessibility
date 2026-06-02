@@ -2,7 +2,6 @@ import { ScanJob, SitePage, PageScanResult, RawViolation, PageScore } from '@/ty
 import { crawlAndScan } from './crawler'
 import { deduplicateAndFix } from './deduplicator'
 import { calculateScore } from '@/lib/score'
-import { runKeyboardCheck } from './keyboard'
 
 async function scanPageList(pages: SitePage[]): Promise<{
   results: PageScanResult[]
@@ -34,13 +33,9 @@ async function scanPageList(pages: SitePage[]): Promise<{
         .filter((r: any) => r.id === 'color-contrast')
         .map((r: any) => ({ ...r, impact: r.impact ?? 'serious' }))
 
-      // Keyboard navigation check (runs after axe so page is already loaded)
-      const keyboardViolations = await runKeyboardCheck(pw)
-
       const violations = [
         ...axeResults.violations,
         ...contrastIncomplete,
-        ...keyboardViolations,
       ] as unknown as RawViolation[]
 
       for (const violation of violations) {
@@ -61,12 +56,8 @@ async function scanPageList(pages: SitePage[]): Promise<{
       }
 
       // Score per unique rule type (same formula as calculateScore) so page scores are comparable to overall score
-      // Best-practice-only violations are excluded from score
       let pagePenalty = 0
       for (const v of violations) {
-        const tags = (v as any).tags as string[] | undefined
-        const isBP = tags?.includes('best-practice') && !tags?.some((t: string) => t.startsWith('wcag'))
-        if (isBP) continue
         if (v.impact === 'critical') pagePenalty += 8
         else if (v.impact === 'serious') pagePenalty += 5
         else if (v.impact === 'moderate') pagePenalty += 2
