@@ -4,12 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { AddSiteForm } from '@/components/AddSiteForm'
 import { EditSiteForm } from '@/components/EditSiteForm'
-
-interface SitePage {
-  url: string
-  label: string
-  templateType: string
-}
+import type { SitePage } from '@/types'
 
 interface Site {
   id: string
@@ -133,7 +128,7 @@ export default function SitesPage() {
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">
                       <button
-                        onClick={() => setEditingSite(site as any)}
+                        onClick={() => setEditingSite(site)}
                         className="text-blue-500 hover:text-blue-700 text-xs font-medium"
                       >
                         Edit
