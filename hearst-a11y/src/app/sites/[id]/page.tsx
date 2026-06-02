@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ScoreGauge } from '@/components/ScoreGauge'
 import { TrendSparkline } from '@/components/TrendSparkline'
 import { RunScanButton } from '@/components/RunScanButton'
+import { CancelScanButton } from '@/components/CancelScanButton'
 import type { ViolationPattern, SitePage } from '@/types'
 
 async function getSiteData(id: string) {
@@ -194,12 +195,13 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                   <th className="text-right px-4 py-3 text-gray-600 font-medium">Pages</th>
                   <th className="text-right px-4 py-3 text-gray-600 font-medium">Patterns</th>
                   <th className="text-left px-4 py-3 text-gray-600 font-medium">Triggered By</th>
+                  <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {scans.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-8 text-gray-400">No scans yet.</td>
+                    <td colSpan={7} className="text-center py-8 text-gray-400">No scans yet.</td>
                   </tr>
                 ) : (
                   scans.map((scan: any) => (
@@ -210,6 +212,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                           scan.status === 'complete' ? 'bg-green-100 text-green-700' :
                           scan.status === 'running' ? 'bg-blue-100 text-blue-700' :
                           scan.status === 'failed' ? 'bg-red-100 text-red-700' :
+                          scan.status === 'cancelled' ? 'bg-gray-100 text-gray-500' :
                           'bg-gray-100 text-gray-600'
                         }`}>
                           {scan.status}
@@ -221,6 +224,11 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                       <td className="px-4 py-3 text-right text-gray-600">{scan.pages_scanned ?? 0}</td>
                       <td className="px-4 py-3 text-right text-gray-600">{scan.unique_pattern_count ?? 0}</td>
                       <td className="px-4 py-3 text-gray-500 capitalize">{scan.triggered_by}</td>
+                      <td className="px-4 py-3 text-right">
+                        {(scan.status === 'running' || scan.status === 'queued') && (
+                          <CancelScanButton jobId={scan.id} />
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
