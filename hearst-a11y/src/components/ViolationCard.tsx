@@ -67,7 +67,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
   const hiddenCount = nodes.length - SHOW_LIMIT
 
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 border-l-[3px] ${impact.border} shadow-sm overflow-hidden`}>
+    <div className={`rounded-xl border border-gray-100 border-l-[3px] ${impact.border} overflow-hidden`}>
 
       {/* ── Collapsed header row ── */}
       <button
@@ -131,7 +131,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
               </div>
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="bg-gray-50 border-y border-gray-100">
+                  <tr className="border-b border-gray-100">
                     <th className="text-left px-4 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-8">#</th>
                     <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-36">Page</th>
                     <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Element</th>
@@ -171,7 +171,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
           )}
 
           {/* Footer — WCAG guidance link */}
-          <div className="px-5 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+          <div className="px-5 py-2.5 border-t border-gray-100 flex items-center justify-between">
             <span className="text-[11px] font-mono text-gray-300">{pattern.rule}</span>
             <a
               href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}?application=axeAPI`}
