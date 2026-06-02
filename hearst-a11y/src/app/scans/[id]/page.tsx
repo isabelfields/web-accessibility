@@ -1,7 +1,6 @@
 import { sql } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ScoreGauge } from '@/components/ScoreGauge'
 import { ViolationCard } from '@/components/ViolationCard'
 import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
@@ -115,14 +114,16 @@ export default async function ScanDetailPage({ params }: RouteContext) {
         <>
           {/* Score + Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col items-center">
-              <div className="text-sm font-medium text-gray-500 mb-1">WCAG AA Score</div>
-              <div className="text-xs text-gray-400 mb-3">0–100, higher is better</div>
-              <ScoreGauge score={scan.score ?? 0} size={140} />
+            <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col items-center justify-center">
+              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">WCAG AA Score</div>
+              <div className={`text-5xl font-bold leading-none mt-2 ${scoreColor(scan.score ?? 0)}`}>
+                {Math.round(scan.score ?? 0)}
+              </div>
+              <div className="text-xs text-gray-400 mt-2">0–100, higher is better</div>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-3">
-              <div className="text-sm font-medium text-gray-500">Summary</div>
+            <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Summary</div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Pages scanned</span>
                 <span className="font-semibold">{scan.pages_scanned ?? 0}</span>
@@ -141,8 +142,8 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-              <div className="text-sm font-medium text-gray-500 mb-4">By Severity</div>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">By Severity</div>
               <div className="space-y-3">
                 {(['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
                   const count = byImpact[impact].reduce((s, p) => s + p.occurrences, 0)
@@ -168,19 +169,19 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           {pageScores.length > 0 && (
             <div className="mb-8">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Page Scores</h2>
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="rounded-xl border border-gray-200 overflow-hidden bg-white">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-gray-50/80">
                     <tr>
-                      <th className="text-left px-4 py-3 text-gray-600 font-medium">Page</th>
-                      <th className="text-left px-4 py-3 text-gray-600 font-medium">URL</th>
-                      <th className="text-right px-4 py-3 text-gray-600 font-medium">Score</th>
-                      <th className="text-right px-4 py-3 text-gray-600 font-medium">Issues</th>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Page</th>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">URL</th>
+                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Score</th>
+                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Issues</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody>
                     {pageScores.map((ps, i) => (
-                      <tr key={i} className="hover:bg-gray-50">
+                      <tr key={i} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
                         <td className="px-4 py-3 font-medium text-gray-800">{ps.label ?? '—'}</td>
                         <td className="px-4 py-3">
                           <PageViolationsModal pageScore={ps} patterns={patterns} />

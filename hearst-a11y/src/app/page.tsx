@@ -136,34 +136,34 @@ export default async function DashboardPage({
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Sites</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{sites.length}</div>
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Sites</div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{sites.length}</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Pages Monitored</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{stats.totalPages}</div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Pages Monitored</div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{stats.totalPages}</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Avg Score</div>
-          <div className={`text-3xl font-bold mt-1 ${stats.avgScore !== null ? scoreColor(stats.avgScore) : 'text-gray-400'}`}>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Avg Score</div>
+          <div className={`text-2xl font-bold mt-1 ${stats.avgScore !== null ? scoreColor(stats.avgScore) : 'text-gray-400'}`}>
             {stats.avgScore !== null ? stats.avgScore : '—'}
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Errors Caught</div>
-          <div className="text-3xl font-bold text-red-500 mt-1">{stats.totalErrors}</div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Errors Caught</div>
+          <div className="text-2xl font-bold text-red-500 mt-1">{stats.totalErrors}</div>
           <div className="text-xs text-gray-400 mt-0.5">across latest scans</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Errors Resolved</div>
-          <div className="text-3xl font-bold text-green-600 mt-1">{stats.errorsResolved}</div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Errors Resolved</div>
+          <div className="text-2xl font-bold text-green-600 mt-1">{stats.errorsResolved}</div>
           <div className="text-xs text-gray-400 mt-0.5">vs previous scan</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="text-sm text-gray-500">Scans This Month</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">{scans.filter((s: any) => new Date(s.started_at) > new Date(Date.now() - 30*24*60*60*1000)).length}</div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">Scans This Month</div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{scans.filter((s: any) => new Date(s.started_at) > new Date(Date.now() - 30*24*60*60*1000)).length}</div>
         </div>
       </div>
 
@@ -184,23 +184,23 @@ export default async function DashboardPage({
 
       {/* Recent scans */}
       <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Scans</h2>
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-gray-200 overflow-hidden bg-white">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gray-50/80">
             <tr>
-              <th className="text-left px-4 py-3 text-gray-600 font-medium">Site / URL</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Site / URL</th>
               {showDivisionCol && (
-                <th className="text-left px-4 py-3 text-gray-600 font-medium">Division</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Division</th>
               )}
-              <th className="text-left px-4 py-3 text-gray-600 font-medium">Status</th>
-              <th className="text-right px-4 py-3 text-gray-600 font-medium">Score</th>
-              <th className="text-right px-4 py-3 text-gray-600 font-medium">Pages</th>
-              <th className="text-right px-4 py-3 text-gray-600 font-medium">Violations</th>
-              <th className="text-right px-4 py-3 text-gray-600 font-medium">Started</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+              <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Score</th>
+              <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Pages</th>
+              <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Violations</th>
+              <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Started</th>
               <th className="px-2 py-3"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody>
             {scans.length === 0 ? (
               <tr>
                 <td colSpan={showDivisionCol ? 8 : 7} className="text-center py-8 text-gray-400">
@@ -209,7 +209,7 @@ export default async function DashboardPage({
               </tr>
             ) : (
               scans.map((scan: any) => (
-                <tr key={scan.id} className="hover:bg-gray-50 group cursor-pointer relative">
+                <tr key={scan.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors group cursor-pointer relative">
                   <td className="px-4 py-3">
                     <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan for ${scan.site_name ?? scan.root_url}`} />
                     <div className="font-medium text-blue-700">{scan.site_name ?? scan.root_url}</div>

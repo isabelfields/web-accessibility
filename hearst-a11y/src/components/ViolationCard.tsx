@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import type { ViolationPattern } from '@/types'
 
-const IMPACT: Record<string, { label: string; dot: string; border: string; tag: string }> = {
-  critical: { label: 'Critical',  dot: 'bg-red-500',    border: 'border-l-red-500',    tag: 'bg-red-50 text-red-700 ring-red-200' },
-  serious:  { label: 'Serious',   dot: 'bg-orange-400', border: 'border-l-orange-400', tag: 'bg-orange-50 text-orange-700 ring-orange-200' },
-  moderate: { label: 'Moderate',  dot: 'bg-amber-400',  border: 'border-l-amber-400',  tag: 'bg-amber-50 text-amber-700 ring-amber-200' },
-  minor:    { label: 'Minor',     dot: 'bg-blue-400',   border: 'border-l-blue-400',   tag: 'bg-blue-50 text-blue-700 ring-blue-200' },
+const IMPACT: Record<string, { label: string; border: string; tag: string }> = {
+  critical: { label: 'Critical',  border: 'border-l-red-500',    tag: 'bg-red-50 text-red-600 ring-1 ring-red-200' },
+  serious:  { label: 'Serious',   border: 'border-l-orange-400', tag: 'bg-orange-50 text-orange-600 ring-1 ring-orange-200' },
+  moderate: { label: 'Moderate',  border: 'border-l-amber-400',  tag: 'bg-amber-50 text-amber-600 ring-1 ring-amber-200' },
+  minor:    { label: 'Minor',     border: 'border-l-blue-400',   tag: 'bg-blue-50 text-blue-600 ring-1 ring-blue-200' },
 }
 
 const WCAG_RULES: Record<string, { name: string; wcag: string; what: string }> = {
@@ -42,15 +42,21 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
   const instanceCount = pattern.occurrences
   const pageCount = pattern.affectedPages?.length ?? 1
 
+  const nodes = pattern.nodes?.length > 0
+    ? pattern.nodes
+    : [{ html: pattern.sampleHtml ?? '', url: pattern.affectedPages?.[0] ?? '', screenshot: pattern.sampleScreenshot }]
+
+  const hasElements = pattern.nodes?.length > 0 || pattern.sampleHtml
+
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 border-l-4 ${impact.border} shadow-sm overflow-hidden transition-shadow hover:shadow-md`}>
-      {/* Row */}
+    <div className={`bg-white rounded-xl border border-gray-200 border-l-4 ${impact.border} overflow-hidden transition-shadow hover:shadow-sm`}>
+      {/* Collapsed row */}
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full text-left px-5 py-4 flex items-center gap-4"
       >
         {/* Severity tag */}
-        <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ring-1 ${impact.tag}`}>
+        <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${impact.tag}`}>
           {impact.label}
         </span>
 
@@ -81,9 +87,9 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
 
       {/* Expanded */}
       {open && (
-        <div className="border-t border-gray-100 divide-y divide-gray-100">
-          {/* What this means + fix */}
-          <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="border-t border-gray-100">
+          {/* Section 1: What this means + How to fix — stacked vertically */}
+          <div className="px-5 py-4 space-y-3">
             <div>
               <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">What this means</div>
               <p className="text-sm text-gray-700 leading-relaxed">{ruleInfo.what ?? pattern.description}</p>
@@ -96,17 +102,14 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
             )}
           </div>
 
-          {/* Failing elements */}
-          {(pattern.nodes?.length > 0 || pattern.sampleHtml) && (
-            <div className="px-5 py-4">
+          {/* Section 2: Failing elements */}
+          {hasElements && (
+            <div className="px-5 py-4 border-t border-gray-100">
               <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
                 Failing elements · {pattern.nodes?.length ?? 1}
               </div>
               <div className="space-y-2">
-                {(pattern.nodes?.length > 0
-                  ? pattern.nodes
-                  : [{ html: pattern.sampleHtml ?? '', url: pattern.affectedPages?.[0] ?? '', screenshot: pattern.sampleScreenshot }]
-                ).map((node, i) => (
+                {nodes.map((node, i) => (
                   <div key={i} className="rounded-lg border border-gray-200 overflow-hidden">
                     {/* Element header */}
                     <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 border-b border-gray-100">
@@ -115,37 +118,35 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
                         try {
                           return (
                             <a href={node.url} target="_blank" rel="noopener noreferrer"
-                              className="text-xs text-blue-500 hover:text-blue-700 hover:underline truncate max-w-xs font-mono">
+                              className="text-xs text-brand-500 hover:underline truncate max-w-xs font-mono">
                               {new URL(node.url).pathname || '/'}
                             </a>
                           )
                         } catch { return null }
                       })()}
                     </div>
-                    {/* Screenshot */}
-                    {node.screenshot && (
-                      <div className="p-2 bg-gray-50 border-b border-gray-100">
-                        <img
-                          src={`data:image/jpeg;base64,${node.screenshot}`}
-                          alt={`Element ${i + 1}`}
-                          className="max-h-28 rounded object-contain"
-                        />
-                      </div>
-                    )}
-                    {/* HTML */}
-                    {node.html && (
-                      <pre className="text-xs font-mono bg-gray-950 text-emerald-400 px-4 py-3 overflow-x-auto whitespace-pre-wrap break-all m-0 leading-relaxed">
+                    {/* Screenshot — only if truthy */}
+                    {node.screenshot ? (
+                      <img
+                        src={`data:image/jpeg;base64,${node.screenshot}`}
+                        alt={`Element ${i + 1}`}
+                        className="max-h-32 rounded-b-none object-contain w-full bg-gray-50"
+                      />
+                    ) : null}
+                    {/* HTML code block */}
+                    {node.html ? (
+                      <pre className="bg-[#0d1117] text-[#7ee787] font-mono text-xs px-4 py-3 overflow-x-auto whitespace-pre m-0 leading-relaxed">
                         {node.html}
                       </pre>
-                    )}
+                    ) : null}
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Affected pages + rule reference */}
-          <div className="px-5 py-3 flex flex-wrap items-center justify-between gap-3">
+          {/* Section 3: Footer — affected pages + guidance link */}
+          <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
             {pattern.affectedPages && pattern.affectedPages.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {pattern.affectedPages.map(url => {
@@ -153,7 +154,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
                   try { path = new URL(url).pathname || '/' } catch { /* keep as-is */ }
                   return (
                     <a key={url} href={url} target="_blank" rel="noopener noreferrer"
-                      className="text-xs font-mono bg-gray-100 text-gray-600 hover:bg-gray-200 px-2 py-0.5 rounded transition-colors">
+                      className="text-xs font-mono bg-white text-gray-500 border border-gray-200 hover:bg-gray-100 px-2 py-0.5 rounded transition-colors">
                       {path}
                     </a>
                   )
@@ -163,9 +164,9 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
             <a
               href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}?application=axeAPI`}
               target="_blank" rel="noopener noreferrer"
-              className="text-xs text-gray-400 hover:text-blue-600 font-mono ml-auto whitespace-nowrap"
+              className="text-xs font-medium text-brand-500 hover:underline ml-auto whitespace-nowrap"
             >
-              {pattern.rule} ↗
+              View WCAG guidance ↗
             </a>
           </div>
         </div>
