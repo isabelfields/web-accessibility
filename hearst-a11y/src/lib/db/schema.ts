@@ -14,6 +14,7 @@ export const scanJobs = pgTable('scan_jobs', {
   claudeCallCount: integer('claude_call_count').default(0),
   estimatedCostUsd: real('estimated_cost_usd').default(0),
   patterns: jsonb('patterns').default([]),
+  pageScores: jsonb('page_scores').default([]),
   error: text('error'),
   startedAt: timestamp('started_at').defaultNow(),
   completedAt: timestamp('completed_at'),

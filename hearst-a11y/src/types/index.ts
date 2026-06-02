@@ -34,6 +34,15 @@ export interface ViolationPattern {
   isHardcoded: boolean   // true = came from KNOWN_FIXES, false = Claude generated
   occurrences: number
   affectedPages: string[]
+  sampleHtml?: string        // raw HTML of one failing element
+  sampleScreenshot?: string  // base64 JPEG of the element
+}
+
+export interface PageScore {
+  url: string
+  label?: string
+  score: number
+  violationCount: number
 }
 
 export interface PageScanResult {
@@ -51,13 +60,14 @@ export interface ScanJob {
   rootUrl: string
   status: 'queued' | 'running' | 'complete' | 'failed' | 'cancelled'
   score: number
+  pageScores: PageScore[]
   pagesScanned: number
   pagesSkipped: number
   totalPages: number
   patterns: ViolationPattern[]
   rawViolationCount: number
   uniquePatternCount: number
-  claudeCallCount: number     // for cost transparency
+  claudeCallCount: number
   estimatedCostUsd: number
   startedAt: string
   completedAt?: string

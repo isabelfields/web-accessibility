@@ -80,8 +80,8 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
         </div>
         <div className="flex items-center gap-4 shrink-0">
           <div className="text-right hidden sm:block">
-            <div className="text-sm font-semibold text-gray-700">{pattern.occurrences} occurrence{pattern.occurrences !== 1 ? 's' : ''}</div>
-            <div className="text-xs text-gray-400">{pattern.affectedPages?.length ?? 0} page{(pattern.affectedPages?.length ?? 0) !== 1 ? 's' : ''}</div>
+            <div className="text-sm font-semibold text-gray-700">{pattern.occurrences} violation{pattern.occurrences !== 1 ? 's' : ''}</div>
+            <div className="text-xs text-gray-400">{pattern.affectedPages?.length ?? 0} page{(pattern.affectedPages?.length ?? 0) !== 1 ? 's' : ''} affected</div>
           </div>
           <svg
             className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}
@@ -107,6 +107,20 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
             <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Standard:</span>
             <span className="text-xs font-medium text-gray-700">{ruleInfo.wcag}</span>
           </div>
+
+          {/* Element screenshot */}
+          {pattern.sampleScreenshot && (
+            <div>
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">The element</div>
+              <div className="bg-white rounded-lg border border-gray-200 p-2 inline-block max-w-full">
+                <img
+                  src={`data:image/jpeg;base64,${pattern.sampleScreenshot}`}
+                  alt="Screenshot of the failing element"
+                  className="max-w-full max-h-40 rounded object-contain"
+                />
+              </div>
+            </div>
+          )}
 
           {/* How to fix */}
           {pattern.fixSuggestion && (
