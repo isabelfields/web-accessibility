@@ -145,7 +145,7 @@ export async function GET(
               {pageScores.map((ps, i) => (
                 <View key={i} style={styles.tableRow}>
                   <Text style={[styles.tableCell, { flex: 2 }]}>{ps.label ?? '—'}</Text>
-                  <Text style={[styles.tableCell, { flex: 3, color: '#3B7EC8' }]} numberOfLines={1}>{ps.url}</Text>
+                  <Text style={[styles.tableCell, { flex: 3, color: '#3B7EC8' }]}>{ps.url.length > 60 ? ps.url.slice(0, 60) + '…' : ps.url}</Text>
                   <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>{ps.violationCount ?? '—'}</Text>
                   <Text style={[styles.tableCell, { flex: 1, textAlign: 'right', color: ps.score == null ? '#ef4444' : '#9ca3af' }]}>
                     {ps.score == null ? 'Failed' : 'Scanned'}
