@@ -6,6 +6,7 @@ import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { SeverityBar } from '@/components/SeverityBar'
 import { ExportPdfButton } from '@/components/ExportPdfButton'
+import { patternsToWorstTier, TIER_LABEL, TIER_COLOR } from '@/lib/tiers'
 import type { ViolationPattern, PageScore } from '@/types'
 
 const RULE_WCAG_LEVEL: Record<string, 'A' | 'AA' | 'AAA'> = {
@@ -44,14 +45,6 @@ function formatDate(d: string | Date | null) {
   })
 }
 
-function scoreColor(score: number) {
-  if (score >= 90) return 'text-green-600'
-  if (score >= 80) return 'text-lime-600'
-  if (score >= 70) return 'text-yellow-600'
-  if (score >= 60) return 'text-orange-500'
-  return 'text-red-500'
-}
-
 function impactColor(impact: string) {
   switch (impact) {
     case 'critical': return 'bg-red-100 text-red-700 border-red-200'
@@ -75,7 +68,16 @@ export default async function ScanDetailPage({ params }: RouteContext) {
     if (byImpact[p.impact]) byImpact[p.impact].push(p)
   }
 
+  // Group into tiers for display
+  const byTier = {
+    tier1: byImpact.critical,
+    tier2: byImpact.serious,
+    tier3: byImpact.moderate,
+    tier4: byImpact.minor,
+  }
+
   const totalViolations = patterns.reduce((sum, p) => sum + p.occurrences, 0)
+  const worstTier = patternsToWorstTier(patterns)
 
   const severityCounts = {
     critical: byImpact.critical.reduce((s, p) => s + p.occurrences, 0),
@@ -141,15 +143,19 @@ export default async function ScanDetailPage({ params }: RouteContext) {
         </div>
       ) : (
         <>
-          {/* Score + Stats */}
+          {/* Summary Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-            {/* Score */}
+            {/* Priority tier */}
             <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6 flex flex-col items-center justify-center">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Score</div>
-              <div className={`text-5xl font-bold leading-none tabular-nums ${scoreColor(scan.score ?? 0)}`}>
-                {Math.round(scan.score ?? 0)}
-              </div>
-              <div className="text-xs text-gray-300 mt-2">/ 100</div>
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Priority</div>
+              {worstTier ? (
+                <>
+                  <div className={`text-2xl font-bold ${TIER_COLOR[worstTier].text}`}>{TIER_LABEL[worstTier]}</div>
+                  <div className="text-xs text-gray-400 mt-1">highest tier found</div>
+                </>
+              ) : (
+                <div className="text-lg font-semibold text-green-600">No issues</div>
+              )}
             </div>
 
             {/* Violations summary */}
@@ -181,25 +187,25 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               </div>
             </div>
 
-            {/* Severity bar */}
+            {/* Tier breakdown bar */}
             <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">By Severity</div>
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">By Tier</div>
               <SeverityBar counts={severityCounts} height="h-3" />
             </div>
           </div>
 
-          {/* Per-page scores */}
+          {/* Per-page issues */}
           {pageScores.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Page Scores</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Page Issues</h2>
               <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-100">
                       <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Page</th>
                       <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">URL</th>
-                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Score</th>
                       <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Violations</th>
+                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -215,10 +221,13 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                               </div>
                             )}
                           </td>
-                          <td className={`px-4 py-3 text-right font-bold ${ps.score != null ? scoreColor(ps.score) : 'text-gray-400'}`}>
-                            {ps.score != null ? ps.score : <span className="text-xs font-normal bg-red-50 text-red-500 px-2 py-0.5 rounded-md">Failed</span>}
-                          </td>
                           <td className="px-4 py-3 text-right text-gray-600">{ps.violationCount ?? '—'}</td>
+                          <td className="px-4 py-3 text-right">
+                            {ps.score == null
+                              ? <span className="text-xs font-normal bg-red-50 text-red-500 px-2 py-0.5 rounded-md">Failed</span>
+                              : <span className="text-xs text-gray-400">Scanned</span>
+                            }
+                          </td>
                         </tr>
                       </PageViolationsModal>
                     ))}
@@ -239,15 +248,15 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             </div>
           ) : (
             <div className="space-y-5">
-              {(['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
-                const group = byImpact[impact]
+              {(['tier1', 'tier2', 'tier3', 'tier4'] as const).map(tier => {
+                const group = byTier[tier]
                 if (group.length === 0) return null
-                const cfg = { critical: { bar: 'bg-red-500', text: 'text-red-600', label: 'Critical' }, serious: { bar: 'bg-red-400', text: 'text-red-600', label: 'Serious' }, moderate: { bar: 'bg-amber-400', text: 'text-amber-600', label: 'Moderate' }, minor: { bar: 'bg-blue-400', text: 'text-blue-600', label: 'Minor' } }[impact]
+                const c = TIER_COLOR[tier]
                 return (
-                  <div key={impact}>
+                  <div key={tier}>
                     <div className="flex items-center gap-2.5 mb-2.5 px-1">
-                      <span className={`w-1.5 h-1.5 rounded-full ${cfg.bar}`} />
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${cfg.text}`}>{cfg.label}</h3>
+                      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
+                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${c.text}`}>{TIER_LABEL[tier]}</h3>
                       <span className="text-xs text-gray-400 font-medium">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                     </div>
                     <div className="space-y-1.5">

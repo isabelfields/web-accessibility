@@ -2,23 +2,16 @@
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
-const COLORS = {
-  critical: '#ef4444',
-  serious:  '#f87171',
-  moderate: '#fbbf24',
-  minor:    '#93c5fd',
-}
-
 interface Props {
   counts: { critical: number; serious: number; moderate: number; minor: number }
 }
 
 export function SeverityDonut({ counts }: Props) {
   const data = [
-    { name: 'Critical', value: counts.critical, color: COLORS.critical },
-    { name: 'Serious',  value: counts.serious,  color: COLORS.serious },
-    { name: 'Moderate', value: counts.moderate, color: COLORS.moderate },
-    { name: 'Minor',    value: counts.minor,    color: COLORS.minor },
+    { name: 'Tier 1', value: counts.critical, color: '#ef4444' },
+    { name: 'Tier 2', value: counts.serious,  color: '#f97316' },
+    { name: 'Tier 3', value: counts.moderate, color: '#f59e0b' },
+    { name: 'Tier 4', value: counts.minor,    color: '#60a5fa' },
   ].filter(d => d.value > 0)
 
   const total = data.reduce((s, d) => s + d.value, 0)

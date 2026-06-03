@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import type { ViolationPattern } from '@/types'
+import { impactToTier, TIER_LABEL, TIER_COLOR } from '@/lib/tiers'
 
-const IMPACT: Record<string, { label: string; border: string; pill: string; dot: string }> = {
-  critical: { label: 'Critical',  border: 'border-l-red-500',    pill: 'bg-red-50 text-red-600 ring-1 ring-inset ring-red-200',    dot: 'bg-red-500' },
-  serious:  { label: 'Serious',   border: 'border-l-red-400', pill: 'bg-red-50 text-red-600 ring-1 ring-inset ring-red-200', dot: 'bg-red-400' },
-  moderate: { label: 'Moderate',  border: 'border-l-amber-400',  pill: 'bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-200',  dot: 'bg-amber-400' },
-  minor:    { label: 'Minor',     border: 'border-l-blue-400',   pill: 'bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-200',    dot: 'bg-blue-400' },
+const TIER_STYLE: Record<string, { label: string; border: string; pill: string; dot: string }> = {
+  tier1: { label: 'Tier 1', border: 'border-l-red-500',    pill: 'bg-red-50 text-red-600 ring-1 ring-inset ring-red-200',       dot: 'bg-red-500' },
+  tier2: { label: 'Tier 2', border: 'border-l-orange-500', pill: 'bg-orange-50 text-orange-600 ring-1 ring-inset ring-orange-200', dot: 'bg-orange-500' },
+  tier3: { label: 'Tier 3', border: 'border-l-amber-400',  pill: 'bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-200',  dot: 'bg-amber-400' },
+  tier4: { label: 'Tier 4', border: 'border-l-blue-400',   pill: 'bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-200',    dot: 'bg-blue-400' },
 }
 
 const WCAG_RULES: Record<string, { name: string; wcag: string; what: string }> = {
@@ -52,7 +53,8 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
   const [open, setOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
 
-  const impact = IMPACT[pattern.impact] ?? IMPACT.minor
+  const tier = impactToTier(pattern.impact)
+  const impact = TIER_STYLE[tier]
   const ruleInfo = getRuleInfo(pattern.rule)
   const instanceCount = pattern.occurrences
   const pageCount = pattern.affectedPages?.length ?? 1

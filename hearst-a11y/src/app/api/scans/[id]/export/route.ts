@@ -32,30 +32,30 @@ const styles = StyleSheet.create({
   footerText: { fontSize: 8, color: '#9ca3af' },
 })
 
-function impactColor(impact: string) {
-  switch (impact) {
-    case 'critical': return '#ef4444'
-    case 'serious': return '#f87171'
-    case 'moderate': return '#f59e0b'
-    default: return '#93c5fd'
-  }
+const TIER_HEX: Record<string, string> = {
+  tier1: '#ef4444',
+  tier2: '#f97316',
+  tier3: '#f59e0b',
+  tier4: '#60a5fa',
+}
+const TIER_BG: Record<string, string> = {
+  tier1: '#fef2f2',
+  tier2: '#fff7ed',
+  tier3: '#fffbeb',
+  tier4: '#eff6ff',
 }
 
-function impactBg(impact: string) {
-  switch (impact) {
-    case 'critical': return '#fef2f2'
-    case 'serious': return '#fef2f2'
-    case 'moderate': return '#fffbeb'
-    default: return '#eff6ff'
-  }
+function impactToTierKey(impact: string): string {
+  if (impact === 'critical') return 'tier1'
+  if (impact === 'serious')  return 'tier2'
+  if (impact === 'moderate') return 'tier3'
+  return 'tier4'
 }
-
-function scoreColor(score: number) {
-  if (score >= 90) return '#16a34a'
-  if (score >= 80) return '#65a30d'
-  if (score >= 70) return '#ca8a04'
-  if (score >= 60) return '#ea580c'
-  return '#dc2626'
+function impactTierLabel(impact: string): string {
+  if (impact === 'critical') return 'Tier 1'
+  if (impact === 'serious')  return 'Tier 2'
+  if (impact === 'moderate') return 'Tier 3'
+  return 'Tier 4'
 }
 
 export async function GET(
@@ -82,9 +82,9 @@ export async function GET(
   const pageScores: PageScore[] = scan.page_scores ?? []
   const totalViolations = patterns.reduce((s, p) => s + p.occurrences, 0)
 
-  const byImpact: Record<string, ViolationPattern[]> = { critical: [], serious: [], moderate: [], minor: [] }
+  const byTier: Record<string, ViolationPattern[]> = { tier1: [], tier2: [], tier3: [], tier4: [] }
   for (const p of patterns) {
-    if (byImpact[p.impact]) byImpact[p.impact].push(p)
+    byTier[impactToTierKey(p.impact)].push(p)
   }
 
   const formattedDate = new Date(scan.started_at).toLocaleDateString('en-US', {
@@ -106,12 +106,6 @@ export async function GET(
         {/* Stats */}
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Score</Text>
-            <Text style={[styles.statValue, { color: scoreColor(scan.score ?? 0) }]}>
-              {Math.round(scan.score ?? 0)}
-            </Text>
-          </View>
-          <View style={styles.statCard}>
             <Text style={styles.statLabel}>Total Violations</Text>
             <Text style={styles.statValue}>{totalViolations}</Text>
           </View>
@@ -124,38 +118,38 @@ export async function GET(
             <Text style={styles.statValue}>{scan.pages_scanned ?? 0}</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Critical</Text>
-            <Text style={[styles.statValue, { color: '#ef4444' }]}>
-              {byImpact.critical.reduce((s, p) => s + p.occurrences, 0)}
+            <Text style={styles.statLabel}>Tier 1</Text>
+            <Text style={[styles.statValue, { color: TIER_HEX.tier1 }]}>
+              {byTier.tier1.reduce((s, p) => s + p.occurrences, 0)}
             </Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Serious</Text>
-            <Text style={[styles.statValue, { color: '#f87171' }]}>
-              {byImpact.serious.reduce((s, p) => s + p.occurrences, 0)}
+            <Text style={styles.statLabel}>Tier 2</Text>
+            <Text style={[styles.statValue, { color: TIER_HEX.tier2 }]}>
+              {byTier.tier2.reduce((s, p) => s + p.occurrences, 0)}
             </Text>
           </View>
         </View>
 
-        {/* Page Scores */}
+        {/* Page Issues */}
         {pageScores.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>Page Scores</Text>
+            <Text style={styles.sectionTitle}>Page Issues</Text>
             <View style={styles.table}>
               <View style={styles.tableHeader}>
                 <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Page</Text>
                 <Text style={[styles.tableHeaderCell, { flex: 3 }]}>URL</Text>
-                <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'right' }]}>Score</Text>
                 <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'right' }]}>Violations</Text>
+                <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'right' }]}>Status</Text>
               </View>
               {pageScores.map((ps, i) => (
                 <View key={i} style={styles.tableRow}>
                   <Text style={[styles.tableCell, { flex: 2 }]}>{ps.label ?? '—'}</Text>
                   <Text style={[styles.tableCell, { flex: 3, color: '#3B7EC8' }]} numberOfLines={1}>{ps.url}</Text>
-                  <Text style={[styles.tableCell, { flex: 1, textAlign: 'right', fontFamily: 'Helvetica-Bold', color: ps.score != null ? scoreColor(ps.score) : '#9ca3af' }]}>
-                    {ps.score != null ? ps.score : 'Failed'}
-                  </Text>
                   <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>{ps.violationCount ?? '—'}</Text>
+                  <Text style={[styles.tableCell, { flex: 1, textAlign: 'right', color: ps.score == null ? '#ef4444' : '#9ca3af' }]}>
+                    {ps.score == null ? 'Failed' : 'Scanned'}
+                  </Text>
                 </View>
               ))}
             </View>
@@ -166,19 +160,22 @@ export async function GET(
         {patterns.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Issues Found</Text>
-            {(['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
-              const group = byImpact[impact]
+            {(['tier1', 'tier2', 'tier3', 'tier4'] as const).map(tier => {
+              const group = byTier[tier]
               if (group.length === 0) return null
+              const color = TIER_HEX[tier]
+              const bg = TIER_BG[tier]
+              const label = { tier1: 'Tier 1', tier2: 'Tier 2', tier3: 'Tier 3', tier4: 'Tier 4' }[tier]
               return (
-                <View key={impact}>
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: impactColor(impact), textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, marginTop: 8 }}>
-                    {impact} — {group.length} issue type{group.length !== 1 ? 's' : ''}
+                <View key={tier}>
+                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, marginTop: 8 }}>
+                    {label} — {group.length} issue type{group.length !== 1 ? 's' : ''}
                   </Text>
                   {group.map((p, i) => (
-                    <View key={i} style={[styles.violationCard, { borderLeftColor: impactColor(p.impact) }]}>
+                    <View key={i} style={[styles.violationCard, { borderLeftColor: color }]}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                        <View style={[styles.pill, { backgroundColor: impactBg(p.impact), color: impactColor(p.impact) }]}>
-                          <Text style={{ color: impactColor(p.impact), fontSize: 8, fontFamily: 'Helvetica-Bold' }}>{p.impact.toUpperCase()}</Text>
+                        <View style={[styles.pill, { backgroundColor: bg }]}>
+                          <Text style={{ color, fontSize: 8, fontFamily: 'Helvetica-Bold' }}>{impactTierLabel(p.impact)}</Text>
                         </View>
                         <Text style={styles.violationTitle}>{p.rule}</Text>
                         <Text style={{ fontSize: 8, color: '#9ca3af', marginLeft: 'auto' }}>{p.occurrences} occurrence{p.occurrences !== 1 ? 's' : ''} · {p.affectedPages?.length ?? 1} page{(p.affectedPages?.length ?? 1) !== 1 ? 's' : ''}</Text>

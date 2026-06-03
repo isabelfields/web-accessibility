@@ -15,9 +15,7 @@ interface Site {
   region?: string | null
   pages: SitePage[]
   created_at: string
-  previousScore: number | null
   latestScan: {
-    score: number
     status: string
     started_at: string
     unique_pattern_count: number
@@ -25,31 +23,8 @@ interface Site {
   } | null
 }
 
-function scoreColor(score: number) {
-  if (score >= 90) return 'text-green-600'
-  if (score >= 80) return 'text-lime-600'
-  if (score >= 70) return 'text-yellow-600'
-  if (score >= 60) return 'text-orange-500'
-  return 'text-red-500'
-}
-
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
-
-function ScoreDelta({ current, previous }: { current: number; previous: number | null }) {
-  if (previous == null) return null
-  const delta = Math.round(current) - Math.round(previous)
-  if (delta === 0) return null
-  const up = delta > 0
-  return (
-    <span
-      className="text-[11px] font-semibold tabular-nums"
-      style={{ color: up ? '#00c853' : '#ff1744' }}
-    >
-      {up ? '+' : ''}{delta}
-    </span>
-  )
 }
 
 export default function SitesPage() {
@@ -154,7 +129,7 @@ export default function SitesPage() {
                 <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</th>
                 <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Brand</th>
                 <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Pages</th>
-                <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Score</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Violations</th>
                 <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Last Scan</th>
                 <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Added</th>
                 <th className="px-4 py-3"></th>
@@ -183,17 +158,8 @@ export default function SitesPage() {
                   <td className="px-4 py-3 text-gray-500">
                     {site.pages?.length ?? 0} page{(site.pages?.length ?? 0) !== 1 ? 's' : ''}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    {site.latestScan ? (
-                      <span className="inline-flex items-center justify-end gap-0.5">
-                        <span className={`font-semibold tabular-nums ${scoreColor(site.latestScan.score)}`}>
-                          {Math.round(site.latestScan.score)}
-                        </span>
-                        <ScoreDelta current={site.latestScan.score} previous={site.previousScore} />
-                      </span>
-                    ) : (
-                      <span className="text-gray-300">—</span>
-                    )}
+                  <td className="px-4 py-3 text-right text-gray-600 tabular-nums">
+                    {site.latestScan ? site.latestScan.raw_violation_count : <span className="text-gray-300">—</span>}
                   </td>
                   <td className="px-4 py-3 text-right text-gray-400">
                     {site.latestScan ? formatDate(site.latestScan.started_at) : '—'}

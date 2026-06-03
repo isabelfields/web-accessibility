@@ -3,14 +3,13 @@ import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 import Link from 'next/link'
-import { ScoreGauge } from '@/components/ScoreGauge'
-import { TrendSparkline } from '@/components/TrendSparkline'
 import { RunScanButton } from '@/components/RunScanButton'
 import { CancelScanButton } from '@/components/CancelScanButton'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { ViolationCard } from '@/components/ViolationCard'
 import { EditSiteButton } from '@/components/EditSiteButton'
 import { PageViolationsModal } from '@/components/PageViolationsModal'
+import { patternsToWorstTier, TIER_LABEL, TIER_COLOR, impactToTier } from '@/lib/tiers'
 import type { ViolationPattern, SitePage } from '@/types'
 
 async function getSiteData(id: string) {
@@ -18,7 +17,7 @@ async function getSiteData(id: string) {
   if (!site) return null
 
   const scans = await sql`
-    SELECT id, score, status, pages_scanned, raw_violation_count,
+    SELECT id, status, pages_scanned, raw_violation_count,
            unique_pattern_count, estimated_cost_usd, started_at, completed_at,
            triggered_by, patterns, page_scores
     FROM scan_jobs
@@ -30,27 +29,9 @@ async function getSiteData(id: string) {
   return { site, scans }
 }
 
-function impactColor(impact: string) {
-  switch (impact) {
-    case 'critical': return 'bg-red-100 text-red-700 border-red-200'
-    case 'serious': return 'bg-red-100 text-red-700 border-red-200'
-    case 'moderate': return 'bg-yellow-100 text-yellow-700 border-yellow-200'
-    case 'minor': return 'bg-blue-100 text-blue-700 border-blue-200'
-    default: return 'bg-gray-100 text-gray-600 border-gray-200'
-  }
-}
-
 function formatDate(d: string | Date | null) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-}
-
-function scoreColor(score: number) {
-  if (score >= 90) return 'text-green-600'
-  if (score >= 80) return 'text-lime-600'
-  if (score >= 70) return 'text-yellow-600'
-  if (score >= 60) return 'text-orange-500'
-  return 'text-red-500'
 }
 
 export default async function SiteDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -63,17 +44,16 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
   const completedScans = scans.filter((s: any) => s.status === 'complete')
   const latestScan = completedScans[0] ?? null
-  const pageScores: Array<{ url: string; label?: string; score: number; violationCount: number }> =
+  const pageScores: Array<{ url: string; label?: string; score: number | null; violationCount: number | null; error?: string }> =
     latestScan?.page_scores ?? []
-  const latestScore = latestScan?.score ?? 0
-  const trendScores = completedScans.slice(0, 10).reverse().map((s: any) => s.score ?? 0)
 
-  // Aggregate violation patterns from latest scan
   const patterns: ViolationPattern[] = latestScan?.patterns ?? []
-  const byImpact: Record<string, ViolationPattern[]> = { critical: [], serious: [], moderate: [], minor: [] }
+  const byTier: Record<string, ViolationPattern[]> = { tier1: [], tier2: [], tier3: [], tier4: [] }
   for (const p of patterns) {
-    if (byImpact[p.impact]) byImpact[p.impact].push(p)
+    const t = impactToTier(p.impact)
+    byTier[t].push(p)
   }
+  const worstTier = patternsToWorstTier(patterns)
 
   return (
     <div className="px-8 py-6">
@@ -98,51 +78,39 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      {/* Score + Trend */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6 flex flex-col items-center">
-          <div className="text-sm font-medium text-gray-500 mb-1">WCAG AA Score</div>
-          <div className="text-xs text-gray-400 mb-3">0–100, higher is better</div>
-          <ScoreGauge score={latestScore} size={160} />
-        </div>
-
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6">
-          <div className="text-sm font-medium text-gray-500 mb-3">Score Trend</div>
-          {trendScores.length >= 2 ? (
-            <TrendSparkline scores={trendScores} width={240} height={80} />
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-5 flex flex-col items-center justify-center">
+          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Priority</div>
+          {worstTier ? (
+            <>
+              <div className={`text-2xl font-bold ${TIER_COLOR[worstTier].text}`}>{TIER_LABEL[worstTier]}</div>
+              <div className="text-xs text-gray-400 mt-1">highest tier found</div>
+            </>
           ) : (
-            <div className="text-sm text-gray-400 italic">Run more scans to see trends.</div>
+            <div className="text-lg font-semibold text-green-600">{latestScan ? 'No issues' : 'No scans yet'}</div>
           )}
         </div>
 
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6">
-          <div className="text-sm font-medium text-gray-500 mb-3">Latest Scan Stats</div>
-          {latestScan ? (
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Pages scanned</span>
-                <span className="font-semibold">{latestScan.pages_scanned}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Raw violations</span>
-                <span className="font-semibold">{latestScan.raw_violation_count}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Unique issues</span>
-                <span className="font-semibold">{latestScan.unique_pattern_count}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Est. cost</span>
-                <span className="font-semibold">${(latestScan.estimated_cost_usd ?? 0).toFixed(4)}</span>
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-400 italic">No completed scans yet.</div>
-          )}
+        <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-5">
+          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Violations</div>
+          <div className="text-3xl font-bold text-gray-900 tabular-nums">{latestScan?.raw_violation_count ?? '—'}</div>
+          <div className="text-xs text-gray-400 mt-1">{latestScan?.unique_pattern_count ?? 0} issue types</div>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-5">
+          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Pages Scanned</div>
+          <div className="text-3xl font-bold text-gray-900 tabular-nums">{latestScan?.pages_scanned ?? '—'}</div>
+          <div className="text-xs text-gray-400 mt-1">{pages.length} configured</div>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-5">
+          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Total Scans</div>
+          <div className="text-3xl font-bold text-gray-900 tabular-nums">{scans.length}</div>
+          <div className="text-xs text-gray-400 mt-1">{completedScans.length} completed</div>
         </div>
       </div>
 
-      {/* Tabs — static rendering with sections */}
       <div className="space-y-8">
         {/* Violations */}
         <div>
@@ -153,15 +121,15 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
             </div>
           ) : (
             <div className="space-y-5">
-              {(['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
-                const group = byImpact[impact]
+              {(['tier1', 'tier2', 'tier3', 'tier4'] as const).map(tier => {
+                const group = byTier[tier]
                 if (group.length === 0) return null
-                const cfg = { critical: { bar: 'bg-red-500', text: 'text-red-600', label: 'Critical' }, serious: { bar: 'bg-red-400', text: 'text-red-600', label: 'Serious' }, moderate: { bar: 'bg-amber-400', text: 'text-amber-600', label: 'Moderate' }, minor: { bar: 'bg-blue-400', text: 'text-blue-600', label: 'Minor' } }[impact]
+                const c = TIER_COLOR[tier]
                 return (
-                  <div key={impact}>
+                  <div key={tier}>
                     <div className="flex items-center gap-2.5 mb-2.5 px-1">
-                      <span className={`w-1.5 h-1.5 rounded-full ${cfg.bar}`} />
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${cfg.text}`}>{cfg.label}</h3>
+                      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
+                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${c.text}`}>{TIER_LABEL[tier]}</h3>
                       <span className="text-xs text-gray-400 font-medium">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                     </div>
                     <div className="space-y-1.5">
@@ -185,7 +153,6 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                 <tr>
                   <th className="text-left px-4 py-3 text-gray-600 font-medium">Started</th>
                   <th className="text-left px-4 py-3 text-gray-600 font-medium">Status</th>
-                  <th className="text-right px-4 py-3 text-gray-600 font-medium">Score</th>
                   <th className="text-right px-4 py-3 text-gray-600 font-medium">Pages</th>
                   <th className="text-right px-4 py-3 text-gray-600 font-medium">Issues</th>
                   <th className="text-left px-4 py-3 text-gray-600 font-medium">Triggered By</th>
@@ -195,7 +162,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
               <tbody className="divide-y divide-gray-100">
                 {scans.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-gray-400">No scans yet.</td>
+                    <td colSpan={6} className="text-center py-8 text-gray-400">No scans yet.</td>
                   </tr>
                 ) : (
                   scans.map((scan: any) => (
@@ -214,9 +181,6 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                         }`}>
                           {scan.status}
                         </span>
-                      </td>
-                      <td className={`px-4 py-3 text-right font-semibold ${scan.score ? scoreColor(scan.score) : 'text-gray-400'}`}>
-                        {scan.score ? Math.round(scan.score) : '—'}
                       </td>
                       <td className="px-4 py-3 text-right text-gray-600">{scan.pages_scanned ?? 0}</td>
                       <td className="px-4 py-3 text-right text-gray-600">{scan.raw_violation_count ?? 0}</td>
@@ -252,34 +216,39 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                     <th className="text-left px-4 py-3 text-gray-600 font-medium">Label</th>
                     <th className="text-left px-4 py-3 text-gray-600 font-medium">URL</th>
                     <th className="text-left px-4 py-3 text-gray-600 font-medium">Template Type</th>
-                    <th className="text-right px-4 py-3 text-gray-600 font-medium">Score</th>
                     <th className="text-right px-4 py-3 text-gray-600 font-medium">Violations</th>
+                    <th className="text-right px-4 py-3 text-gray-600 font-medium">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {pages.map((page, i) => {
                     const ps = pageScores.find(s => s.url === page.url)
                     return (
-                    <tr key={i} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-800">{page.label}</td>
-                      <td className="px-4 py-3">
-                        <PageViolationsModal
-                          pageScore={ps ?? { url: page.url, label: page.label, score: null as any, violationCount: null as any }}
-                          patterns={patterns}
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
-                          {page.templateType}
-                        </span>
-                      </td>
-                      <td className={`px-4 py-3 text-right font-bold ${ps && ps.score != null ? scoreColor(ps.score) : 'text-gray-300'}`}>
-                        {!ps ? '—' : ps.score != null ? ps.score : <span className="text-xs font-normal bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Failed</span>}
-                      </td>
-                      <td className="px-4 py-3 text-right text-gray-600">
-                        {ps ? (ps.violationCount ?? '—') : '—'}
-                      </td>
-                    </tr>
+                      <tr key={i} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 font-medium text-gray-800">{page.label}</td>
+                        <td className="px-4 py-3">
+                          <PageViolationsModal
+                            pageScore={ps ?? { url: page.url, label: page.label, score: null as any, violationCount: null as any }}
+                            patterns={patterns}
+                          />
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
+                            {page.templateType}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right text-gray-600">
+                          {ps ? (ps.violationCount ?? '—') : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {!ps
+                            ? <span className="text-xs text-gray-300">—</span>
+                            : ps.score == null
+                              ? <span className="text-xs font-normal bg-red-50 text-red-500 px-2 py-0.5 rounded-md">Failed</span>
+                              : <span className="text-xs text-gray-400">Scanned</span>
+                          }
+                        </td>
+                      </tr>
                     )
                   })}
                 </tbody>
