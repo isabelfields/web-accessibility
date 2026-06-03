@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { signOut } from '@/auth'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -65,7 +66,12 @@ export default function RootLayout({
             </nav>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-100">
+            <div className="px-6 py-4 border-t border-gray-100 space-y-2">
+              <form action={async () => { 'use server'; await signOut({ redirectTo: '/login' }) }}>
+                <button type="submit" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                  Sign out
+                </button>
+              </form>
               <div className="text-xs text-gray-400">© Hearst Communications</div>
             </div>
           </aside>
