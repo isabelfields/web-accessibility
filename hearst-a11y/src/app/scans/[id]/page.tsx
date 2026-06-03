@@ -5,6 +5,7 @@ import { ViolationCard } from '@/components/ViolationCard'
 import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { SeverityBar } from '@/components/SeverityBar'
+import { ExportPdfButton } from '@/components/ExportPdfButton'
 import type { ViolationPattern, PageScore } from '@/types'
 
 const RULE_WCAG_LEVEL: Record<string, 'A' | 'AA' | 'AAA'> = {
@@ -126,7 +127,10 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             )}
           </div>
         </div>
-        <DeleteScanButton jobId={scan.id} />
+        <div className="flex items-center gap-2">
+          {scan.status === 'complete' && <ExportPdfButton scanId={scan.id} />}
+          <DeleteScanButton jobId={scan.id} />
+        </div>
       </div>
 
       {scan.status !== 'complete' ? (
