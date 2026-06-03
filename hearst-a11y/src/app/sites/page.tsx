@@ -175,11 +175,11 @@ export default function SitesPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     {site.latestScan ? (
-                      <span className="inline-flex items-center justify-end">
-                        <span className={`font-semibold tabular-nums ${scoreColor(site.latestScan.score)}`}>
+                      <span className="inline-flex items-center justify-end gap-1.5">
+                        <ScoreDelta current={site.latestScan.score} previous={site.previousScore} />
+                        <span className={`font-semibold tabular-nums w-8 text-right ${scoreColor(site.latestScan.score)}`}>
                           {Math.round(site.latestScan.score)}
                         </span>
-                        <ScoreDelta current={site.latestScan.score} previous={site.previousScore} />
                       </span>
                     ) : (
                       <span className="text-gray-300">—</span>
