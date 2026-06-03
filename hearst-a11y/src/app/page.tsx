@@ -89,9 +89,9 @@ async function getData(division?: string) {
       if (impact in severityCounts) severityCounts[impact] += p.occurrences
       const existing = violationMap.get(p.rule)
       if (existing) {
-        existing.count += 1
+        existing.count += p.occurrences
       } else {
-        violationMap.set(p.rule, { count: 1, impact: p.impact })
+        violationMap.set(p.rule, { count: p.occurrences, impact: p.impact })
       }
     }
   }
@@ -100,33 +100,21 @@ async function getData(division?: string) {
     .map(([rule, v]) => ({ rule, ...v }))
     .sort((a, b) => b.count - a.count)
 
-  // Score trends: average score per division per day (last 10 dates)
-  const trendRows = division
-    ? await sql`
-        SELECT s.division, sj.started_at::date::text AS date, ROUND(AVG(sj.score)) AS avg_score
-        FROM scan_jobs sj
-        JOIN sites s ON s.id = sj.site_id
-        WHERE sj.status = 'complete' AND s.division IS NOT NULL AND s.division = ${division}
-        GROUP BY s.division, sj.started_at::date::text
-        ORDER BY s.division, date ASC
+  // Score trends: last 10 scans per site
+  const scoreTrends = await Promise.all(
+    sites.slice(0, 6).map(async (site: any) => {
+      const rows = await sql`
+        SELECT score, started_at::date::text as date
+        FROM scan_jobs
+        WHERE site_id = ${site.id} AND status = 'complete'
+        ORDER BY started_at DESC LIMIT 10
       `
-    : await sql`
-        SELECT s.division, sj.started_at::date::text AS date, ROUND(AVG(sj.score)) AS avg_score
-        FROM scan_jobs sj
-        JOIN sites s ON s.id = sj.site_id
-        WHERE sj.status = 'complete' AND s.division IS NOT NULL
-        GROUP BY s.division, sj.started_at::date::text
-        ORDER BY s.division, date ASC
-      `
-  const divisionMap = new Map<string, { date: string; score: number }[]>()
-  for (const row of trendRows) {
-    if (!divisionMap.has(row.division)) divisionMap.set(row.division, [])
-    divisionMap.get(row.division)!.push({ date: row.date, score: Number(row.avg_score) })
-  }
-  const scoreTrends = [...divisionMap.entries()].map(([name, scores]) => ({
-    name,
-    scores: scores.slice(-10),
-  }))
+      return {
+        name: site.name,
+        scores: rows.reverse().map((r: any) => ({ date: r.date, score: Math.round(r.score) })),
+      }
+    })
+  )
 
   return {
     sites,
