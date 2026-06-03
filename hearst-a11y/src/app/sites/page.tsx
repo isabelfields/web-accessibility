@@ -103,29 +103,18 @@ export default function SitesPage() {
 
       {/* Division filter */}
       {activeDivisions.length > 0 && (
-        <div className="flex items-center gap-3 mb-5">
+        <div className="flex items-center gap-2 mb-5">
           <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</span>
-          <div className="inline-flex bg-gray-100 rounded-lg p-0.5">
-            <button
-              onClick={() => setDivisionFilter('')}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                !divisionFilter ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              All
-            </button>
+          <select
+            value={divisionFilter}
+            onChange={e => setDivisionFilter(e.target.value)}
+            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+          >
+            <option value="">All</option>
             {activeDivisions.map(div => (
-              <button
-                key={div}
-                onClick={() => setDivisionFilter(div)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  divisionFilter === div ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {div}
-              </button>
+              <option key={div} value={div}>{div}</option>
             ))}
-          </div>
+          </select>
         </div>
       )}
 
