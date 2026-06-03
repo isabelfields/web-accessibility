@@ -13,6 +13,7 @@ export interface RawViolation {
   help: string
   helpUrl: string
   nodes: ViolationNode[]
+  tags?: string[]
 }
 
 // Stripped-down violation we send to Claude (NOT raw HTML)
@@ -38,6 +39,7 @@ export interface ViolationPattern {
   description: string
   fixSuggestion: string  // from Claude or hardcoded rules
   isHardcoded: boolean
+  isBestPractice?: boolean  // true = best-practice only, excluded from score
   occurrences: number
   affectedPages: string[]
   nodes: PatternNode[]   // every failing element, each individually fixable

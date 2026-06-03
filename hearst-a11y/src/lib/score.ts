@@ -10,6 +10,7 @@ const IMPACT_DEDUCTIONS: Record<string, number> = {
 export function calculateScore(patterns: ViolationPattern[]): number {
   let score = 100
   for (const pattern of patterns) {
+    if (pattern.isBestPractice) continue
     const deduction = IMPACT_DEDUCTIONS[pattern.impact] ?? 0
     score -= deduction
   }
