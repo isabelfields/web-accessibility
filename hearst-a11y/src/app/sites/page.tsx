@@ -38,15 +38,14 @@ function formatDate(d: string) {
 function ScoreDelta({ current, previous }: { current: number; previous: number | null }) {
   if (previous == null) return null
   const delta = Math.round(current) - Math.round(previous)
-  if (delta === 0) return <span className="text-xs text-gray-300 ml-1.5">—</span>
+  if (delta === 0) return null
   const up = delta > 0
   return (
-    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ml-1.5 ${up ? 'text-green-500' : 'text-red-500'}`}>
-      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
-          d={up ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'} />
-      </svg>
-      {Math.abs(delta)}
+    <span
+      className="text-[11px] font-semibold ml-1.5 tabular-nums"
+      style={{ color: up ? '#00c853' : '#ff1744' }}
+    >
+      {up ? '+' : ''}{delta}
     </span>
   )
 }
