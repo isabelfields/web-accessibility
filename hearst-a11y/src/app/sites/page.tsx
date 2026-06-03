@@ -44,7 +44,7 @@ function ScoreDelta({ current, previous }: { current: number; previous: number |
   const up = delta > 0
   return (
     <span
-      className="text-[11px] font-semibold ml-1.5 tabular-nums"
+      className="text-[11px] font-semibold tabular-nums"
       style={{ color: up ? '#00c853' : '#ff1744' }}
     >
       {up ? '+' : ''}{delta}
@@ -185,11 +185,11 @@ export default function SitesPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     {site.latestScan ? (
-                      <span className="inline-flex items-center justify-end gap-1.5">
-                        <ScoreDelta current={site.latestScan.score} previous={site.previousScore} />
-                        <span className={`font-semibold tabular-nums w-8 text-right ${scoreColor(site.latestScan.score)}`}>
+                      <span className="inline-flex items-center justify-end gap-0.5">
+                        <span className={`font-semibold tabular-nums ${scoreColor(site.latestScan.score)}`}>
                           {Math.round(site.latestScan.score)}
                         </span>
+                        <ScoreDelta current={site.latestScan.score} previous={site.previousScore} />
                       </span>
                     ) : (
                       <span className="text-gray-300">—</span>
