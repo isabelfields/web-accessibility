@@ -11,6 +11,8 @@ const SitePageSchema = z.object({
 const SiteSchema = z.object({
   name: z.string().min(1),
   division: z.string().optional(),
+  brand: z.string().optional(),
+  region: z.string().optional(),
   pages: z.array(SitePageSchema).min(1),
 })
 
@@ -48,10 +50,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { name, division, pages } = parsed.data
+  const { name, division, brand, region, pages } = parsed.data
   const [site] = await sql`
-    INSERT INTO sites (name, division, pages)
-    VALUES (${name}, ${division ?? null}, ${JSON.stringify(pages)})
+    INSERT INTO sites (name, division, brand, region, pages)
+    VALUES (${name}, ${division ?? null}, ${brand ?? null}, ${region ?? null}, ${JSON.stringify(pages)})
     RETURNING *
   `
   return NextResponse.json(site, { status: 201 })

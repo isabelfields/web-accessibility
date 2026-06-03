@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { HEARST_DIVISIONS, HearstDivision } from '@/types'
+import { HEARST_DIVISIONS, HEARST_BRANDS, HEARST_REGIONS, HearstDivision } from '@/types'
 
 interface PageRow {
   url: string
@@ -23,6 +23,8 @@ export function AddSiteForm({ onClose }: { onClose: () => void }) {
   const router = useRouter()
   const [name, setName] = useState('')
   const [division, setDivision] = useState<HearstDivision | ''>('')
+  const [brand, setBrand] = useState('')
+  const [region, setRegion] = useState('')
   const [pages, setPages] = useState<PageRow[]>([emptyPage()])
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -54,7 +56,7 @@ export function AddSiteForm({ onClose }: { onClose: () => void }) {
       const res = await fetch('/api/sites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, division: division || undefined, pages: normalizedPages }),
+        body: JSON.stringify({ name, division: division || undefined, brand: brand || undefined, region: region || undefined, pages: normalizedPages }),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -95,12 +97,38 @@ export function AddSiteForm({ onClose }: { onClose: () => void }) {
               <label className="block text-sm font-medium text-gray-700 mb-1">Division</label>
               <select
                 value={division}
-                onChange={e => setDivision(e.target.value as HearstDivision | '')}
+                onChange={e => { setDivision(e.target.value as HearstDivision | ''); setBrand('') }}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select division…</option>
                 {HEARST_DIVISIONS.map(d => (
                   <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+              <select
+                value={brand}
+                onChange={e => setBrand(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select brand…</option>
+                {(division ? HEARST_BRANDS[division as HearstDivision] ?? [] : []).map(b => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+              <select
+                value={region}
+                onChange={e => setRegion(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select region…</option>
+                {HEARST_REGIONS.map(r => (
+                  <option key={r} value={r}>{r}</option>
                 ))}
               </select>
             </div>

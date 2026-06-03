@@ -11,6 +11,8 @@ interface Site {
   id: string
   name: string
   division?: string | null
+  brand?: string | null
+  region?: string | null
   pages: SitePage[]
   created_at: string
   previousScore: number | null
@@ -56,6 +58,7 @@ export default function SitesPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingSite, setEditingSite] = useState<Site | null>(null)
   const [divisionFilter, setDivisionFilter] = useState('')
+  const [regionFilter, setRegionFilter] = useState('')
 
   async function load() {
     setLoading(true)
@@ -74,7 +77,10 @@ export default function SitesPage() {
   }
 
   const activeDivisions = [...new Set(sites.map(s => s.division).filter(Boolean))] as string[]
-  const filtered = divisionFilter ? sites.filter(s => s.division === divisionFilter) : sites
+  const activeRegions = [...new Set(sites.map(s => s.region).filter(Boolean))] as string[]
+  const filtered = sites
+    .filter(s => !divisionFilter || s.division === divisionFilter)
+    .filter(s => !regionFilter || s.region === regionFilter)
 
   return (
     <div className="px-8 py-6">
@@ -101,31 +107,28 @@ export default function SitesPage() {
         <EditSiteForm site={editingSite} onClose={() => { setEditingSite(null); load() }} />
       )}
 
-      {/* Division filter */}
-      {activeDivisions.length > 0 && (
-        <div className="flex items-center gap-3 mb-5">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</span>
-          <div className="inline-flex bg-gray-100 rounded-lg p-0.5">
-            <button
-              onClick={() => setDivisionFilter('')}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                !divisionFilter ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              All
-            </button>
-            {activeDivisions.map(div => (
-              <button
-                key={div}
-                onClick={() => setDivisionFilter(div)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  divisionFilter === div ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {div}
-              </button>
-            ))}
-          </div>
+      {(activeDivisions.length > 0 || activeRegions.length > 0) && (
+        <div className="flex items-center gap-4 mb-5">
+          {activeDivisions.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</span>
+              <select value={divisionFilter} onChange={e => setDivisionFilter(e.target.value)}
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                <option value="">All</option>
+                {activeDivisions.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+          )}
+          {activeRegions.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Region</span>
+              <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)}
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                <option value="">All</option>
+                {activeRegions.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+          )}
         </div>
       )}
 
@@ -149,6 +152,7 @@ export default function SitesPage() {
               <tr className="border-b border-gray-100">
                 <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Site</th>
                 <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Brand</th>
                 <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Pages</th>
                 <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Score</th>
                 <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Last Scan</th>
@@ -167,6 +171,12 @@ export default function SitesPage() {
                   <td className="px-4 py-3">
                     {site.division
                       ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{site.division}</span>
+                      : <span className="text-gray-300">—</span>
+                    }
+                  </td>
+                  <td className="px-4 py-3">
+                    {site.brand
+                      ? <span className="text-gray-600 text-sm">{site.brand}</span>
                       : <span className="text-gray-300">—</span>
                     }
                   </td>

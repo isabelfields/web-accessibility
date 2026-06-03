@@ -11,6 +11,8 @@ const SitePageSchema = z.object({
 const UpdateSiteSchema = z.object({
   name: z.string().min(1).optional(),
   division: z.string().optional(),
+  brand: z.string().optional(),
+  region: z.string().optional(),
   pages: z.array(SitePageSchema).min(1).optional(),
 })
 
@@ -41,12 +43,14 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { name, division, pages } = parsed.data
+  const { name, division, brand, region, pages } = parsed.data
 
   const [site] = await sql`
     UPDATE sites SET
       name = COALESCE(${name ?? null}, name),
       division = CASE WHEN ${division !== undefined} THEN ${division ?? null} ELSE division END,
+      brand = CASE WHEN ${brand !== undefined} THEN ${brand ?? null} ELSE brand END,
+      region = CASE WHEN ${region !== undefined} THEN ${region ?? null} ELSE region END,
       pages = CASE WHEN ${pages !== undefined} THEN ${pages ? JSON.stringify(pages) : null}::jsonb ELSE pages END,
       updated_at = NOW()
     WHERE id = ${id} RETURNING *

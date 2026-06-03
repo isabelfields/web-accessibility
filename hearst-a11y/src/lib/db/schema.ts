@@ -39,6 +39,8 @@ export const sites = pgTable('sites', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
   division: text('division'),
+  brand: text('brand'),
+  region: text('region'),
   pages: jsonb('pages').default([]),  // SitePage[]
   scheduleId: uuid('schedule_id'),
   createdAt: timestamp('created_at').defaultNow(),
@@ -100,4 +102,7 @@ CREATE INDEX IF NOT EXISTS schedules_next_run ON schedules(next_run_at) WHERE en
 
 ALTER TABLE scan_jobs ADD COLUMN IF NOT EXISTS site_id UUID;
 ALTER TABLE scan_jobs ADD COLUMN IF NOT EXISTS score REAL DEFAULT 0;
+ALTER TABLE sites ADD COLUMN IF NOT EXISTS division TEXT;
+ALTER TABLE sites ADD COLUMN IF NOT EXISTS brand TEXT;
+ALTER TABLE sites ADD COLUMN IF NOT EXISTS region TEXT;
 `
