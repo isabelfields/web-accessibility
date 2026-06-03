@@ -119,10 +119,29 @@ export const HEARST_DIVISIONS: HearstDivision[] = [
   'Hearst Ventures', 'Western Properties',
 ]
 
+export const HEARST_BRANDS: Record<HearstDivision, string[]> = {
+  Corporate:          ['Hearst.com', 'Hearst360', 'HearstMade'],
+  Fitch:              ['Fitch Ratings', 'Fitch Solutions', 'CreditSights'],
+  Magazines:          ['Elle', 'Esquire', "Harper's Bazaar", "Town & Country", 'House Beautiful', 'Cosmopolitan', 'Good Housekeeping', "Woman's Day", 'Popular Mechanics', 'Road & Track', 'Car and Driver', "Men's Health", "Women's Health", 'Prevention', 'Delish', 'Country Living', 'Marie Claire', 'Bicycling', "Runner's World"],
+  Television:         ['KQCA', 'KSAT', 'KCRA', 'WMTW', 'WGAL', 'WTAE', 'WLWT', 'KOAT', 'WPTZ', 'KHBS'],
+  Newspapers:         ['San Francisco Chronicle', 'Houston Chronicle', 'Albany Times Union', 'Connecticut Media Group', 'Midland Reporter-Telegram', 'San Antonio Express-News'],
+  Transportation:     ['BlackBook', 'Car and Driver', 'Road & Track'],
+  Healthcare:         ['Hearst Health', 'Zynx Health'],
+  HearstLab:          ['HearstLab'],
+  'Level Up':         ['Level Up'],
+  'Hearst Ventures':  ['Hearst Ventures'],
+  'Western Properties': ['Western Properties'],
+}
+
+export const HEARST_REGIONS = ['US', 'UK', 'EMEA', 'APAC', 'LATAM'] as const
+export type HearstRegion = typeof HEARST_REGIONS[number]
+
 export interface Site {
   id: string
   name: string
   division?: HearstDivision
+  brand?: string
+  region?: HearstRegion
   pages: SitePage[]
   scheduleId?: string
   createdAt: string

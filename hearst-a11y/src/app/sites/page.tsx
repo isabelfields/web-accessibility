@@ -11,6 +11,8 @@ interface Site {
   id: string
   name: string
   division?: string | null
+  brand?: string | null
+  region?: string | null
   pages: SitePage[]
   created_at: string
   previousScore: number | null
@@ -42,7 +44,7 @@ function ScoreDelta({ current, previous }: { current: number; previous: number |
   const up = delta > 0
   return (
     <span
-      className="text-[11px] font-semibold ml-1.5 tabular-nums"
+      className="text-[11px] font-semibold tabular-nums"
       style={{ color: up ? '#00c853' : '#ff1744' }}
     >
       {up ? '+' : ''}{delta}
@@ -56,6 +58,7 @@ export default function SitesPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingSite, setEditingSite] = useState<Site | null>(null)
   const [divisionFilter, setDivisionFilter] = useState('')
+  const [regionFilter, setRegionFilter] = useState('')
 
   async function load() {
     setLoading(true)
@@ -74,7 +77,10 @@ export default function SitesPage() {
   }
 
   const activeDivisions = [...new Set(sites.map(s => s.division).filter(Boolean))] as string[]
-  const filtered = divisionFilter ? sites.filter(s => s.division === divisionFilter) : sites
+  const activeRegions = [...new Set(sites.map(s => s.region).filter(Boolean))] as string[]
+  const filtered = sites
+    .filter(s => !divisionFilter || s.division === divisionFilter)
+    .filter(s => !regionFilter || s.region === regionFilter)
 
   return (
     <div className="px-8 py-6">
@@ -101,31 +107,28 @@ export default function SitesPage() {
         <EditSiteForm site={editingSite} onClose={() => { setEditingSite(null); load() }} />
       )}
 
-      {/* Division filter */}
-      {activeDivisions.length > 0 && (
-        <div className="flex items-center gap-3 mb-5">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</span>
-          <div className="inline-flex bg-gray-100 rounded-lg p-0.5">
-            <button
-              onClick={() => setDivisionFilter('')}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                !divisionFilter ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              All
-            </button>
-            {activeDivisions.map(div => (
-              <button
-                key={div}
-                onClick={() => setDivisionFilter(div)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  divisionFilter === div ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {div}
-              </button>
-            ))}
-          </div>
+      {(activeDivisions.length > 0 || activeRegions.length > 0) && (
+        <div className="flex items-center gap-4 mb-5">
+          {activeDivisions.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</span>
+              <select value={divisionFilter} onChange={e => setDivisionFilter(e.target.value)}
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                <option value="">All</option>
+                {activeDivisions.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+          )}
+          {activeRegions.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Region</span>
+              <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)}
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                <option value="">All</option>
+                {activeRegions.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+          )}
         </div>
       )}
 
@@ -149,6 +152,7 @@ export default function SitesPage() {
               <tr className="border-b border-gray-100">
                 <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Site</th>
                 <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Brand</th>
                 <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Pages</th>
                 <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Score</th>
                 <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Last Scan</th>
@@ -170,16 +174,22 @@ export default function SitesPage() {
                       : <span className="text-gray-300">—</span>
                     }
                   </td>
+                  <td className="px-4 py-3">
+                    {site.brand
+                      ? <span className="text-gray-600 text-sm">{site.brand}</span>
+                      : <span className="text-gray-300">—</span>
+                    }
+                  </td>
                   <td className="px-4 py-3 text-gray-500">
                     {site.pages?.length ?? 0} page{(site.pages?.length ?? 0) !== 1 ? 's' : ''}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {site.latestScan ? (
-                      <span className="inline-flex items-center justify-end gap-1.5">
-                        <ScoreDelta current={site.latestScan.score} previous={site.previousScore} />
-                        <span className={`font-semibold tabular-nums w-8 text-right ${scoreColor(site.latestScan.score)}`}>
+                      <span className="inline-flex items-center justify-end gap-0.5">
+                        <span className={`font-semibold tabular-nums ${scoreColor(site.latestScan.score)}`}>
                           {Math.round(site.latestScan.score)}
                         </span>
+                        <ScoreDelta current={site.latestScan.score} previous={site.previousScore} />
                       </span>
                     ) : (
                       <span className="text-gray-300">—</span>
