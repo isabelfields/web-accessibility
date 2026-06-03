@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { signOut } from '@/auth'
+import { SignOutButton } from '@/components/SignOutButton'
+import { Providers } from '@/components/Providers'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-[#fafafa] text-gray-900">
+        <Providers>
         <div className="flex min-h-screen">
           {/* Sidebar */}
           <aside className="w-56 flex flex-col fixed inset-y-0 left-0 z-10 bg-white border-r border-gray-200">
@@ -77,11 +79,7 @@ export default function RootLayout({
 
             {/* Footer */}
             <div className="px-6 py-4 border-t border-gray-100 space-y-2">
-              <form action={async () => { 'use server'; await signOut({ redirectTo: '/login' }) }}>
-                <button type="submit" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
-                  Sign out
-                </button>
-              </form>
+              <SignOutButton />
               <div className="text-xs text-gray-400">© Hearst Communications</div>
             </div>
           </aside>
@@ -91,6 +89,7 @@ export default function RootLayout({
             {children}
           </main>
         </div>
+        </Providers>
       </body>
     </html>
   )
