@@ -101,16 +101,23 @@ async function getData(division?: string) {
     .sort((a, b) => b.count - a.count)
 
   // Score trends: average score per division per day (last 10 dates)
-  const trendRows = await sql`
-    SELECT s.division, sj.started_at::date::text AS date, ROUND(AVG(sj.score)) AS avg_score
-    FROM scan_jobs sj
-    JOIN sites s ON s.id = sj.site_id
-    WHERE sj.status = 'complete'
-      AND s.division IS NOT NULL
-      ${division ? sql`AND s.division = ${division}` : sql``}
-    GROUP BY s.division, sj.started_at::date::text
-    ORDER BY s.division, date ASC
-  `
+  const trendRows = division
+    ? await sql`
+        SELECT s.division, sj.started_at::date::text AS date, ROUND(AVG(sj.score)) AS avg_score
+        FROM scan_jobs sj
+        JOIN sites s ON s.id = sj.site_id
+        WHERE sj.status = 'complete' AND s.division IS NOT NULL AND s.division = ${division}
+        GROUP BY s.division, sj.started_at::date::text
+        ORDER BY s.division, date ASC
+      `
+    : await sql`
+        SELECT s.division, sj.started_at::date::text AS date, ROUND(AVG(sj.score)) AS avg_score
+        FROM scan_jobs sj
+        JOIN sites s ON s.id = sj.site_id
+        WHERE sj.status = 'complete' AND s.division IS NOT NULL
+        GROUP BY s.division, sj.started_at::date::text
+        ORDER BY s.division, date ASC
+      `
   const divisionMap = new Map<string, { date: string; score: number }[]>()
   for (const row of trendRows) {
     if (!divisionMap.has(row.division)) divisionMap.set(row.division, [])
