@@ -1,99 +1,119 @@
-import { sql } from '@/lib/db'
+'use client'
 
-export const dynamic = 'force-dynamic'
-
-async function getSchedules() {
-  const schedules = await sql`SELECT * FROM schedules ORDER BY created_at DESC`
-  return schedules
-}
+import { useState, useEffect, useCallback } from 'react'
+import { AddScheduleForm } from '@/components/AddScheduleForm'
 
 function formatDate(d: string | Date | null) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-export default async function SchedulesPage() {
-  const schedules = await getSchedules()
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+export default function SchedulesPage() {
+  const [schedules, setSchedules] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const res = await fetch('/api/schedules')
+    setSchedules(await res.json())
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  async function deleteSchedule(id: string) {
+    if (!confirm('Delete this schedule?')) return
+    await fetch(`/api/schedules?id=${id}`, { method: 'DELETE' })
+    load()
+  }
 
   return (
-    <div className="p-8">
+    <div className="px-8 py-6">
+      {showForm && <AddScheduleForm onClose={() => { setShowForm(false); load() }} />}
+
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Schedules</h1>
-          <p className="text-gray-500 text-sm mt-1">Automated accessibility scan schedules</p>
+          <h1 className="text-xl font-semibold tracking-tight text-gray-900">Schedules</h1>
+          <p className="text-gray-400 text-sm mt-0.5">Automated accessibility scan schedules</p>
         </div>
+        <button
+          onClick={() => setShowForm(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Add Schedule
+        </button>
       </div>
 
-      {schedules.length === 0 ? (
-        <div className="bg-white rounded-xl border border-dashed border-gray-300 p-16 text-center">
-          <div className="text-gray-400 text-lg mb-3">No schedules configured</div>
-          <p className="text-gray-400 text-sm mb-6">
-            Schedules are created through the API. Use the <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">POST /api/schedules</code> endpoint to create recurring scans.
-          </p>
-          <div className="bg-gray-50 rounded-lg p-4 text-left text-xs font-mono text-gray-600 max-w-md mx-auto">
-            {`POST /api/schedules\n{\n  "url": "https://example.com",\n  "cadence": "weekly",\n  "dayOfWeek": 1\n}`}
-          </div>
+      {loading ? (
+        <div className="flex justify-center py-20 text-gray-400">Loading…</div>
+      ) : schedules.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-gray-200 p-16 text-center">
+          <div className="text-gray-400 text-lg mb-3">No schedules yet</div>
+          <p className="text-gray-400 text-sm mb-6">Schedules automatically run accessibility scans on a recurring basis.</p>
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
+          >
+            + Add Schedule
+          </button>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left px-4 py-3 text-gray-600 font-medium">URL</th>
-                <th className="text-left px-4 py-3 text-gray-600 font-medium">Cadence</th>
-                <th className="text-left px-4 py-3 text-gray-600 font-medium">Status</th>
-                <th className="text-right px-4 py-3 text-gray-600 font-medium">Last Run</th>
-                <th className="text-right px-4 py-3 text-gray-600 font-medium">Next Run</th>
-                <th className="text-right px-4 py-3 text-gray-600 font-medium">Created</th>
+            <thead>
+              <tr className="border-b border-gray-100">
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">URL</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Cadence</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Last Run</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Next Run</th>
+                <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
-              {schedules.map((schedule: any) => (
-                <tr key={schedule.id} className="hover:bg-gray-50">
+            <tbody className="divide-y divide-gray-50">
+              {schedules.map((s: any) => (
+                <tr key={s.id} className="hover:bg-gray-50/60 transition-colors">
+                  <td className="px-4 py-3 font-medium text-gray-800 truncate max-w-xs">{s.root_url}</td>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-gray-800 truncate max-w-xs">{schedule.root_url}</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 capitalize">
-                      {schedule.cadence}
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 capitalize">
+                      {s.cadence}
                     </span>
-                    {schedule.cadence === 'weekly' && schedule.day_of_week !== null && (
-                      <span className="ml-2 text-xs text-gray-500">
-                        ({['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][schedule.day_of_week]})
-                      </span>
+                    {s.cadence === 'weekly' && s.day_of_week != null && (
+                      <span className="ml-2 text-xs text-gray-400">{DAYS[s.day_of_week]}</span>
                     )}
-                    {schedule.cadence === 'monthly' && schedule.day_of_month !== null && (
-                      <span className="ml-2 text-xs text-gray-500">
-                        (day {schedule.day_of_month})
-                      </span>
+                    {s.cadence === 'monthly' && s.day_of_month != null && (
+                      <span className="ml-2 text-xs text-gray-400">day {s.day_of_month}</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      schedule.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                      s.enabled ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-400'
                     }`}>
-                      {schedule.enabled ? 'Active' : 'Disabled'}
+                      {s.enabled ? 'Active' : 'Disabled'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-500">{formatDate(schedule.last_run_at)}</td>
-                  <td className="px-4 py-3 text-right text-gray-700">{formatDate(schedule.next_run_at)}</td>
-                  <td className="px-4 py-3 text-right text-gray-500">{formatDate(schedule.created_at)}</td>
+                  <td className="px-4 py-3 text-right text-gray-400 text-xs">{formatDate(s.last_run_at)}</td>
+                  <td className="px-4 py-3 text-right text-gray-600 text-xs">{formatDate(s.next_run_at)}</td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => deleteSchedule(s.id)}
+                      className="text-xs text-red-400 hover:text-red-600"
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
-        <h2 className="text-sm font-semibold text-blue-800 mb-2">API Reference</h2>
-        <div className="space-y-2 text-sm text-blue-700">
-          <div><code className="bg-blue-100 px-1 rounded">POST /api/schedules</code> — Create a schedule</div>
-          <div><code className="bg-blue-100 px-1 rounded">GET /api/schedules</code> — List all schedules</div>
-          <div><code className="bg-blue-100 px-1 rounded">DELETE /api/schedules?id=&lt;id&gt;</code> — Delete a schedule</div>
-          <div><code className="bg-blue-100 px-1 rounded">GET /api/cron</code> — Vercel cron endpoint (runs due schedules)</div>
-        </div>
-      </div>
     </div>
   )
 }
