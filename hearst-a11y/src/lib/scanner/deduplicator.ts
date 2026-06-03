@@ -29,6 +29,7 @@ export async function deduplicateAndFix(
     occurrences: number
     affectedPages: Set<string>
     nodes: PatternNode[]
+    isBestPractice: boolean
   }>()
 
   for (const { url, violations } of pageViolations) {
@@ -44,6 +45,9 @@ export async function deduplicateAndFix(
       }))
       const nodeCount = Math.max(1, newNodes.length)
 
+      const tags = violation.tags ?? []
+      const isBestPractice = tags.includes('best-practice') && !tags.some(t => t.startsWith('wcag'))
+
       if (patternMap.has(fingerprint)) {
         const existing = patternMap.get(fingerprint)!
         existing.occurrences += nodeCount
@@ -57,6 +61,7 @@ export async function deduplicateAndFix(
           occurrences: nodeCount,
           affectedPages: new Set([url]),
           nodes: newNodes,
+          isBestPractice,
         })
       }
     }
@@ -83,6 +88,7 @@ export async function deduplicateAndFix(
       description: entry.stripped.description,
       fixSuggestion: fix,
       isHardcoded: true,
+      isBestPractice: entry.isBestPractice,
       occurrences: entry.occurrences,
       affectedPages: [...entry.affectedPages],
       nodes: entry.nodes,
@@ -121,6 +127,7 @@ export async function deduplicateAndFix(
           description: entry.stripped.description,
           fixSuggestion: suggestionMap.get(fingerprint) ?? 'Review this element and ensure it meets WCAG AA requirements.',
           isHardcoded: false,
+          isBestPractice: entry.isBestPractice,
           occurrences: entry.occurrences,
           affectedPages: [...entry.affectedPages],
           nodes: entry.nodes,
