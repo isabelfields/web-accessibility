@@ -6,7 +6,8 @@ import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { SeverityBar } from '@/components/SeverityBar'
 import { ExportPdfButton } from '@/components/ExportPdfButton'
-import { auth } from '@/auth'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/auth'
 import type { ViolationPattern, PageScore } from '@/types'
 
 const RULE_WCAG_LEVEL: Record<string, 'A' | 'AA' | 'AAA'> = {
@@ -63,8 +64,8 @@ function impactColor(impact: string) {
 }
 
 export default async function ScanDetailPage({ params }: RouteContext) {
-  const [{ id }, session] = await Promise.all([params, auth()])
-  const isAdmin = session?.user?.role === 'admin'
+  const [{ id }, session] = await Promise.all([params, getServerSession(authOptions)])
+  const isAdmin = (session?.user as any)?.role === 'admin'
   const data = await getScan(id)
   if (!data) notFound()
 

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
 import { renderToBuffer, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
-import { auth } from '@/auth'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/auth'
 import type { ViolationPattern, PageScore } from '@/types'
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET
@@ -64,10 +65,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   // Admin check: accept valid session OR legacy ADMIN_SECRET header
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   const secret = req.headers.get('x-admin-secret') ?? req.nextUrl.searchParams.get('secret')
   const hasValidSecret = ADMIN_SECRET && secret === ADMIN_SECRET
-  const hasAdminSession = session?.user?.role === 'admin'
+  const hasAdminSession = (session?.user as any)?.role === 'admin'
   if (!hasAdminSession && !hasValidSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

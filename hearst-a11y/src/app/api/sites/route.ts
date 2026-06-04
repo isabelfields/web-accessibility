@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
-import { auth } from '@/auth'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/auth'
 
 const SitePageSchema = z.object({
   url: z.string().url(),
@@ -18,9 +19,9 @@ const SiteSchema = z.object({
 })
 
 export async function GET() {
-  const session = await auth()
-  const isAdmin = session?.user?.role === 'admin'
-  const allowedDivisions = isAdmin ? [] : (session?.user?.allowedDivisions ?? [])
+  const session = await getServerSession(authOptions)
+  const isAdmin = (session?.user as any)?.role === 'admin'
+  const allowedDivisions = isAdmin ? [] : ((session?.user as any)?.allowedDivisions ?? [])
 
   const sites = allowedDivisions.length > 0
     ? await sql`SELECT * FROM sites WHERE division = ANY(${allowedDivisions}::text[]) ORDER BY created_at DESC`

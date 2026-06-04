@@ -7,7 +7,8 @@ import { DivisionFilter } from '@/components/DivisionFilter'
 import { SeverityDonut } from '@/components/SeverityDonut'
 import { ScoreTrendChart } from '@/components/ScoreTrendChart'
 import { TopViolationsChart } from '@/components/TopViolationsChart'
-import { auth } from '@/auth'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -150,9 +151,9 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ division?: string }>
 }) {
-  const [{ division }, session] = await Promise.all([searchParams, auth()])
-  const isAdmin = session?.user?.role === 'admin'
-  const allowedDivisions = isAdmin ? [] : (session?.user?.allowedDivisions ?? [])
+  const [{ division }, session] = await Promise.all([searchParams, getServerSession(authOptions)])
+  const isAdmin = (session?.user as any)?.role === 'admin'
+  const allowedDivisions = isAdmin ? [] : ((session?.user as any)?.allowedDivisions ?? [])
 
   // For non-admins, if they try to view a division outside their allowed set, ignore it
   const effectiveDivision = (!isAdmin && allowedDivisions.length > 0 && division && !allowedDivisions.includes(division))

@@ -1,8 +1,7 @@
-import NextAuth from 'next-auth'
+import type { NextAuthOptions } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 
 async function findOrBootstrapUser(email: string, password: string) {
-  // Lazy imports to avoid breaking auth module evaluation at build time
   const { sql } = await import('@/lib/db')
   const bcrypt = await import('bcryptjs')
 
@@ -29,7 +28,7 @@ async function findOrBootstrapUser(email: string, password: string) {
   return valid ? user : null
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     Credentials({
       credentials: {
@@ -59,18 +58,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id as string
-        token.role = user.role
-        token.allowedDivisions = user.allowedDivisions
+        token.role = (user as any).role
+        token.allowedDivisions = (user as any).allowedDivisions
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id
-        session.user.role = token.role
-        session.user.allowedDivisions = token.allowedDivisions
+        (session.user as any).id = token.id;
+        (session.user as any).role = token.role;
+        (session.user as any).allowedDivisions = token.allowedDivisions
       }
       return session
     },
   },
-})
+}

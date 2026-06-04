@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/auth'
 import { sql } from '@/lib/db'
 
 type Ctx = { params: Promise<{ id: string }> }
 
 export async function PATCH(req: NextRequest, { params }: Ctx) {
-  const session = await auth()
-  if (session?.user?.role !== 'admin') {
+  const session = await getServerSession(authOptions)
+  if ((session?.user as any)?.role !== 'admin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
   const { id } = await params
@@ -23,13 +24,13 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Ctx) {
-  const session = await auth()
-  if (session?.user?.role !== 'admin') {
+  const session = await getServerSession(authOptions)
+  if ((session?.user as any)?.role !== 'admin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
   const { id } = await params
   // Prevent deleting yourself
-  if (id === session.user.id) {
+  if (id === (session?.user as any)?.id) {
     return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 })
   }
   await sql`DELETE FROM users WHERE id = ${id}`
