@@ -18,33 +18,19 @@ export function DivisionFilter({ activeDivisions }: { activeDivisions: string[] 
   const options = HEARST_DIVISIONS.filter(d => activeDivisions.includes(d))
 
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Division</span>
-      <div className="inline-flex bg-gray-100 rounded-lg p-0.5">
-        <button
-          onClick={() => select('')}
-          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-            !current
-              ? 'bg-white shadow-sm text-gray-900'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          All
-        </button>
+    <div className="flex items-center gap-2">
+      <label htmlFor="division-filter" className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</label>
+      <select
+        id="division-filter"
+        value={current}
+        onChange={e => select(e.target.value)}
+        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer shadow-sm"
+      >
+        <option value="">All divisions</option>
         {options.map(div => (
-          <button
-            key={div}
-            onClick={() => select(div)}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-              current === div
-                ? 'bg-white shadow-sm text-gray-900'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {div}
-          </button>
+          <option key={div} value={div}>{div}</option>
         ))}
-      </div>
+      </select>
     </div>
   )
 }

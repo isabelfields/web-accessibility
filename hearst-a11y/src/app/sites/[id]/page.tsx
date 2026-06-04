@@ -80,7 +80,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-5 flex flex-col items-center justify-center">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 flex flex-col items-center justify-center">
           <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Priority</div>
           {worstTier ? (
             <>
@@ -92,19 +92,19 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           )}
         </div>
 
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-5">
+        <div className="rounded-lg border border-gray-200 bg-white p-5">
           <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">WCAG Errors</div>
           <div className="text-3xl font-bold text-gray-900 tabular-nums">{latestScan?.raw_violation_count ?? '—'}</div>
           <div className="text-xs text-gray-400 mt-1">{latestScan?.unique_pattern_count ?? 0} issue types</div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-5">
+        <div className="rounded-lg border border-gray-200 bg-white p-5">
           <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Pages Scanned</div>
           <div className="text-3xl font-bold text-gray-900 tabular-nums">{latestScan?.pages_scanned ?? '—'}</div>
           <div className="text-xs text-gray-400 mt-1">{pages.length} configured</div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-5">
+        <div className="rounded-lg border border-gray-200 bg-white p-5">
           <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Total Scans</div>
           <div className="text-3xl font-bold text-gray-900 tabular-nums">{scans.length}</div>
           <div className="text-xs text-gray-400 mt-1">{completedScans.length} completed</div>
@@ -147,7 +147,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         {/* Scan History */}
         <div>
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Scan History</h2>
-          <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
+          <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
             <table className="w-full text-sm">
               <thead className="border-b border-gray-100">
                 <tr>
@@ -209,7 +209,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           {pages.length === 0 ? (
             <div className="text-gray-400 italic text-sm">No pages configured.</div>
           ) : (
-            <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
+            <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="border-b border-gray-100">
                   <tr>

@@ -69,33 +69,32 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
   const hiddenCount = nodes.length - SHOW_LIMIT
 
   return (
-    <div className={`rounded-xl border border-gray-200 shadow-sm bg-white border-l-[3px] ${impact.border} overflow-hidden`}>
+    <div className={`rounded-lg border border-gray-200 bg-white border-l-[3px] ${impact.border} overflow-hidden`}>
 
       {/* ── Collapsed header row ── */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full text-left px-5 py-3 flex items-center gap-3 hover:bg-gray-50/60 transition-colors"
+        className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-gray-50 transition-colors"
       >
-        <span className={`shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md ${impact.pill}`}>
+        <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide ${impact.pill}`}>
           {impact.label}
         </span>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex items-center gap-2">
           <span className="font-semibold text-gray-900 text-sm">{ruleInfo.name}</span>
-          <span className="text-xs text-gray-400 ml-2">{ruleInfo.wcag}</span>
-          <span className="text-xs text-gray-300 mx-1.5">·</span>
-          <span className="text-xs text-gray-400 truncate">{pattern.description}</span>
+          <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">{ruleInfo.wcag}</span>
+          <span className="text-xs text-gray-400 truncate hidden md:block">{pattern.description}</span>
         </div>
-        <div className="hidden sm:flex items-center gap-5 shrink-0 text-right">
-          <div>
-            <div className="text-sm font-semibold text-gray-800 tabular-nums">{instanceCount}</div>
-            <div className="text-[10px] text-gray-400 uppercase tracking-wide">instance{instanceCount !== 1 ? 's' : ''}</div>
+        <div className="hidden sm:flex items-center gap-4 shrink-0">
+          <div className="text-right">
+            <div className="text-sm font-semibold text-gray-800 tabular-nums leading-tight">{instanceCount}</div>
+            <div className="text-[10px] text-gray-400 uppercase tracking-wide">instances</div>
           </div>
-          <div>
-            <div className="text-sm font-semibold text-gray-800 tabular-nums">{pageCount}</div>
-            <div className="text-[10px] text-gray-400 uppercase tracking-wide">page{pageCount !== 1 ? 's' : ''}</div>
+          <div className="text-right">
+            <div className="text-sm font-semibold text-gray-800 tabular-nums leading-tight">{pageCount}</div>
+            <div className="text-[10px] text-gray-400 uppercase tracking-wide">pages</div>
           </div>
         </div>
-        <svg className={`shrink-0 w-4 h-4 text-gray-300 transition-transform ${open ? 'rotate-180' : ''}`}
+        <svg className={`shrink-0 w-3.5 h-3.5 text-gray-300 transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>

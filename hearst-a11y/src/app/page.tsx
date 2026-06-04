@@ -168,21 +168,21 @@ export default async function DashboardPage({
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-7">
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white px-4 py-3">
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Sites</span>
             <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
           </div>
           <div className="text-2xl font-bold text-gray-900 tabular-nums">{stats.siteCount}</div>
         </div>
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white px-4 py-3">
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Pages</span>
             <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           </div>
           <div className="text-2xl font-bold text-gray-900 tabular-nums">{stats.totalPages}</div>
         </div>
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white px-4 py-3">
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Tier 1 Issues</span>
             <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -190,7 +190,7 @@ export default async function DashboardPage({
           <div className="text-2xl font-bold text-red-500 tabular-nums">{severityCounts.critical}</div>
           <div className="text-[10px] text-gray-400 mt-0.5">critical only</div>
         </div>
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white px-4 py-3">
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Issues</span>
             <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -198,7 +198,7 @@ export default async function DashboardPage({
           <div className="text-2xl font-bold text-red-500 tabular-nums">{stats.totalErrors}</div>
           <div className="text-[10px] text-gray-400 mt-0.5">latest scans</div>
         </div>
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white px-4 py-3">
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Resolved</span>
             <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -211,19 +211,19 @@ export default async function DashboardPage({
       {/* Analytics charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-7">
         {/* Score over time */}
-        <div className="lg:col-span-2 rounded-xl border border-gray-200 shadow-sm bg-white p-5">
+        <div className="lg:col-span-2 rounded-lg border border-gray-200 bg-white p-5">
           <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Issue Trend Over Time</h2>
           <ScoreTrendChart trends={scoreTrends} />
         </div>
 
         {/* Issues by severity donut */}
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-5">
+        <div className="rounded-lg border border-gray-200 bg-white p-5">
           <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Issues by Severity</h2>
           <SeverityDonut counts={severityCounts} />
         </div>
 
         {/* Top violations */}
-        <div className="lg:col-span-3 rounded-xl border border-gray-200 shadow-sm bg-white p-5">
+        <div className="lg:col-span-3 rounded-lg border border-gray-200 bg-white p-5">
           <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Top WCAG Errors Across All Sites</h2>
           <TopViolationsChart violations={topViolations} />
         </div>
@@ -252,7 +252,7 @@ export default async function DashboardPage({
         <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Recent Scans</h2>
         <span className="text-xs text-gray-300">Last 5</span>
       </div>
-      <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
+      <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100">

@@ -146,7 +146,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           {/* Summary Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
             {/* Priority tier */}
-            <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6 flex flex-col items-center justify-center">
+            <div className="rounded-lg border border-gray-200 bg-white p-6 flex flex-col items-center justify-center">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Priority</div>
               {worstTier ? (
                 <>
@@ -159,7 +159,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             </div>
 
             {/* Violations summary */}
-            <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6 flex flex-col justify-between">
+            <div className="rounded-lg border border-gray-200 bg-white p-6 flex flex-col justify-between">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">WCAG Errors</div>
               <div className="text-4xl font-bold text-gray-900 tabular-nums leading-none">{totalViolations}</div>
               <div className="mt-3 space-y-1.5 text-xs text-gray-400">
@@ -169,7 +169,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             </div>
 
             {/* WCAG A / AA / AAA */}
-            <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6">
+            <div className="rounded-lg border border-gray-200 bg-white p-6">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">By WCAG Level</div>
               <div className="flex items-end gap-5">
                 <div>
@@ -188,7 +188,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             </div>
 
             {/* Tier breakdown bar */}
-            <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6">
+            <div className="rounded-lg border border-gray-200 bg-white p-6">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">By Tier</div>
               <SeverityBar counts={severityCounts} height="h-3" />
             </div>
@@ -198,7 +198,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           {pageScores.length > 0 && (
             <div className="mb-8">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Page Issues</h2>
-              <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
+              <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-100">
