@@ -29,7 +29,7 @@ export async function GET() {
 
   // Attach latest scan score to each site
   const enriched = await Promise.all(
-    sites.map(async (site) => {
+    sites.map(async (site: any) => {
       const [latest] = await sql`
         SELECT score, status, started_at, unique_pattern_count, raw_violation_count
         FROM scan_jobs
