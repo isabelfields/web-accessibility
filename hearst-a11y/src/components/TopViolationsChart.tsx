@@ -15,7 +15,7 @@ const IMPACT_COLOR: Record<string, string> = {
 
 export function TopViolationsChart({ violations }: Props) {
   if (violations.length === 0) {
-    return <div className="flex items-center justify-center h-40 text-sm text-[#9090b0]">No WCAG errors found</div>
+    return <div className="flex items-center justify-center h-40 text-sm text-white/70">No WCAG errors found</div>
   }
 
   const data = violations.slice(0, 8).map(v => ({
@@ -29,7 +29,7 @@ export function TopViolationsChart({ violations }: Props) {
       <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
         <XAxis
           type="number"
-          tick={{ fontSize: 10, fill: '#50506a' }}
+          tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.6)' }}
           tickLine={false}
           axisLine={false}
         />
@@ -37,7 +37,7 @@ export function TopViolationsChart({ violations }: Props) {
           type="category"
           dataKey="rule"
           width={120}
-          tick={{ fontSize: 10, fill: '#70708a' }}
+          tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.5)' }}
           tickLine={false}
           axisLine={false}
         />
