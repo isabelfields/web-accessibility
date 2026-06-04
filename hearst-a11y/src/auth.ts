@@ -1,16 +1,17 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
-import bcrypt from 'bcryptjs'
-import { sql } from '@/lib/db'
 
 async function findOrBootstrapUser(email: string, password: string) {
-  // Check if any users exist; if not, seed the first admin from env vars
+  // Lazy imports to avoid breaking auth module evaluation at build time
+  const { sql } = await import('@/lib/db')
+  const bcrypt = await import('bcryptjs')
+
   const [{ count }] = await sql`SELECT COUNT(*)::int as count FROM users`
+
   if (count === 0) {
     const adminEmail = process.env.ADMIN_USERNAME ?? 'admin'
     const adminPassword = process.env.ADMIN_PASSWORD
-    if (adminPassword && (email === adminEmail)) {
-      // Seed admin into DB
+    if (adminPassword && email === adminEmail) {
       const hash = await bcrypt.hash(adminPassword, 10)
       const [newUser] = await sql`
         INSERT INTO users (email, password_hash, role, allowed_divisions)
