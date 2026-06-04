@@ -150,14 +150,12 @@ export default async function DashboardPage({
   const showDivisionCol = !division
 
   return (
-    <div className="px-8 py-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
+    <div className="min-h-screen">
+      {/* Top bar */}
+      <div className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">Accessibility Dashboard</h1>
-          <p className="text-sm text-gray-400 mt-0.5">
-            {division ? `${division} division` : 'All Hearst properties'}
-          </p>
+          <h1 className="text-lg font-bold text-gray-900 tracking-tight">Accessibility Dashboard</h1>
+          <p className="text-xs text-gray-400 mt-0.5">{division ? `${division} division` : 'All Hearst properties'}</p>
         </div>
         {activeDivisions.length > 0 && (
           <Suspense>
@@ -166,93 +164,83 @@ export default async function DashboardPage({
         )}
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-7">
-        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Sites</span>
-            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+      <div className="px-8 py-6">
+        {/* Stat cards — fintech style with colored accent tops */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm">
+            <div className="h-1 bg-brand-500" />
+            <div className="p-5">
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Sites Monitored</div>
+              <div className="text-4xl font-bold text-gray-900 tabular-nums leading-none">{stats.siteCount}</div>
+              <div className="text-xs text-gray-400 mt-2">{stats.totalPages} pages total</div>
+            </div>
           </div>
-          <div className="text-2xl font-bold text-gray-900 tabular-nums">{stats.siteCount}</div>
-        </div>
-        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Pages</span>
-            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <div className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm">
+            <div className="h-1 bg-red-500" />
+            <div className="p-5">
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Tier 1 Critical</div>
+              <div className="text-4xl font-bold text-red-500 tabular-nums leading-none">{severityCounts.critical}</div>
+              <div className="text-xs text-gray-400 mt-2">critical issues across all sites</div>
+            </div>
           </div>
-          <div className="text-2xl font-bold text-gray-900 tabular-nums">{stats.totalPages}</div>
-        </div>
-        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Tier 1 Issues</span>
-            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <div className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm">
+            <div className="h-1 bg-orange-500" />
+            <div className="p-5">
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Total WCAG Errors</div>
+              <div className="text-4xl font-bold text-gray-900 tabular-nums leading-none">{stats.totalErrors}</div>
+              <div className="text-xs text-gray-400 mt-2">across latest scans</div>
+            </div>
           </div>
-          <div className="text-2xl font-bold text-red-500 tabular-nums">{severityCounts.critical}</div>
-          <div className="text-[10px] text-gray-400 mt-0.5">critical only</div>
-        </div>
-        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Issues</span>
-            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <div className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm">
+            <div className="h-1 bg-green-500" />
+            <div className="p-5">
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Resolved</div>
+              <div className={`text-4xl font-bold tabular-nums leading-none ${stats.errorsResolved > 0 ? 'text-green-600' : 'text-gray-400'}`}>{stats.errorsResolved}</div>
+              <div className="text-xs text-gray-400 mt-2">vs previous scan</div>
+            </div>
           </div>
-          <div className="text-2xl font-bold text-red-500 tabular-nums">{stats.totalErrors}</div>
-          <div className="text-[10px] text-gray-400 mt-0.5">latest scans</div>
-        </div>
-        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Resolved</span>
-            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          </div>
-          <div className="text-2xl font-bold text-green-600 tabular-nums">{stats.errorsResolved}</div>
-          <div className="text-[10px] text-gray-400 mt-0.5">vs prev scan</div>
-        </div>
-      </div>
-
-      {/* Analytics charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-7">
-        {/* Score over time */}
-        <div className="lg:col-span-2 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Issue Trend Over Time</h2>
-          <ScoreTrendChart trends={scoreTrends} />
         </div>
 
-        {/* Issues by severity donut */}
-        <div className="rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Issues by Severity</h2>
-          <SeverityDonut counts={severityCounts} />
+        {/* Analytics charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Issue Trend Over Time</h2>
+            <ScoreTrendChart trends={scoreTrends} />
+          </div>
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Issues by Tier</h2>
+            <SeverityDonut counts={severityCounts} />
+          </div>
+          <div className="lg:col-span-3 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Top WCAG Errors Across All Sites</h2>
+            <TopViolationsChart violations={topViolations} />
+          </div>
         </div>
 
-        {/* Top violations */}
-        <div className="lg:col-span-3 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Top WCAG Errors Across All Sites</h2>
-          <TopViolationsChart violations={topViolations} />
+        {/* Site cards */}
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Sites</h2>
+          <Link href="/sites" className="text-xs text-brand-500 hover:text-brand-600 font-medium">View all →</Link>
         </div>
-      </div>
-
-      {/* Site cards */}
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Sites</h2>
-        <Link href="/sites" className="text-xs text-brand-500 hover:underline">View all →</Link>
-      </div>
-      {sites.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-200 p-12 text-center text-gray-400">
-          {division ? `No sites in ${division} yet.` : 'No sites yet.'}{' '}
-          <a href="/sites" className="text-brand-500 underline">Add a site</a>.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-7">
-          {sites.map((site: any) => (
-            <SiteCard key={site.id} site={site} />
-          ))}
-        </div>
-      )}
+        {sites.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-gray-200 p-12 text-center text-gray-400">
+            {division ? `No sites in ${division} yet.` : 'No sites yet.'}{' '}
+            <a href="/sites" className="text-brand-500 underline">Add a site</a>.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-6">
+            {sites.map((site: any) => (
+              <SiteCard key={site.id} site={site} />
+            ))}
+          </div>
+        )}
 
       {/* Recent scans — compact */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Recent Scans</h2>
+        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Recent Scans</h2>
         <span className="text-xs text-gray-300">Last 5</span>
       </div>
-      <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100">
@@ -313,6 +301,7 @@ export default async function DashboardPage({
             )}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   )
