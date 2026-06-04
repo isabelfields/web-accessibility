@@ -14,7 +14,7 @@ const NAV = [
     href: '/',
     label: 'Dashboard',
     icon: (
-      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-[15px] h-[15px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zm0 8a1 1 0 011-1h4a1 1 0 011 1v6a1 1 0 01-1 1h-4a1 1 0 01-1-1v-6zM4 14a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1v-5z" />
       </svg>
     ),
@@ -23,7 +23,7 @@ const NAV = [
     href: '/sites',
     label: 'Sites',
     icon: (
-      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-[15px] h-[15px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
       </svg>
     ),
@@ -32,7 +32,7 @@ const NAV = [
     href: '/schedules',
     label: 'Schedules',
     icon: (
-      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-[15px] h-[15px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
@@ -42,46 +42,47 @@ const NAV = [
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-[#0d0f12] text-[#eef0f6]">
+      <body className="bg-[#0c0c10] text-[#e8e8f0] antialiased">
         <Providers>
           <div className="flex min-h-screen">
-            {/* Sidebar — brand blue */}
-            <aside className="w-[220px] flex flex-col fixed inset-y-0 left-0 z-10 bg-brand-500">
+            {/* Sidebar — dark, minimal */}
+            <aside className="w-[200px] flex flex-col fixed inset-y-0 left-0 z-10 bg-[#0c0c10] border-r border-[#1c1c24]">
               {/* Logo */}
-              <div className="px-5 pt-6 pb-5">
-                <img
-                  src="/hearst-logo.svg"
-                  alt="Hearst"
-                  className="h-6 w-auto brightness-0 invert mb-1"
-                />
-                <div className="text-[10px] text-blue-200 font-semibold tracking-[0.15em] uppercase opacity-80">
-                  Accessibility Monitor
+              <div className="px-4 pt-5 pb-4 border-b border-[#1c1c24]">
+                <div className="flex items-center gap-2.5">
+                  <img
+                    src="/hearst-logo.svg"
+                    alt="Hearst"
+                    className="h-5 w-auto brightness-0 invert opacity-90"
+                  />
+                  <div className="w-px h-4 bg-[#2a2a36]" />
+                  <span className="text-[10px] text-[#505068] font-semibold tracking-[0.12em] uppercase">A11y</span>
                 </div>
               </div>
 
               {/* Nav */}
-              <nav className="flex-1 px-3 py-2 space-y-0.5">
+              <nav className="flex-1 px-2 py-3 space-y-0.5">
                 {NAV.map(({ href, label, icon }) => (
                   <Link
                     key={href}
                     href={href}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium text-blue-100 hover:bg-white/10 hover:text-white transition-colors group"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-[#6868848] hover:text-[#e8e8f0] hover:bg-[#16161e] transition-all group"
                   >
-                    <span className="opacity-70 group-hover:opacity-100 transition-opacity">{icon}</span>
-                    {label}
+                    <span className="text-[#505068] group-hover:text-[#9090b0] transition-colors">{icon}</span>
+                    <span className="text-[#8080a0] group-hover:text-[#e8e8f0]">{label}</span>
                   </Link>
                 ))}
               </nav>
 
               {/* Footer */}
-              <div className="px-5 py-4 border-t border-white/10">
+              <div className="px-4 py-4 border-t border-[#1c1c24]">
                 <SignOutButton />
-                <div className="text-[11px] text-blue-300/60 mt-1.5">© Hearst Communications</div>
+                <div className="text-[10px] text-[#38384a] mt-1.5">© Hearst Communications</div>
               </div>
             </aside>
 
             {/* Main */}
-            <main className="flex-1 ml-[220px] min-h-screen bg-[#0d0f12]">
+            <main className="flex-1 ml-[200px] min-h-screen">
               {children}
             </main>
           </div>

@@ -19,12 +19,12 @@ export function DivisionFilter({ activeDivisions }: { activeDivisions: string[] 
 
   return (
     <div className="flex items-center gap-2">
-      <label htmlFor="division-filter" className="text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Division</label>
+      <label htmlFor="division-filter" className="text-[11px] font-medium text-[#50506a] uppercase tracking-wider">Division</label>
       <select
         id="division-filter"
         value={current}
         onChange={e => select(e.target.value)}
-        className="text-sm border border-[#252a38] rounded-lg px-3 py-1.5 bg-[#1e2230] text-[#eef0f6] focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
+        className="text-sm border border-[#1e1e2a] rounded-md px-3 py-1.5 bg-[#11111a] text-[#e8e8f0] focus:outline-none focus:border-[#3a3a52] cursor-pointer"
       >
         <option value="">All divisions</option>
         {options.map(div => (

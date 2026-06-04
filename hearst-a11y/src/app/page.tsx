@@ -150,12 +150,12 @@ export default async function DashboardPage({
   const showDivisionCol = !division
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#0c0c10]">
       {/* Top bar */}
-      <div className="bg-[#141720] border-b border-[#252a38] px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div className="border-b border-[#1c1c24] px-8 py-4 flex items-center justify-between sticky top-0 z-10 bg-[#0c0c10]/90 backdrop-blur-sm">
         <div>
-          <h1 className="text-lg font-bold text-[#eef0f6] tracking-tight">Accessibility Dashboard</h1>
-          <p className="text-xs text-[#8892a4] mt-0.5">{division ? `${division} division` : 'All Hearst properties'}</p>
+          <h1 className="text-base font-semibold text-[#e8e8f0] tracking-tight">Dashboard</h1>
+          <p className="text-xs text-[#50506a] mt-0.5">{division ? `${division} division` : 'All Hearst properties'}</p>
         </div>
         {activeDivisions.length > 0 && (
           <Suspense>
@@ -165,50 +165,38 @@ export default async function DashboardPage({
       </div>
 
       <div className="px-8 py-6">
-        {/* Stat cards — fintech style with colored accent tops */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-[#141720] rounded-xl overflow-hidden border border-[#252a38]">
-            <div className="h-1 bg-brand-500" />
-            <div className="p-5">
-              <div className="text-xs font-semibold text-[#8892a4] uppercase tracking-widest mb-3">Sites Monitored</div>
-              <div className="text-4xl font-bold text-[#eef0f6] tabular-nums leading-none">{stats.siteCount}</div>
-              <div className="text-xs text-[#8892a4] mt-2">{stats.totalPages} pages total</div>
-            </div>
+        {/* Stat cards — clean, no decorations */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <div className="text-[11px] font-medium text-[#50506a] uppercase tracking-widest mb-3">Sites</div>
+            <div className="text-4xl font-bold text-[#e8e8f0] tabular-nums leading-none">{stats.siteCount}</div>
+            <div className="text-xs text-[#50506a] mt-2">{stats.totalPages} pages monitored</div>
           </div>
-          <div className="bg-[#141720] rounded-xl overflow-hidden border border-[#252a38]">
-            <div className="h-1 bg-red-500" />
-            <div className="p-5">
-              <div className="text-xs font-semibold text-[#8892a4] uppercase tracking-widest mb-3">Tier 1 Critical</div>
-              <div className="text-4xl font-bold text-red-400 tabular-nums leading-none">{severityCounts.critical}</div>
-              <div className="text-xs text-[#8892a4] mt-2">critical issues across all sites</div>
-            </div>
+          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <div className="text-[11px] font-medium text-[#50506a] uppercase tracking-widest mb-3">Tier 1 Critical</div>
+            <div className="text-4xl font-bold text-red-400 tabular-nums leading-none">{severityCounts.critical}</div>
+            <div className="text-xs text-[#50506a] mt-2">across all sites</div>
           </div>
-          <div className="bg-[#141720] rounded-xl overflow-hidden border border-[#252a38]">
-            <div className="h-1 bg-orange-500" />
-            <div className="p-5">
-              <div className="text-xs font-semibold text-[#8892a4] uppercase tracking-widest mb-3">Total WCAG Errors</div>
-              <div className="text-4xl font-bold text-[#eef0f6] tabular-nums leading-none">{stats.totalErrors}</div>
-              <div className="text-xs text-[#8892a4] mt-2">across latest scans</div>
-            </div>
+          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <div className="text-[11px] font-medium text-[#50506a] uppercase tracking-widest mb-3">WCAG Errors</div>
+            <div className="text-4xl font-bold text-[#e8e8f0] tabular-nums leading-none">{stats.totalErrors}</div>
+            <div className="text-xs text-[#50506a] mt-2">latest scans</div>
           </div>
-          <div className="bg-[#141720] rounded-xl overflow-hidden border border-[#252a38]">
-            <div className="h-1 bg-emerald-500" />
-            <div className="p-5">
-              <div className="text-xs font-semibold text-[#8892a4] uppercase tracking-widest mb-3">Resolved</div>
-              <div className={`text-4xl font-bold tabular-nums leading-none ${stats.errorsResolved > 0 ? 'text-emerald-400' : 'text-[#5a6272]'}`}>{stats.errorsResolved}</div>
-              <div className="text-xs text-[#8892a4] mt-2">vs previous scan</div>
-            </div>
+          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <div className="text-[11px] font-medium text-[#50506a] uppercase tracking-widest mb-3">Resolved</div>
+            <div className={`text-4xl font-bold tabular-nums leading-none ${stats.errorsResolved > 0 ? 'text-emerald-400' : 'text-[#30303e]'}`}>{stats.errorsResolved}</div>
+            <div className="text-xs text-[#50506a] mt-2">vs previous scan</div>
           </div>
         </div>
 
         {/* Analytics charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <div className="lg:col-span-2 bg-[#141720] rounded-xl border border-[#252a38] p-5">
-            <h2 className="text-xs font-bold text-[#8892a4] uppercase tracking-widest mb-4">Issue Trend Over Time</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-6">
+          <div className="lg:col-span-2 bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <h2 className="text-[11px] font-medium text-[#50506a] uppercase tracking-widest mb-4">Issue Trend Over Time</h2>
             <ScoreTrendChart trends={scoreTrends} />
           </div>
-          <div className="bg-[#141720] rounded-xl border border-[#252a38] p-5">
-            <h2 className="text-xs font-bold text-[#8892a4] uppercase tracking-widest mb-2">Issues by Tier</h2>
+          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <h2 className="text-[11px] font-medium text-[#50506a] uppercase tracking-widest mb-2">Issues by Tier</h2>
             <SeverityDonut counts={severityCounts} />
           </div>
           <div className="lg:col-span-3 bg-[#141720] rounded-xl border border-[#252a38] p-5">
@@ -219,11 +207,11 @@ export default async function DashboardPage({
 
         {/* Site cards */}
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-bold text-[#8892a4] uppercase tracking-widest">Sites</h2>
-          <Link href="/sites" className="text-xs text-[#5b9bd6] hover:text-blue-300 font-medium">View all →</Link>
+          <h2 className="text-[11px] font-medium text-[#50506a] uppercase tracking-widest">Sites</h2>
+          <Link href="/sites" className="text-xs text-[#5b9bd6] hover:text-[#e8e8f0] font-medium transition-colors">View all →</Link>
         </div>
         {sites.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[#252a38] p-12 text-center text-[#8892a4]">
+          <div className="rounded-lg border border-dashed border-[#1e1e2a] p-12 text-center text-[#50506a]">
             {division ? `No sites in ${division} yet.` : 'No sites yet.'}{' '}
             <a href="/sites" className="text-[#5b9bd6] underline">Add a site</a>.
           </div>
@@ -235,67 +223,63 @@ export default async function DashboardPage({
           </div>
         )}
 
-      {/* Recent scans — compact */}
+      {/* Recent scans */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-xs font-bold text-[#8892a4] uppercase tracking-widest">Recent Scans</h2>
-        <span className="text-xs text-[#5a6272]">Last 5</span>
+        <h2 className="text-[11px] font-medium text-[#50506a] uppercase tracking-widest">Recent Scans</h2>
+        <span className="text-xs text-[#30303e]">Last 5</span>
       </div>
-      <div className="bg-[#141720] rounded-xl border border-[#252a38] overflow-hidden">
+      <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[#1e2230] border-b border-[#252a38]">
-              <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Site</th>
+            <tr className="border-b border-[#1e1e2a]">
+              <th className="text-left px-4 py-3 text-[11px] font-medium text-[#50506a] uppercase tracking-wider">Site</th>
               {showDivisionCol && (
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Division</th>
+                <th className="text-left px-4 py-3 text-[11px] font-medium text-[#50506a] uppercase tracking-wider">Division</th>
               )}
-              <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Status</th>
-              <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Priority</th>
-              <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Pages</th>
-              <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">WCAG Errors</th>
-              <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Started</th>
+              <th className="text-left px-4 py-3 text-[11px] font-medium text-[#50506a] uppercase tracking-wider">Status</th>
+              <th className="text-right px-4 py-3 text-[11px] font-medium text-[#50506a] uppercase tracking-wider">Pages</th>
+              <th className="text-right px-4 py-3 text-[11px] font-medium text-[#50506a] uppercase tracking-wider">WCAG Errors</th>
+              <th className="text-right px-4 py-3 text-[11px] font-medium text-[#50506a] uppercase tracking-wider">Started</th>
               <th className="px-2 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {scans.length === 0 ? (
               <tr>
-                <td colSpan={showDivisionCol ? 8 : 7} className="text-center py-8 text-[#8892a4]">
+                <td colSpan={showDivisionCol ? 7 : 6} className="text-center py-8 text-[#50506a]">
                   No scans yet.
                 </td>
               </tr>
             ) : (
               scans.map((scan: any) => (
-                <tr key={scan.id} className="border-t border-[#252a38] hover:bg-[#1e2230] transition-colors group cursor-pointer relative">
-                  <td className="px-4 py-2.5">
+                <tr key={scan.id} className="border-t border-[#1a1a22] hover:bg-[#14141c] transition-colors group cursor-pointer relative">
+                  <td className="px-4 py-3">
                     <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan for ${scan.site_name ?? scan.root_url}`} />
-                    <div className="font-medium text-[#5b9bd6] text-sm">{scan.site_name ?? scan.root_url}</div>
-                    {scan.site_name && <div className="text-xs text-[#8892a4] truncate max-w-xs">{scan.root_url}</div>}
+                    <div className="font-medium text-[#e8e8f0] text-sm">{scan.site_name ?? scan.root_url}</div>
+                    {scan.site_name && <div className="text-xs text-[#50506a] truncate max-w-xs mt-0.5">{scan.root_url}</div>}
                   </td>
                   {showDivisionCol && (
-                    <td className="px-4 py-2.5 text-xs">
+                    <td className="px-4 py-3 text-xs">
                       {scan.division
-                        ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#252a38] text-[#8892a4]">{scan.division}</span>
-                        : <span className="text-[#5a6272]">—</span>
+                        ? <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#1e1e2a] text-[#70708a]">{scan.division}</span>
+                        : <span className="text-[#30303e]">—</span>
                       }
                     </td>
                   )}
-                  <td className="px-4 py-2.5">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      scan.status === 'complete' ? 'bg-emerald-500/20 text-emerald-400' :
-                      scan.status === 'running' ? 'bg-blue-500/20 text-blue-400' :
-                      scan.status === 'failed' ? 'bg-red-500/20 text-red-400' :
-                      'bg-[#252a38] text-[#8892a4]'
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                      scan.status === 'complete' ? 'bg-emerald-500/10 text-emerald-400' :
+                      scan.status === 'running' ? 'bg-blue-500/10 text-blue-400' :
+                      scan.status === 'failed' ? 'bg-red-500/10 text-red-400' :
+                      'bg-[#1e1e2a] text-[#70708a]'
                     }`}>
                       {scan.status}
                     </span>
                   </td>
-                  <td className="px-4 py-2.5">
-                    <span className="text-xs text-[#8892a4] capitalize">{scan.status === 'complete' ? '—' : ''}</span>
-                  </td>
-                  <td className="px-4 py-2.5 text-right text-[#eef0f6]">{scan.pages_scanned ?? 0}</td>
-                  <td className="px-4 py-2.5 text-right text-[#eef0f6]">{scan.raw_violation_count ?? '—'}</td>
-                  <td className="px-4 py-2.5 text-right text-[#8892a4] text-xs">{formatDate(scan.started_at)}</td>
-                  <td className="px-2 py-2.5 text-right relative z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <td className="px-4 py-3 text-right text-[#e8e8f0] tabular-nums">{scan.pages_scanned ?? 0}</td>
+                  <td className="px-4 py-3 text-right text-[#e8e8f0] tabular-nums">{scan.raw_violation_count ?? '—'}</td>
+                  <td className="px-4 py-3 text-right text-[#50506a] text-xs tabular-nums">{formatDate(scan.started_at)}</td>
+                  <td className="px-2 py-3 text-right relative z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <DeleteScanButton jobId={scan.id} />
                   </td>
                 </tr>
