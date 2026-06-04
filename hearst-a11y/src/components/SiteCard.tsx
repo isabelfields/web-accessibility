@@ -19,14 +19,6 @@ interface SiteCardProps {
   }
 }
 
-function scoreColor(score: number) {
-  if (score >= 90) return 'text-green-600'
-  if (score >= 80) return 'text-lime-600'
-  if (score >= 70) return 'text-yellow-600'
-  if (score >= 60) return 'text-orange-500'
-  return 'text-red-500'
-}
-
 export function SiteCard({ site }: SiteCardProps) {
   const { latestScan } = site
   const pageCount = site.pages?.length ?? 0
@@ -34,64 +26,41 @@ export function SiteCard({ site }: SiteCardProps) {
   return (
     <Link
       href={`/sites/${site.id}`}
-      className="block bg-white border border-gray-200 shadow-sm rounded-xl p-5 hover:shadow-md hover:border-gray-300 transition-all group"
+      className="block bg-[#11111a] border border-[#1e1e2a] rounded-lg p-4 hover:bg-[#14141e] hover:border-[#26263a] transition-all group"
     >
-      <div className="flex items-start justify-between gap-4">
-        {/* Left: name + meta */}
+      <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0">
-          <div className="font-semibold text-gray-900 text-sm leading-tight truncate">{site.name}</div>
-          <div className="text-xs text-gray-400 mt-0.5">
+          <div className="font-semibold text-white text-sm leading-tight truncate">{site.name}</div>
+          <div className="text-xs text-white/70 mt-0.5">
             {pageCount} page{pageCount !== 1 ? 's' : ''}
             {site.division ? ` · ${site.division}` : ''}
           </div>
         </div>
-
-        {/* Middle: score */}
-        {latestScan ? (
-          <div className="text-center shrink-0">
-            <div className={`text-2xl font-bold leading-none ${scoreColor(latestScan.score ?? 0)}`}>
-              {Math.round(latestScan.score ?? 0)}
-            </div>
-            <div className="text-xs text-gray-400 mt-0.5 uppercase tracking-wider">Score</div>
-          </div>
-        ) : (
-          <div className="text-center shrink-0">
-            <div className="text-2xl font-bold text-gray-300">—</div>
-            <div className="text-xs text-gray-400 mt-0.5 uppercase tracking-wider">Score</div>
-          </div>
-        )}
+        <span className="text-xs text-white/70 group-hover:text-white transition-colors shrink-0 mt-0.5">→</span>
       </div>
 
-      {/* Stats row */}
       {latestScan ? (
         <>
-          <div className="mt-4 flex items-center gap-4 text-xs">
-            <span className="text-red-500 font-medium">
-              {latestScan.raw_violation_count} violation{latestScan.raw_violation_count !== 1 ? 's' : ''}
+          <div className="flex items-center gap-3 text-xs">
+            <span className="text-red-400 font-medium">
+              {latestScan.raw_violation_count} error{latestScan.raw_violation_count !== 1 ? 's' : ''}
             </span>
-            <span className="text-gray-400">
-              {latestScan.unique_pattern_count} issue type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
-            </span>
-            <span className="ml-auto text-brand-500 font-medium group-hover:underline">
-              View →
+            <span className="text-white/70">
+              {latestScan.unique_pattern_count} type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
             </span>
           </div>
-          {/* Score bar */}
-          <div className="mt-3 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+          <div className="mt-2.5 h-px w-full bg-[#1e1e2a] rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
-                (latestScan.score ?? 0) >= 90 ? 'bg-green-500' :
-                (latestScan.score ?? 0) >= 70 ? 'bg-yellow-400' : 'bg-red-500'
+                latestScan.raw_violation_count === 0 ? 'bg-emerald-500' :
+                latestScan.raw_violation_count < 10 ? 'bg-amber-500' : 'bg-red-500'
               }`}
-              style={{ width: `${Math.round(latestScan.score ?? 0)}%` }}
+              style={{ width: `${Math.min(100, (latestScan.raw_violation_count / 50) * 100)}%` }}
             />
           </div>
         </>
       ) : (
-        <div className="mt-4 flex items-center justify-between text-xs">
-          <span className="text-gray-400 italic">No scans yet</span>
-          <span className="text-brand-500 font-medium group-hover:underline">View →</span>
-        </div>
+        <div className="text-xs text-white/70 italic">No scans yet</div>
       )}
     </Link>
   )

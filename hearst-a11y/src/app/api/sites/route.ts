@@ -27,24 +27,16 @@ export async function GET() {
     ? await sql`SELECT * FROM sites WHERE division = ANY(${allowedDivisions}::text[]) ORDER BY created_at DESC`
     : await sql`SELECT * FROM sites ORDER BY created_at DESC`
 
-  // Attach latest scan score to each site
   const enriched = await Promise.all(
     sites.map(async (site: any) => {
       const [latest] = await sql`
-        SELECT score, status, started_at, unique_pattern_count, raw_violation_count
+        SELECT status, started_at, unique_pattern_count, raw_violation_count, patterns
         FROM scan_jobs
         WHERE site_id = ${site.id} AND status = 'complete'
         ORDER BY started_at DESC
         LIMIT 1
       `
-      const [previous] = latest ? await sql`
-        SELECT score FROM scan_jobs
-        WHERE site_id = ${site.id} AND status = 'complete'
-          AND started_at < ${latest.started_at}
-        ORDER BY started_at DESC
-        LIMIT 1
-      ` : [null]
-      return { ...site, latestScan: latest ?? null, previousScore: previous?.score ?? null }
+      return { ...site, latestScan: latest ?? null }
     })
   )
 
