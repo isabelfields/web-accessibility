@@ -22,7 +22,7 @@ export function SeverityDonut({ counts }: Props) {
   ].filter(d => d.value > 0)
 
   const total = data.reduce((s, d) => s + d.value, 0)
-  if (total === 0) return <div className="flex items-center justify-center h-40 text-sm text-white/70">No data yet</div>
+  if (total === 0) return <div className="flex items-center justify-center h-40 text-sm text-white/90">No data yet</div>
 
   return (
     <ResponsiveContainer width="100%" height={200}>
@@ -56,7 +56,7 @@ export function SeverityDonut({ counts }: Props) {
           iconType="circle"
           iconSize={6}
           wrapperStyle={{ fontSize: 10 }}
-          formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.7)' }}>{value}</span>}
+          formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.9)' }}>{value}</span>}
         />
       </PieChart>
     </ResponsiveContainer>

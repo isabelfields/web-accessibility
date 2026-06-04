@@ -18,7 +18,7 @@ const LINE_COLORS = ['#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#bf
 
 export function ScoreTrendChart({ trends }: Props) {
   if (trends.length === 0 || trends.every(t => t.scores.length < 2)) {
-    return <div className="flex items-center justify-center h-40 text-sm text-white/70">Run more scans to see trends</div>
+    return <div className="flex items-center justify-center h-40 text-sm text-white/90">Run more scans to see trends</div>
   }
 
   const allDates = [...new Set(
@@ -40,14 +40,14 @@ export function ScoreTrendChart({ trends }: Props) {
         <CartesianGrid strokeDasharray="2 4" stroke="#1e1e2a" vertical={false} />
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.6)' }}
+          tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.85)' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         />
         <YAxis
           domain={[0, 100]}
-          tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.6)' }}
+          tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.85)' }}
           tickLine={false}
           axisLine={false}
         />
@@ -67,7 +67,7 @@ export function ScoreTrendChart({ trends }: Props) {
             iconType="circle"
             iconSize={6}
             wrapperStyle={{ fontSize: 10 }}
-            formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.7)' }}>{value}</span>}
+            formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.9)' }}>{value}</span>}
           />
         )}
         {trends.map((site, i) => (
