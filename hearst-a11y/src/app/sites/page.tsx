@@ -108,11 +108,11 @@ export default function SitesPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-20 text-gray-400">Loading...</div>
+        <div className="flex justify-center py-20 text-[#8892a4]">Loading...</div>
       ) : sites.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-200 p-16 text-center">
-          <div className="text-gray-400 text-lg mb-3">No sites configured yet</div>
-          <p className="text-gray-400 text-sm mb-6">Add your first site to start monitoring accessibility.</p>
+        <div className="rounded-xl border border-dashed border-[#252a38] p-16 text-center">
+          <div className="text-[#8892a4] text-lg mb-3">No sites configured yet</div>
+          <p className="text-[#8892a4] text-sm mb-6">Add your first site to start monitoring accessibility.</p>
           <button
             onClick={() => setShowForm(true)}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-500 text-white text-sm font-medium hover:bg-blue-600"
@@ -121,57 +121,57 @@ export default function SitesPage() {
           </button>
         </div>
       ) : (
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
+        <div className="rounded-xl bg-[#141720] border border-[#252a38] overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Site</th>
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</th>
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Brand</th>
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Pages</th>
-                <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">WCAG Errors</th>
-                <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Last Scan</th>
-                <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Added</th>
+              <tr className="bg-[#1e2230] border-b border-[#252a38]">
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Site</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Division</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Brand</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Pages</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">WCAG Errors</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Last Scan</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Added</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-[#252a38]">
               {filtered.map(site => (
-                <tr key={site.id} className="hover:bg-gray-50/60 transition-colors">
+                <tr key={site.id} className="hover:bg-[#1e2230] transition-colors">
                   <td className="px-4 py-3">
-                    <Link href={`/sites/${site.id}`} className="font-medium text-brand-500 hover:text-blue-700">
+                    <Link href={`/sites/${site.id}`} className="font-medium text-[#5b9bd6] hover:text-blue-300">
                       {site.name}
                     </Link>
                   </td>
                   <td className="px-4 py-3">
                     {site.division
-                      ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{site.division}</span>
-                      : <span className="text-gray-300">—</span>
+                      ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#252a38] text-[#8892a4]">{site.division}</span>
+                      : <span className="text-[#5a6272]">—</span>
                     }
                   </td>
                   <td className="px-4 py-3">
                     {site.brand
-                      ? <span className="text-gray-600 text-sm">{site.brand}</span>
-                      : <span className="text-gray-300">—</span>
+                      ? <span className="text-[#eef0f6] text-sm">{site.brand}</span>
+                      : <span className="text-[#5a6272]">—</span>
                     }
                   </td>
-                  <td className="px-4 py-3 text-gray-500">
+                  <td className="px-4 py-3 text-[#8892a4]">
                     {site.pages?.length ?? 0} page{(site.pages?.length ?? 0) !== 1 ? 's' : ''}
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-600 tabular-nums">
-                    {site.latestScan ? site.latestScan.raw_violation_count : <span className="text-gray-300">—</span>}
+                  <td className="px-4 py-3 text-right text-[#eef0f6] tabular-nums">
+                    {site.latestScan ? site.latestScan.raw_violation_count : <span className="text-[#5a6272]">—</span>}
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-400">
+                  <td className="px-4 py-3 text-right text-[#8892a4]">
                     {site.latestScan ? formatDate(site.latestScan.started_at) : '—'}
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-400">
+                  <td className="px-4 py-3 text-right text-[#8892a4]">
                     {formatDate(site.created_at)}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">
                       <button
                         onClick={() => setEditingSite(site)}
-                        className="text-brand-500 hover:text-blue-700 text-xs font-medium"
+                        className="text-[#5b9bd6] hover:text-blue-300 text-xs font-medium"
                       >
                         Edit
                       </button>
