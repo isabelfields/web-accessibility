@@ -34,7 +34,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="text-xl font-semibold tracking-tight text-white">Hearst A11y</div>
-          <div className="text-sm text-white/80 mt-1">Sign in to continue</div>
+          <div className="text-sm text-white/90 mt-1">Sign in to continue</div>
         </div>
         <form onSubmit={handleSubmit} className="bg-[#141720] border border-[#252a38] rounded-xl p-8 space-y-5">
           <div>
