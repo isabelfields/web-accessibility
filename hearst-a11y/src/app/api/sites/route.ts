@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
+import { auth } from '@/auth'
 
 const SitePageSchema = z.object({
   url: z.string().url(),
@@ -17,7 +18,13 @@ const SiteSchema = z.object({
 })
 
 export async function GET() {
-  const sites = await sql`SELECT * FROM sites ORDER BY created_at DESC`
+  const session = await auth()
+  const isAdmin = session?.user?.role === 'admin'
+  const allowedDivisions = isAdmin ? [] : (session?.user?.allowedDivisions ?? [])
+
+  const sites = allowedDivisions.length > 0
+    ? await sql`SELECT * FROM sites WHERE division = ANY(${allowedDivisions}::text[]) ORDER BY created_at DESC`
+    : await sql`SELECT * FROM sites ORDER BY created_at DESC`
 
   // Attach latest scan score to each site
   const enriched = await Promise.all(

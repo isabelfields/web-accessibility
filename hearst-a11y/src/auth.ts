@@ -1,26 +1,75 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
+import bcrypt from 'bcryptjs'
+import { sql } from '@/lib/db'
+
+async function findOrBootstrapUser(email: string, password: string) {
+  // Check if any users exist; if not, seed the first admin from env vars
+  const [{ count }] = await sql`SELECT COUNT(*)::int as count FROM users`
+  if (count === 0) {
+    const adminEmail = process.env.ADMIN_USERNAME ?? 'admin'
+    const adminPassword = process.env.ADMIN_PASSWORD
+    if (adminPassword && (email === adminEmail)) {
+      // Seed admin into DB
+      const hash = await bcrypt.hash(adminPassword, 10)
+      const [newUser] = await sql`
+        INSERT INTO users (email, password_hash, role, allowed_divisions)
+        VALUES (${adminEmail}, ${hash}, 'admin', '[]')
+        RETURNING id, email, role, allowed_divisions
+      `
+      return newUser
+    }
+    return null
+  }
+
+  const [user] = await sql`SELECT * FROM users WHERE email = ${email} LIMIT 1`
+  if (!user || !user.password_hash) return null
+  const valid = await bcrypt.compare(password, user.password_hash)
+  return valid ? user : null
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        username: { label: 'Username', type: 'text' },
+        email: { label: 'Email', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (
-          credentials.username === process.env.ADMIN_USERNAME &&
-          credentials.password === process.env.ADMIN_PASSWORD
-        ) {
-          return { id: '1', name: 'Admin' }
+        if (!credentials?.email || !credentials?.password) return null
+        const user = await findOrBootstrapUser(
+          credentials.email as string,
+          credentials.password as string,
+        )
+        if (!user) return null
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.email,
+          role: user.role as 'admin' | 'user',
+          allowedDivisions: (user.allowed_divisions as string[]) ?? [],
         }
-        return null
       },
     }),
   ],
-  pages: {
-    signIn: '/login',
-  },
+  pages: { signIn: '/login' },
   session: { strategy: 'jwt' },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id as string
+        token.role = user.role
+        token.allowedDivisions = user.allowedDivisions
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id
+        session.user.role = token.role
+        session.user.allowedDivisions = token.allowedDivisions
+      }
+      return session
+    },
+  },
 })

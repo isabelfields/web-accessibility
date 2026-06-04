@@ -7,10 +7,15 @@ import { DivisionFilter } from '@/components/DivisionFilter'
 import { SeverityDonut } from '@/components/SeverityDonut'
 import { ScoreTrendChart } from '@/components/ScoreTrendChart'
 import { TopViolationsChart } from '@/components/TopViolationsChart'
+import { auth } from '@/auth'
 
 export const dynamic = 'force-dynamic'
 
-async function getData(division?: string) {
+async function getData(division?: string, allowedDivisions?: string[]) {
+  // Non-admin users: restrict to their allowed divisions
+  if (allowedDivisions && allowedDivisions.length > 0 && !division) {
+    division = allowedDivisions[0]
+  }
   const [allSites, recentScans] = await Promise.all([
     sql`SELECT * FROM sites ORDER BY created_at DESC`.then(async (sites) => {
       return Promise.all(
@@ -145,9 +150,23 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ division?: string }>
 }) {
-  const { division } = await searchParams
-  const { sites, scans, activeDivisions, stats, severityCounts, topViolations, scoreTrends } = await getData(division)
-  const showDivisionCol = !division
+  const [{ division }, session] = await Promise.all([searchParams, auth()])
+  const isAdmin = session?.user?.role === 'admin'
+  const allowedDivisions = isAdmin ? [] : (session?.user?.allowedDivisions ?? [])
+
+  // For non-admins, if they try to view a division outside their allowed set, ignore it
+  const effectiveDivision = (!isAdmin && allowedDivisions.length > 0 && division && !allowedDivisions.includes(division))
+    ? allowedDivisions[0]
+    : division
+
+  const { sites, scans, activeDivisions, stats, severityCounts, topViolations, scoreTrends } = await getData(effectiveDivision, allowedDivisions)
+
+  // Non-admins only see their allowed divisions in the filter
+  const visibleDivisions = isAdmin
+    ? activeDivisions
+    : activeDivisions.filter(d => allowedDivisions.includes(d))
+
+  const showDivisionCol = !effectiveDivision
 
   return (
     <div className="px-8 py-6">
@@ -159,9 +178,14 @@ export default async function DashboardPage({
             {division ? `${division} division` : 'All Hearst properties'}
           </p>
         </div>
-        {activeDivisions.length > 0 && (
+        {isAdmin && visibleDivisions.length > 0 && (
           <Suspense>
-            <DivisionFilter activeDivisions={activeDivisions} />
+            <DivisionFilter activeDivisions={visibleDivisions} />
+          </Suspense>
+        )}
+        {!isAdmin && allowedDivisions.length > 1 && visibleDivisions.length > 0 && (
+          <Suspense>
+            <DivisionFilter activeDivisions={visibleDivisions} />
           </Suspense>
         )}
       </div>

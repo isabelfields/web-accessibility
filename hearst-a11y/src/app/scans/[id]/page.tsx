@@ -6,6 +6,7 @@ import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { SeverityBar } from '@/components/SeverityBar'
 import { ExportPdfButton } from '@/components/ExportPdfButton'
+import { auth } from '@/auth'
 import type { ViolationPattern, PageScore } from '@/types'
 
 const RULE_WCAG_LEVEL: Record<string, 'A' | 'AA' | 'AAA'> = {
@@ -62,7 +63,8 @@ function impactColor(impact: string) {
 }
 
 export default async function ScanDetailPage({ params }: RouteContext) {
-  const { id } = await params
+  const [{ id }, session] = await Promise.all([params, auth()])
+  const isAdmin = session?.user?.role === 'admin'
   const data = await getScan(id)
   if (!data) notFound()
 
@@ -128,7 +130,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {scan.status === 'complete' && <ExportPdfButton scanId={scan.id} />}
+          {scan.status === 'complete' && isAdmin && <ExportPdfButton scanId={scan.id} />}
           <DeleteScanButton jobId={scan.id} />
         </div>
       </div>
