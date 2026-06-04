@@ -38,31 +38,33 @@ export default function LoginPage() {
         </div>
         <form onSubmit={handleSubmit} className="bg-[#141720] border border-[#252a38] rounded-xl p-8 space-y-5">
           <div>
-            <label className="block text-sm font-medium text-white/80 mb-1.5">Username</label>
+            <label htmlFor="username" className="block text-sm font-medium text-white mb-1.5">Username</label>
             <input
+              id="username"
               type="text"
               value={username}
               onChange={e => setUsername(e.target.value)}
               required
               autoFocus
-              className="w-full px-3 py-2 rounded-lg border border-[#252a38] bg-[#1e2230] text-white placeholder:text-white/70 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-lg border border-[#252a38] bg-[#1e2230] text-white placeholder:text-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-white/80 mb-1.5">Password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-white mb-1.5">Password</label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className="w-full px-3 py-2 rounded-lg border border-[#252a38] bg-[#1e2230] text-white placeholder:text-white/70 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-lg border border-[#252a38] bg-[#1e2230] text-white placeholder:text-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             />
           </div>
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded-lg bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition-colors disabled:opacity-50"
+            className="w-full py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 transition-colors disabled:opacity-50"
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>

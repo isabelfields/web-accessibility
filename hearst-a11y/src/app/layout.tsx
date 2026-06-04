@@ -56,7 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     className="h-5 w-auto brightness-0 invert opacity-90"
                   />
                   <div className="w-px h-4 bg-[#2a2a36]" />
-                  <span className="text-[10px] text-[#505068] font-semibold tracking-[0.12em] uppercase">A11y</span>
+                  <span className="text-[10px] text-white/60 font-semibold tracking-[0.12em] uppercase">A11y</span>
                 </div>
               </div>
 
@@ -68,7 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     href={href}
                     className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-white hover:text-white hover:bg-[#16161e] transition-all group"
                   >
-                    <span className="text-[#505068] group-hover:text-white/70 transition-colors">{icon}</span>
+                    <span className="text-white/50 group-hover:text-white/80 transition-colors">{icon}</span>
                     <span className="text-white/90 group-hover:text-white">{label}</span>
                   </Link>
                 ))}
