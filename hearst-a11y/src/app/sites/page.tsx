@@ -61,8 +61,8 @@ export default function SitesPage() {
     <div className="px-8 py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-gray-900">Sites</h1>
-          <p className="text-gray-400 text-sm mt-0.5">Manage your monitored web properties</p>
+          <h1 className="text-xl font-semibold tracking-tight text-[#eef0f6]">Sites</h1>
+          <p className="text-[#8892a4] text-sm mt-0.5">Manage your monitored web properties</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
@@ -86,9 +86,9 @@ export default function SitesPage() {
         <div className="flex items-center gap-4 mb-5">
           {activeDivisions.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</span>
+              <span className="text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Division</span>
               <select value={divisionFilter} onChange={e => setDivisionFilter(e.target.value)}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                className="text-sm border border-[#252a38] rounded-lg px-3 py-1.5 bg-[#1e2230] text-[#eef0f6] focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                 <option value="">All</option>
                 {activeDivisions.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
@@ -96,9 +96,9 @@ export default function SitesPage() {
           )}
           {activeRegions.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Region</span>
+              <span className="text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Region</span>
               <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                className="text-sm border border-[#252a38] rounded-lg px-3 py-1.5 bg-[#1e2230] text-[#eef0f6] focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                 <option value="">All</option>
                 {activeRegions.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
