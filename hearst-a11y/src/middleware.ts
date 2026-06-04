@@ -1,22 +1,20 @@
-import { auth } from '@/auth'
+import { withAuth } from 'next-auth/middleware'
 import { NextResponse } from 'next/server'
 
-export default auth((req) => {
-  const isLoggedIn = !!req.auth
-  const isLoginPage = req.nextUrl.pathname === '/login'
-  const isAuthApi = req.nextUrl.pathname.startsWith('/api/auth')
-  const isCronApi = req.nextUrl.pathname.startsWith('/api/cron')
-
-  if (isAuthApi || isCronApi) return NextResponse.next()
-  if (!isLoggedIn && !isLoginPage) {
-    return NextResponse.redirect(new URL('/login', req.nextUrl))
+export default withAuth(
+  function middleware(req) {
+    return NextResponse.next()
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
+    pages: {
+      signIn: '/login',
+    },
   }
-  if (isLoggedIn && isLoginPage) {
-    return NextResponse.redirect(new URL('/', req.nextUrl))
-  }
-  return NextResponse.next()
-})
+)
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth|api/cron|login).*)'],
 }

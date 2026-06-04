@@ -16,7 +16,7 @@ async function getData(division?: string) {
       return Promise.all(
         sites.map(async (site) => {
           const [latest] = await sql`
-            SELECT score, status, started_at, unique_pattern_count, raw_violation_count
+            SELECT status, started_at, unique_pattern_count, raw_violation_count, patterns
             FROM scan_jobs
             WHERE site_id = ${site.id} AND status = 'complete'
             ORDER BY started_at DESC LIMIT 1
@@ -150,14 +150,12 @@ export default async function DashboardPage({
   const showDivisionCol = !division
 
   return (
-    <div className="px-8 py-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
+    <div className="min-h-screen bg-[#0c0c10]">
+      {/* Top bar */}
+      <div className="border-b border-[#1c1c24] px-8 py-4 flex items-center justify-between sticky top-0 z-10 bg-[#0c0c10]/90 backdrop-blur-sm">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">Accessibility Dashboard</h1>
-          <p className="text-sm text-gray-400 mt-0.5">
-            {division ? `${division} division` : 'All Hearst properties'}
-          </p>
+          <h1 className="text-base font-semibold text-white tracking-tight">Dashboard</h1>
+          <p className="text-xs text-white/70 mt-0.5">{division ? `${division} division` : 'All Hearst properties'}</p>
         </div>
         {activeDivisions.length > 0 && (
           <Suspense>
@@ -166,147 +164,122 @@ export default async function DashboardPage({
         )}
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-7">
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Sites</span>
-            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+      <div className="px-8 py-6">
+        {/* Stat cards — clean, no decorations */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <div className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-3">Sites</div>
+            <div className="text-4xl font-bold text-white tabular-nums leading-none">{stats.siteCount}</div>
+            <div className="text-xs text-white/70 mt-2">{stats.totalPages} pages monitored</div>
           </div>
-          <div className="text-2xl font-bold text-gray-900 tabular-nums">{stats.siteCount}</div>
-        </div>
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Pages</span>
-            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <div className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-3">Tier 1 Critical</div>
+            <div className="text-4xl font-bold text-red-400 tabular-nums leading-none">{severityCounts.critical}</div>
+            <div className="text-xs text-white/70 mt-2">across all sites</div>
           </div>
-          <div className="text-2xl font-bold text-gray-900 tabular-nums">{stats.totalPages}</div>
-        </div>
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Avg Score</span>
-            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <div className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-3">WCAG Errors</div>
+            <div className="text-4xl font-bold text-white tabular-nums leading-none">{stats.totalErrors}</div>
+            <div className="text-xs text-white/70 mt-2">latest scans</div>
           </div>
-          <div className={`text-2xl font-bold tabular-nums ${stats.avgScore !== null ? scoreColor(stats.avgScore) : 'text-gray-300'}`}>
-            {stats.avgScore !== null ? stats.avgScore : '—'}
+          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <div className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-3">Resolved</div>
+            <div className={`text-4xl font-bold tabular-nums leading-none ${stats.errorsResolved > 0 ? 'text-emerald-400' : 'text-white/70'}`}>{stats.errorsResolved}</div>
+            <div className="text-xs text-white/70 mt-2">vs previous scan</div>
           </div>
-        </div>
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Issues</span>
-            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-          </div>
-          <div className="text-2xl font-bold text-red-500 tabular-nums">{stats.totalErrors}</div>
-          <div className="text-[10px] text-gray-400 mt-0.5">latest scans</div>
-        </div>
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Resolved</span>
-            <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          </div>
-          <div className="text-2xl font-bold text-green-600 tabular-nums">{stats.errorsResolved}</div>
-          <div className="text-[10px] text-gray-400 mt-0.5">vs prev scan</div>
-        </div>
-      </div>
-
-      {/* Analytics charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-7">
-        {/* Score over time */}
-        <div className="lg:col-span-2 rounded-xl border border-gray-200 shadow-sm bg-white p-5">
-          <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Score Over Time</h2>
-          <ScoreTrendChart trends={scoreTrends} />
         </div>
 
-        {/* Issues by severity donut */}
-        <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-5">
-          <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Issues by Severity</h2>
-          <SeverityDonut counts={severityCounts} />
+        {/* Analytics charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-6">
+          <div className="lg:col-span-2 bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-4">Issue Trend Over Time</h2>
+            <ScoreTrendChart trends={scoreTrends} />
+          </div>
+          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-2">Issues by Tier</h2>
+            <SeverityDonut counts={severityCounts} />
+          </div>
+          <div className="lg:col-span-3 bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-4">Top WCAG Errors Across All Sites</h2>
+            <TopViolationsChart violations={topViolations} />
+          </div>
         </div>
 
-        {/* Top violations */}
-        <div className="lg:col-span-3 rounded-xl border border-gray-200 shadow-sm bg-white p-5">
-          <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Top Violations Across All Sites</h2>
-          <TopViolationsChart violations={topViolations} />
+        {/* Site cards */}
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest">Sites</h2>
+          <Link href="/sites" className="text-xs text-[#5b9bd6] hover:text-white font-medium transition-colors">View all →</Link>
         </div>
-      </div>
+        {sites.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-[#1e1e2a] p-12 text-center text-white/70">
+            {division ? `No sites in ${division} yet.` : 'No sites yet.'}{' '}
+            <a href="/sites" className="text-[#5b9bd6] underline">Add a site</a>.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-6">
+            {sites.map((site: any) => (
+              <SiteCard key={site.id} site={site} />
+            ))}
+          </div>
+        )}
 
-      {/* Site cards */}
+      {/* Recent scans */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Sites</h2>
-        <Link href="/sites" className="text-xs text-brand-500 hover:underline">View all →</Link>
+        <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest">Recent Scans</h2>
+        <span className="text-xs text-white/70">Last 5</span>
       </div>
-      {sites.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-200 p-12 text-center text-gray-400">
-          {division ? `No sites in ${division} yet.` : 'No sites yet.'}{' '}
-          <a href="/sites" className="text-brand-500 underline">Add a site</a>.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-7">
-          {sites.map((site: any) => (
-            <SiteCard key={site.id} site={site} />
-          ))}
-        </div>
-      )}
-
-      {/* Recent scans — compact */}
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Recent Scans</h2>
-        <span className="text-xs text-gray-300">Last 5</span>
-      </div>
-      <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
+      <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100">
-              <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Site</th>
+            <tr className="border-b border-[#1e1e2a]">
+              <th className="text-left px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Site</th>
               {showDivisionCol && (
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Division</th>
+                <th className="text-left px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Division</th>
               )}
-              <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
-              <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Score</th>
-              <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Pages</th>
-              <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Violations</th>
-              <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Started</th>
+              <th className="text-left px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Status</th>
+              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Pages</th>
+              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">WCAG Errors</th>
+              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Started</th>
               <th className="px-2 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {scans.length === 0 ? (
               <tr>
-                <td colSpan={showDivisionCol ? 8 : 7} className="text-center py-8 text-gray-400">
+                <td colSpan={showDivisionCol ? 7 : 6} className="text-center py-8 text-white/70">
                   No scans yet.
                 </td>
               </tr>
             ) : (
               scans.map((scan: any) => (
-                <tr key={scan.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors group cursor-pointer relative">
-                  <td className="px-4 py-2.5">
+                <tr key={scan.id} className="border-t border-[#1a1a22] hover:bg-[#14141c] transition-colors group cursor-pointer relative">
+                  <td className="px-4 py-3">
                     <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan for ${scan.site_name ?? scan.root_url}`} />
-                    <div className="font-medium text-brand-500 text-sm">{scan.site_name ?? scan.root_url}</div>
-                    {scan.site_name && <div className="text-xs text-gray-400 truncate max-w-xs">{scan.root_url}</div>}
+                    <div className="font-medium text-white text-sm">{scan.site_name ?? scan.root_url}</div>
+                    {scan.site_name && <div className="text-xs text-white/70 truncate max-w-xs mt-0.5">{scan.root_url}</div>}
                   </td>
                   {showDivisionCol && (
-                    <td className="px-4 py-2.5 text-gray-500 text-xs">
-                      {scan.division ?? <span className="text-gray-300">—</span>}
+                    <td className="px-4 py-3 text-xs">
+                      {scan.division
+                        ? <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#1e1e2a] text-white/80">{scan.division}</span>
+                        : <span className="text-white/70">—</span>
+                      }
                     </td>
                   )}
-                  <td className="px-4 py-2.5">
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                        scan.status === 'complete' ? 'bg-green-500' :
-                        scan.status === 'running' ? 'bg-blue-400' :
-                        scan.status === 'failed' ? 'bg-red-500' :
-                        'bg-gray-300'
-                      }`} />
-                      <span className="text-xs text-gray-600 capitalize">{scan.status}</span>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                      scan.status === 'complete' ? 'bg-emerald-500/10 text-emerald-400' :
+                      scan.status === 'running' ? 'bg-blue-500/10 text-blue-400' :
+                      scan.status === 'failed' ? 'bg-red-500/10 text-red-400' :
+                      'bg-[#1e1e2a] text-white/80'
+                    }`}>
+                      {scan.status}
                     </span>
                   </td>
-                  <td className={`px-4 py-2.5 text-right font-semibold ${scan.score ? scoreColor(scan.score) : 'text-gray-400'}`}>
-                    {scan.score ? Math.round(scan.score) : '—'}
-                  </td>
-                  <td className="px-4 py-2.5 text-right text-gray-600">{scan.pages_scanned ?? 0}</td>
-                  <td className="px-4 py-2.5 text-right text-gray-600">{scan.raw_violation_count ?? '—'}</td>
-                  <td className="px-4 py-2.5 text-right text-gray-500 text-xs">{formatDate(scan.started_at)}</td>
-                  <td className="px-2 py-2.5 text-right relative z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <td className="px-4 py-3 text-right text-white tabular-nums">{scan.pages_scanned ?? 0}</td>
+                  <td className="px-4 py-3 text-right text-white tabular-nums">{scan.raw_violation_count ?? '—'}</td>
+                  <td className="px-4 py-3 text-right text-white/70 text-xs tabular-nums">{formatDate(scan.started_at)}</td>
+                  <td className="px-2 py-3 text-right relative z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <DeleteScanButton jobId={scan.id} />
                   </td>
                 </tr>
@@ -314,6 +287,7 @@ export default async function DashboardPage({
             )}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   )

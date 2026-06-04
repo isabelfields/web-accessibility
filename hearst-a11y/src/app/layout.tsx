@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { signOut } from '@/auth'
+import { SignOutButton } from '@/components/SignOutButton'
+import { Providers } from '@/components/Providers'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -8,89 +9,84 @@ export const metadata: Metadata = {
   description: 'Web accessibility audit dashboard for Hearst properties',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+const NAV = [
+  {
+    href: '/',
+    label: 'Dashboard',
+    icon: (
+      <svg className="w-[15px] h-[15px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zm0 8a1 1 0 011-1h4a1 1 0 011 1v6a1 1 0 01-1 1h-4a1 1 0 01-1-1v-6zM4 14a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1v-5z" />
+      </svg>
+    ),
+  },
+  {
+    href: '/sites',
+    label: 'Sites',
+    icon: (
+      <svg className="w-[15px] h-[15px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+      </svg>
+    ),
+  },
+  {
+    href: '/schedules',
+    label: 'Schedules',
+    icon: (
+      <svg className="w-[15px] h-[15px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  },
+]
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-[#fafafa] text-gray-900">
-        <div className="flex min-h-screen">
-          {/* Sidebar */}
-          <aside className="w-56 flex flex-col fixed inset-y-0 left-0 z-10 bg-white border-r border-gray-200">
-            {/* Logo strip — Hearst blue */}
-            <div className="bg-brand-500 px-6 py-5">
-              <img
-                src="/hearst-logo.svg"
-                alt="Hearst"
-                className="h-7 w-auto brightness-0 invert"
-              />
-              <div className="text-xs text-blue-100 font-medium tracking-widest uppercase mt-1.5 opacity-90">
-                Accessibility
+      <body className="bg-[#0c0c10] text-white antialiased">
+        <Providers>
+          <div className="flex min-h-screen">
+            {/* Sidebar — dark, minimal */}
+            <aside className="w-[200px] flex flex-col fixed inset-y-0 left-0 z-10 bg-[#0c0c10] border-r border-[#1c1c24]">
+              {/* Logo */}
+              <div className="px-4 pt-5 pb-4 border-b border-[#1c1c24]">
+                <div className="flex items-center gap-2.5">
+                  <img
+                    src="/hearst-logo.svg"
+                    alt="Hearst"
+                    className="h-5 w-auto brightness-0 invert opacity-90"
+                  />
+                  <div className="w-px h-4 bg-[#2a2a36]" />
+                  <span className="text-[10px] text-white/60 font-semibold tracking-[0.12em] uppercase">A11y</span>
+                </div>
               </div>
-            </div>
 
-            {/* Nav */}
-            <nav className="flex-1 px-3 py-4 space-y-0.5">
-              <Link
-                href="/"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-              >
-                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                Dashboard
-              </Link>
-              <Link
-                href="/sites"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-              >
-                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                </svg>
-                Sites
-              </Link>
-              <Link
-                href="/schedules"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-              >
-                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Schedules
-              </Link>
-              <Link
-                href="/how-scoring-works"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-              >
-                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                How Scoring Works
-              </Link>
-            </nav>
+              {/* Nav */}
+              <nav className="flex-1 px-2 py-3 space-y-0.5">
+                {NAV.map(({ href, label, icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-white hover:text-white hover:bg-[#16161e] transition-all group"
+                  >
+                    <span className="text-white/50 group-hover:text-white/80 transition-colors">{icon}</span>
+                    <span className="text-white/90 group-hover:text-white">{label}</span>
+                  </Link>
+                ))}
+              </nav>
 
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 space-y-2">
-              <form action={async () => { 'use server'; await signOut({ redirectTo: '/login' }) }}>
-                <button type="submit" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
-                  Sign out
-                </button>
-              </form>
-              <div className="text-xs text-gray-400">© Hearst Communications</div>
-            </div>
-          </aside>
+              {/* Footer */}
+              <div className="px-4 py-4 border-t border-[#1c1c24]">
+                <SignOutButton />
+                <div className="text-[10px] text-white/40 mt-1.5">© Hearst Communications</div>
+              </div>
+            </aside>
 
-          {/* Main content */}
-          <main className="flex-1 ml-56 overflow-auto">
-            {children}
-          </main>
-        </div>
+            {/* Main */}
+            <main className="flex-1 ml-[200px] min-h-screen">
+              {children}
+            </main>
+          </div>
+        </Providers>
       </body>
     </html>
   )

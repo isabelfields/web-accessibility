@@ -7,6 +7,10 @@
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
-    background-color: #ffffff;
+    background-color: #0d0f12;
   }
 }
+
+::selection { background: rgba(59,126,200,0.35); color: #fff; }
+::-webkit-scrollbar { width: 6px; background: #0d0f12; }
+::-webkit-scrollbar-thumb { background: #252a38; border-radius: 3px; }
