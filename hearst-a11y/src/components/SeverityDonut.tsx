@@ -3,10 +3,10 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const COLORS = {
-  critical: '#4338ca',
-  serious:  '#2563eb',
-  moderate: '#0ea5e9',
-  minor:    '#22d3ee',
+  critical: '#f87171',
+  serious:  '#fb923c',
+  moderate: '#fbbf24',
+  minor:    '#94a3b8',
 }
 
 interface Props {
@@ -15,14 +15,14 @@ interface Props {
 
 export function SeverityDonut({ counts }: Props) {
   const data = [
-    { name: 'Critical', value: counts.critical, color: COLORS.critical },
-    { name: 'Serious',  value: counts.serious,  color: COLORS.serious },
-    { name: 'Moderate', value: counts.moderate, color: COLORS.moderate },
-    { name: 'Minor',    value: counts.minor,    color: COLORS.minor },
+    { name: 'T1 Critical', value: counts.critical, color: COLORS.critical },
+    { name: 'T2 Serious',  value: counts.serious,  color: COLORS.serious },
+    { name: 'T3 Moderate', value: counts.moderate, color: COLORS.moderate },
+    { name: 'T4 Minor',    value: counts.minor,    color: COLORS.minor },
   ].filter(d => d.value > 0)
 
   const total = data.reduce((s, d) => s + d.value, 0)
-  if (total === 0) return <div className="flex items-center justify-center h-40 text-sm text-gray-300">No data yet</div>
+  if (total === 0) return <div className="flex items-center justify-center h-40 text-sm text-[#50506a]">No data yet</div>
 
   return (
     <ResponsiveContainer width="100%" height={200}>
@@ -31,25 +31,32 @@ export function SeverityDonut({ counts }: Props) {
           data={data}
           cx="50%"
           cy="50%"
-          innerRadius={55}
-          outerRadius={80}
+          innerRadius={52}
+          outerRadius={76}
           paddingAngle={2}
           dataKey="value"
           strokeWidth={0}
         >
           {data.map((entry, i) => (
-            <Cell key={i} fill={entry.color} />
+            <Cell key={i} fill={entry.color} fillOpacity={0.9} />
           ))}
         </Pie>
         <Tooltip
           formatter={(val) => { const n = Number(val); return [`${n} (${Math.round(n/total*100)}%)`] }}
-          contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #f3f4f6', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
+          contentStyle={{
+            fontSize: 12,
+            borderRadius: 6,
+            border: '1px solid #1e1e2a',
+            background: '#11111a',
+            color: '#e8e8f0',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+          }}
         />
         <Legend
           iconType="circle"
-          iconSize={7}
-          wrapperStyle={{ fontSize: 11 }}
-          formatter={(value) => <span style={{ color: '#8892a4' }}>{value}</span>}
+          iconSize={6}
+          wrapperStyle={{ fontSize: 10 }}
+          formatter={(value) => <span style={{ color: '#70708a' }}>{value}</span>}
         />
       </PieChart>
     </ResponsiveContainer>

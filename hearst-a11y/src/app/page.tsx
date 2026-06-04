@@ -199,8 +199,8 @@ export default async function DashboardPage({
             <h2 className="text-[11px] font-medium text-[#50506a] uppercase tracking-widest mb-2">Issues by Tier</h2>
             <SeverityDonut counts={severityCounts} />
           </div>
-          <div className="lg:col-span-3 bg-[#141720] rounded-xl border border-[#252a38] p-5">
-            <h2 className="text-xs font-bold text-[#8892a4] uppercase tracking-widest mb-4">Top WCAG Errors Across All Sites</h2>
+          <div className="lg:col-span-3 bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
+            <h2 className="text-[11px] font-medium text-[#50506a] uppercase tracking-widest mb-4">Top WCAG Errors Across All Sites</h2>
             <TopViolationsChart violations={topViolations} />
           </div>
         </div>
