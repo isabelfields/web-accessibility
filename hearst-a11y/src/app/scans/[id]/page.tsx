@@ -95,7 +95,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   return (
     <div className="px-8 py-6 bg-[#0d0f12] min-h-screen">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[#8892a4] mb-6">
+      <div className="flex items-center gap-2 text-sm text-[#a0a0c0] mb-6">
         <Link href="/" className="hover:text-[#eef0f6]">Dashboard</Link>
         <span className="text-[#252a38]">/</span>
         {site && (
@@ -113,19 +113,19 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           <h1 className="text-2xl font-bold text-[#eef0f6]">
             {site?.name ?? scan.root_url}
           </h1>
-          <p className="text-sm text-[#8892a4] mt-1">{scan.root_url}</p>
+          <p className="text-sm text-[#a0a0c0] mt-1">{scan.root_url}</p>
           <div className="flex items-center gap-3 mt-2">
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
               scan.status === 'complete' ? 'bg-emerald-500/20 text-emerald-400' :
               scan.status === 'running' ? 'bg-blue-500/20 text-blue-400' :
               scan.status === 'failed' ? 'bg-red-500/20 text-red-400' :
-              'bg-[#252a38] text-[#8892a4]'
+              'bg-[#252a38] text-[#a0a0c0]'
             }`}>
               {scan.status}
             </span>
-            <span className="text-sm text-[#8892a4]">{formatDate(scan.started_at)}</span>
+            <span className="text-sm text-[#a0a0c0]">{formatDate(scan.started_at)}</span>
             {scan.triggered_by && (
-              <span className="text-sm text-[#8892a4] capitalize">· {scan.triggered_by}</span>
+              <span className="text-sm text-[#a0a0c0] capitalize">· {scan.triggered_by}</span>
             )}
           </div>
         </div>
@@ -136,7 +136,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
       </div>
 
       {scan.status !== 'complete' ? (
-        <div className="bg-[#141720] border border-dashed border-[#252a38] rounded-xl p-12 text-center text-[#8892a4]">
+        <div className="bg-[#141720] border border-dashed border-[#252a38] rounded-xl p-12 text-center text-[#a0a0c0]">
           {scan.status === 'failed' ? `Scan failed: ${scan.error ?? 'Unknown error'}` :
            scan.status === 'running' ? 'Scan is still running…' :
            scan.status === 'cancelled' ? 'Scan was cancelled.' : scan.status}
@@ -147,11 +147,11 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
             {/* Priority tier */}
             <div className="rounded-lg bg-[#141720] border border-[#252a38] p-6 flex flex-col items-center justify-center">
-              <div className="text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider mb-3">Priority</div>
+              <div className="text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider mb-3">Priority</div>
               {worstTier ? (
                 <>
                   <div className={`text-2xl font-bold ${TIER_COLOR[worstTier].text}`}>{TIER_LABEL[worstTier]}</div>
-                  <div className="text-xs text-[#8892a4] mt-1">highest tier found</div>
+                  <div className="text-xs text-[#a0a0c0] mt-1">highest tier found</div>
                 </>
               ) : (
                 <div className="text-lg font-semibold text-emerald-400">No issues</div>
@@ -160,9 +160,9 @@ export default async function ScanDetailPage({ params }: RouteContext) {
 
             {/* Violations summary */}
             <div className="rounded-lg bg-[#141720] border border-[#252a38] p-6 flex flex-col justify-between">
-              <div className="text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider mb-3">WCAG Errors</div>
+              <div className="text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider mb-3">WCAG Errors</div>
               <div className="text-4xl font-bold text-[#eef0f6] tabular-nums leading-none">{totalViolations}</div>
-              <div className="mt-3 space-y-1.5 text-xs text-[#8892a4]">
+              <div className="mt-3 space-y-1.5 text-xs text-[#a0a0c0]">
                 <div className="flex justify-between"><span>Issue types</span><span className="font-semibold text-[#eef0f6]">{scan.unique_pattern_count ?? 0}</span></div>
                 <div className="flex justify-between"><span>Pages scanned</span><span className="font-semibold text-[#eef0f6]">{scan.pages_scanned ?? 0}</span></div>
               </div>
@@ -170,26 +170,26 @@ export default async function ScanDetailPage({ params }: RouteContext) {
 
             {/* WCAG A / AA / AAA */}
             <div className="rounded-lg bg-[#141720] border border-[#252a38] p-6">
-              <div className="text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider mb-4">By WCAG Level</div>
+              <div className="text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider mb-4">By WCAG Level</div>
               <div className="flex items-end gap-5">
                 <div>
                   <div className="text-2xl font-bold text-[#eef0f6] tabular-nums">{wcagLevels.A}</div>
-                  <div className="text-[11px] font-semibold text-[#8892a4] mt-0.5">Level A</div>
+                  <div className="text-[11px] font-semibold text-[#a0a0c0] mt-0.5">Level A</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-[#eef0f6] tabular-nums">{wcagLevels.AA}</div>
-                  <div className="text-[11px] font-semibold text-[#8892a4] mt-0.5">Level AA</div>
+                  <div className="text-[11px] font-semibold text-[#a0a0c0] mt-0.5">Level AA</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-[#eef0f6] tabular-nums">{wcagLevels.AAA}</div>
-                  <div className="text-[11px] font-semibold text-[#8892a4] mt-0.5">Level AAA</div>
+                  <div className="text-[11px] font-semibold text-[#a0a0c0] mt-0.5">Level AAA</div>
                 </div>
               </div>
             </div>
 
             {/* Tier breakdown bar */}
             <div className="rounded-lg bg-[#141720] border border-[#252a38] p-6">
-              <div className="text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider mb-4">By Tier</div>
+              <div className="text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider mb-4">By Tier</div>
               <SeverityBar counts={severityCounts} height="h-3" />
             </div>
           </div>
@@ -202,10 +202,10 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-[#1e2230] border-b border-[#252a38]">
-                      <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Page</th>
-                      <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">URL</th>
-                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">WCAG Errors</th>
-                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Status</th>
+                      <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider">Page</th>
+                      <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider">URL</th>
+                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider">WCAG Errors</th>
+                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -225,7 +225,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                           <td className="px-4 py-3 text-right">
                             {ps.score == null
                               ? <span className="text-xs font-normal bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md">Failed</span>
-                              : <span className="text-xs text-[#8892a4]">Scanned</span>
+                              : <span className="text-xs text-[#a0a0c0]">Scanned</span>
                             }
                           </td>
                         </tr>
@@ -240,10 +240,10 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           {/* Violations */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-[#eef0f6]">WCAG Errors Found</h2>
-            <span className="text-sm text-[#8892a4]">{patterns.length} issue type{patterns.length !== 1 ? 's' : ''} · {totalViolations} total</span>
+            <span className="text-sm text-[#a0a0c0]">{patterns.length} issue type{patterns.length !== 1 ? 's' : ''} · {totalViolations} total</span>
           </div>
           {patterns.length === 0 ? (
-            <div className="bg-[#141720] rounded-xl border border-dashed border-[#252a38] p-12 text-center text-[#8892a4]">
+            <div className="bg-[#141720] rounded-xl border border-dashed border-[#252a38] p-12 text-center text-[#a0a0c0]">
               No WCAG errors found — great job!
             </div>
           ) : (
@@ -257,7 +257,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                     <div className="flex items-center gap-2.5 mb-2.5 px-1">
                       <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
                       <h3 className={`text-xs font-semibold uppercase tracking-wider ${c.text}`}>{TIER_LABEL[tier]}</h3>
-                      <span className="text-xs text-[#8892a4] font-medium">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
+                      <span className="text-xs text-[#a0a0c0] font-medium">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                     </div>
                     <div className="space-y-1.5">
                       {group.map(p => (

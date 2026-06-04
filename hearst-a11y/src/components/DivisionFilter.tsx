@@ -19,7 +19,7 @@ export function DivisionFilter({ activeDivisions }: { activeDivisions: string[] 
 
   return (
     <div className="flex items-center gap-2">
-      <label htmlFor="division-filter" className="text-[11px] font-medium text-[#50506a] uppercase tracking-wider">Division</label>
+      <label htmlFor="division-filter" className="text-[11px] font-medium text-[#9090b0] uppercase tracking-wider">Division</label>
       <select
         id="division-filter"
         value={current}

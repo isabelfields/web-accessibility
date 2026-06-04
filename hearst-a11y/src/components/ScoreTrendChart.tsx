@@ -14,11 +14,11 @@ interface Props {
   trends: SiteTrend[]
 }
 
-const LINE_COLORS = ['#5b9bd6', '#34d399', '#a78bfa', '#f472b6', '#38bdf8', '#fb923c']
+const LINE_COLORS = ['#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#bfdbfe']
 
 export function ScoreTrendChart({ trends }: Props) {
   if (trends.length === 0 || trends.every(t => t.scores.length < 2)) {
-    return <div className="flex items-center justify-center h-40 text-sm text-[#50506a]">Run more scans to see trends</div>
+    return <div className="flex items-center justify-center h-40 text-sm text-[#9090b0]">Run more scans to see trends</div>
   }
 
   const allDates = [...new Set(
@@ -67,7 +67,7 @@ export function ScoreTrendChart({ trends }: Props) {
             iconType="circle"
             iconSize={6}
             wrapperStyle={{ fontSize: 10 }}
-            formatter={(value) => <span style={{ color: '#70708a' }}>{value}</span>}
+            formatter={(value) => <span style={{ color: '#a0a0c0' }}>{value}</span>}
           />
         )}
         {trends.map((site, i) => (

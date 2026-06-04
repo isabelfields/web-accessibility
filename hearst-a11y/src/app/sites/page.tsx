@@ -62,7 +62,7 @@ export default function SitesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-[#eef0f6]">Sites</h1>
-          <p className="text-[#8892a4] text-sm mt-0.5">Manage your monitored web properties</p>
+          <p className="text-[#a0a0c0] text-sm mt-0.5">Manage your monitored web properties</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
@@ -86,7 +86,7 @@ export default function SitesPage() {
         <div className="flex items-center gap-4 mb-5">
           {activeDivisions.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Division</span>
+              <span className="text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider">Division</span>
               <select value={divisionFilter} onChange={e => setDivisionFilter(e.target.value)}
                 className="text-sm border border-[#252a38] rounded-lg px-3 py-1.5 bg-[#1e2230] text-[#eef0f6] focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                 <option value="">All</option>
@@ -96,7 +96,7 @@ export default function SitesPage() {
           )}
           {activeRegions.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Region</span>
+              <span className="text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider">Region</span>
               <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)}
                 className="text-sm border border-[#252a38] rounded-lg px-3 py-1.5 bg-[#1e2230] text-[#eef0f6] focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                 <option value="">All</option>
@@ -108,11 +108,11 @@ export default function SitesPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-20 text-[#8892a4]">Loading...</div>
+        <div className="flex justify-center py-20 text-[#a0a0c0]">Loading...</div>
       ) : sites.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[#252a38] p-16 text-center">
-          <div className="text-[#8892a4] text-lg mb-3">No sites configured yet</div>
-          <p className="text-[#8892a4] text-sm mb-6">Add your first site to start monitoring accessibility.</p>
+          <div className="text-[#a0a0c0] text-lg mb-3">No sites configured yet</div>
+          <p className="text-[#a0a0c0] text-sm mb-6">Add your first site to start monitoring accessibility.</p>
           <button
             onClick={() => setShowForm(true)}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-500 text-white text-sm font-medium hover:bg-blue-600"
@@ -125,13 +125,13 @@ export default function SitesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-[#1e2230] border-b border-[#252a38]">
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Site</th>
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Division</th>
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Brand</th>
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Pages</th>
-                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">WCAG Errors</th>
-                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Last Scan</th>
-                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#8892a4] uppercase tracking-wider">Added</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider">Site</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider">Division</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider">Brand</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider">Pages</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider">WCAG Errors</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider">Last Scan</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#a0a0c0] uppercase tracking-wider">Added</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -145,26 +145,26 @@ export default function SitesPage() {
                   </td>
                   <td className="px-4 py-3">
                     {site.division
-                      ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#252a38] text-[#8892a4]">{site.division}</span>
-                      : <span className="text-[#5a6272]">—</span>
+                      ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#252a38] text-[#a0a0c0]">{site.division}</span>
+                      : <span className="text-[#9090b0]">—</span>
                     }
                   </td>
                   <td className="px-4 py-3">
                     {site.brand
                       ? <span className="text-[#eef0f6] text-sm">{site.brand}</span>
-                      : <span className="text-[#5a6272]">—</span>
+                      : <span className="text-[#9090b0]">—</span>
                     }
                   </td>
-                  <td className="px-4 py-3 text-[#8892a4]">
+                  <td className="px-4 py-3 text-[#a0a0c0]">
                     {site.pages?.length ?? 0} page{(site.pages?.length ?? 0) !== 1 ? 's' : ''}
                   </td>
                   <td className="px-4 py-3 text-right text-[#eef0f6] tabular-nums">
-                    {site.latestScan ? site.latestScan.raw_violation_count : <span className="text-[#5a6272]">—</span>}
+                    {site.latestScan ? site.latestScan.raw_violation_count : <span className="text-[#9090b0]">—</span>}
                   </td>
-                  <td className="px-4 py-3 text-right text-[#8892a4]">
+                  <td className="px-4 py-3 text-right text-[#a0a0c0]">
                     {site.latestScan ? formatDate(site.latestScan.started_at) : '—'}
                   </td>
-                  <td className="px-4 py-3 text-right text-[#8892a4]">
+                  <td className="px-4 py-3 text-right text-[#a0a0c0]">
                     {formatDate(site.created_at)}
                   </td>
                   <td className="px-4 py-3 text-right">

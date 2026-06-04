@@ -3,10 +3,10 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const COLORS = {
-  critical: '#f87171',
-  serious:  '#fb923c',
-  moderate: '#fbbf24',
-  minor:    '#94a3b8',
+  critical: '#1e40af',
+  serious:  '#2563eb',
+  moderate: '#60a5fa',
+  minor:    '#bfdbfe',
 }
 
 interface Props {
@@ -22,7 +22,7 @@ export function SeverityDonut({ counts }: Props) {
   ].filter(d => d.value > 0)
 
   const total = data.reduce((s, d) => s + d.value, 0)
-  if (total === 0) return <div className="flex items-center justify-center h-40 text-sm text-[#50506a]">No data yet</div>
+  if (total === 0) return <div className="flex items-center justify-center h-40 text-sm text-[#9090b0]">No data yet</div>
 
   return (
     <ResponsiveContainer width="100%" height={200}>
@@ -56,7 +56,7 @@ export function SeverityDonut({ counts }: Props) {
           iconType="circle"
           iconSize={6}
           wrapperStyle={{ fontSize: 10 }}
-          formatter={(value) => <span style={{ color: '#70708a' }}>{value}</span>}
+          formatter={(value) => <span style={{ color: '#a0a0c0' }}>{value}</span>}
         />
       </PieChart>
     </ResponsiveContainer>

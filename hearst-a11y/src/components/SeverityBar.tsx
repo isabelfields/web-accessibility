@@ -41,7 +41,7 @@ export function SeverityBar({ counts, showLegend = true, height = 'h-3' }: Sever
             return (
               <div key={key} className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: hex }} />
-                <span className="text-xs text-[#8892a4]">{label}</span>
+                <span className="text-xs text-[#a0a0c0]">{label}</span>
                 <span className="text-xs font-semibold text-[#eef0f6]">{count}</span>
               </div>
             )

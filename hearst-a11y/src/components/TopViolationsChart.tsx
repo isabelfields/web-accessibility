@@ -7,15 +7,15 @@ interface Props {
 }
 
 const IMPACT_COLOR: Record<string, string> = {
-  critical: '#f87171',
-  serious:  '#fb923c',
-  moderate: '#fbbf24',
-  minor:    '#94a3b8',
+  critical: '#1d4ed8',
+  serious:  '#3b82f6',
+  moderate: '#60a5fa',
+  minor:    '#93c5fd',
 }
 
 export function TopViolationsChart({ violations }: Props) {
   if (violations.length === 0) {
-    return <div className="flex items-center justify-center h-40 text-sm text-[#50506a]">No WCAG errors found</div>
+    return <div className="flex items-center justify-center h-40 text-sm text-[#9090b0]">No WCAG errors found</div>
   }
 
   const data = violations.slice(0, 8).map(v => ({

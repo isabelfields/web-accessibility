@@ -66,10 +66,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <Link
                     key={href}
                     href={href}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-[#6868848] hover:text-[#e8e8f0] hover:bg-[#16161e] transition-all group"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-[#e8e8f0] hover:text-[#e8e8f0] hover:bg-[#16161e] transition-all group"
                   >
                     <span className="text-[#505068] group-hover:text-[#9090b0] transition-colors">{icon}</span>
-                    <span className="text-[#8080a0] group-hover:text-[#e8e8f0]">{label}</span>
+                    <span className="text-[#c0c0d8] group-hover:text-[#e8e8f0]">{label}</span>
                   </Link>
                 ))}
               </nav>
@@ -77,7 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {/* Footer */}
               <div className="px-4 py-4 border-t border-[#1c1c24]">
                 <SignOutButton />
-                <div className="text-[10px] text-[#38384a] mt-1.5">© Hearst Communications</div>
+                <div className="text-[10px] text-[#606078] mt-1.5">© Hearst Communications</div>
               </div>
             </aside>
 

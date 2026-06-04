@@ -31,12 +31,12 @@ export function SiteCard({ site }: SiteCardProps) {
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0">
           <div className="font-semibold text-[#e8e8f0] text-sm leading-tight truncate">{site.name}</div>
-          <div className="text-xs text-[#50506a] mt-0.5">
+          <div className="text-xs text-[#9090b0] mt-0.5">
             {pageCount} page{pageCount !== 1 ? 's' : ''}
             {site.division ? ` · ${site.division}` : ''}
           </div>
         </div>
-        <span className="text-xs text-[#50506a] group-hover:text-[#e8e8f0] transition-colors shrink-0 mt-0.5">→</span>
+        <span className="text-xs text-[#9090b0] group-hover:text-[#e8e8f0] transition-colors shrink-0 mt-0.5">→</span>
       </div>
 
       {latestScan ? (
@@ -45,7 +45,7 @@ export function SiteCard({ site }: SiteCardProps) {
             <span className="text-red-400 font-medium">
               {latestScan.raw_violation_count} error{latestScan.raw_violation_count !== 1 ? 's' : ''}
             </span>
-            <span className="text-[#50506a]">
+            <span className="text-[#9090b0]">
               {latestScan.unique_pattern_count} type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
             </span>
           </div>
@@ -60,7 +60,7 @@ export function SiteCard({ site }: SiteCardProps) {
           </div>
         </>
       ) : (
-        <div className="text-xs text-[#50506a] italic">No scans yet</div>
+        <div className="text-xs text-[#9090b0] italic">No scans yet</div>
       )}
     </Link>
   )

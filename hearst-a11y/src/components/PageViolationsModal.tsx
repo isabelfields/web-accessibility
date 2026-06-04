@@ -30,7 +30,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
     : (
       <button
         onClick={() => hasData && setOpen(true)}
-        className={`text-left hover:underline truncate max-w-xs block ${hasData ? 'text-[#5b9bd6] cursor-pointer' : 'text-[#5a6272] cursor-default'}`}
+        className={`text-left hover:underline truncate max-w-xs block ${hasData ? 'text-[#5b9bd6] cursor-pointer' : 'text-[#9090b0] cursor-default'}`}
         title={pageScore.url}
         disabled={!hasData}
       >
@@ -55,18 +55,18 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
                 </a>
                 <div className="flex items-center gap-3 mt-1">
                   {pageScore.score != null && (
-                    <span className="text-sm text-[#8892a4]">Score: <strong className="text-[#eef0f6]">{pageScore.score}</strong></span>
+                    <span className="text-sm text-[#a0a0c0]">Score: <strong className="text-[#eef0f6]">{pageScore.score}</strong></span>
                   )}
-                  <span className="text-sm text-[#8892a4]">
+                  <span className="text-sm text-[#a0a0c0]">
                     {pagePatterns.length} issue type{pagePatterns.length !== 1 ? 's' : ''}
                   </span>
                   {pageScore.violationCount != null && (
-                    <span className="text-sm text-[#8892a4]">· {pageScore.violationCount} total violations</span>
+                    <span className="text-sm text-[#a0a0c0]">· {pageScore.violationCount} total violations</span>
                   )}
                 </div>
               </div>
               <button onClick={() => setOpen(false)}
-                className="text-[#8892a4] hover:text-[#eef0f6] text-2xl leading-none ml-4 flex-shrink-0">
+                className="text-[#a0a0c0] hover:text-[#eef0f6] text-2xl leading-none ml-4 flex-shrink-0">
                 &times;
               </button>
             </div>
@@ -74,7 +74,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
             {/* Body */}
             <div className="overflow-y-auto px-6 py-5 space-y-5">
               {pagePatterns.length === 0 ? (
-                <div className="text-center py-10 text-[#8892a4] text-sm">No violations found on this page.</div>
+                <div className="text-center py-10 text-[#a0a0c0] text-sm">No violations found on this page.</div>
               ) : (
                 (['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
                   const group = pagePatterns.filter(p => p.impact === impact)
@@ -90,7 +90,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
                       <div className="flex items-center gap-2 mb-2 px-1">
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.bar}`} />
                         <span className={`text-xs font-semibold uppercase tracking-wider ${cfg.text}`}>{cfg.label}</span>
-                        <span className="text-xs text-[#8892a4]">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
+                        <span className="text-xs text-[#a0a0c0]">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                       </div>
                       <div className="space-y-1.5">
                         {group.map(p => {
