@@ -167,40 +167,40 @@ export default async function DashboardPage({
       <div className="px-8 py-6">
         {/* Stat cards — clean, no decorations */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
-            <div className="text-[11px] font-medium text-white/90 uppercase tracking-widest mb-3">Sites</div>
+          <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
+            <div className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-3">Sites</div>
             <div className="text-4xl font-bold text-white tabular-nums leading-none">{stats.siteCount}</div>
-            <div className="text-xs text-white/90 mt-2">{stats.totalPages} pages monitored</div>
+            <div className="text-xs text-white/70 mt-2">{stats.totalPages} pages monitored</div>
           </div>
-          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
-            <div className="text-[11px] font-medium text-white/90 uppercase tracking-widest mb-3">Tier 1 Critical</div>
+          <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
+            <div className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-3">Tier 1 Critical</div>
             <div className="text-4xl font-bold text-red-400 tabular-nums leading-none">{severityCounts.critical}</div>
-            <div className="text-xs text-white/90 mt-2">across all sites</div>
+            <div className="text-xs text-white/70 mt-2">across all sites</div>
           </div>
-          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
-            <div className="text-[11px] font-medium text-white/90 uppercase tracking-widest mb-3">WCAG Errors</div>
+          <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
+            <div className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-3">WCAG Errors</div>
             <div className="text-4xl font-bold text-white tabular-nums leading-none">{stats.totalErrors}</div>
-            <div className="text-xs text-white/90 mt-2">latest scans</div>
+            <div className="text-xs text-white/70 mt-2">latest scans</div>
           </div>
-          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
-            <div className="text-[11px] font-medium text-white/90 uppercase tracking-widest mb-3">Resolved</div>
-            <div className={`text-4xl font-bold tabular-nums leading-none ${stats.errorsResolved > 0 ? 'text-emerald-400' : 'text-white/90'}`}>{stats.errorsResolved}</div>
-            <div className="text-xs text-white/90 mt-2">vs previous scan</div>
+          <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
+            <div className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-3">Resolved</div>
+            <div className={`text-4xl font-bold tabular-nums leading-none ${stats.errorsResolved > 0 ? 'text-emerald-400' : 'text-white/40'}`}>{stats.errorsResolved}</div>
+            <div className="text-xs text-white/70 mt-2">vs previous scan</div>
           </div>
         </div>
 
         {/* Analytics charts */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-6">
-          <div className="lg:col-span-2 bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
-            <h2 className="text-[11px] font-medium text-white/90 uppercase tracking-widest mb-4">Issue Trend Over Time</h2>
+          <div className="lg:col-span-2 bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
+            <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-4">Issue Trend Over Time</h2>
             <ScoreTrendChart trends={scoreTrends} />
           </div>
-          <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
-            <h2 className="text-[11px] font-medium text-white/90 uppercase tracking-widest mb-2">Issues by Tier</h2>
+          <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
+            <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-2">Issues by Tier</h2>
             <SeverityDonut counts={severityCounts} />
           </div>
-          <div className="lg:col-span-3 bg-[#11111a] rounded-lg border border-[#1e1e2a] p-5">
-            <h2 className="text-[11px] font-medium text-white/90 uppercase tracking-widest mb-4">Top WCAG Errors Across All Sites</h2>
+          <div className="lg:col-span-3 bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
+            <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-4">Top WCAG Errors Across All Sites</h2>
             <TopViolationsChart violations={topViolations} />
           </div>
         </div>
@@ -228,18 +228,18 @@ export default async function DashboardPage({
         <h2 className="text-[11px] font-medium text-white/90 uppercase tracking-widest">Recent Scans</h2>
         <span className="text-xs text-white/90">Last 5</span>
       </div>
-      <div className="bg-[#11111a] rounded-lg border border-[#1e1e2a] overflow-hidden">
+      <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[#1e1e2a]">
-              <th className="text-left px-4 py-3 text-[11px] font-medium text-white/90 uppercase tracking-wider">Site</th>
+            <tr className="bg-[#1a1a26] border-b border-[#2a2a3a]">
+              <th className="text-left px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Site</th>
               {showDivisionCol && (
-                <th className="text-left px-4 py-3 text-[11px] font-medium text-white/90 uppercase tracking-wider">Division</th>
+                <th className="text-left px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Division</th>
               )}
-              <th className="text-left px-4 py-3 text-[11px] font-medium text-white/90 uppercase tracking-wider">Status</th>
-              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/90 uppercase tracking-wider">Pages</th>
-              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/90 uppercase tracking-wider">WCAG Errors</th>
-              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/90 uppercase tracking-wider">Started</th>
+              <th className="text-left px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Status</th>
+              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Pages</th>
+              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">WCAG Errors</th>
+              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Started</th>
               <th className="px-2 py-3"></th>
             </tr>
           </thead>
@@ -252,7 +252,7 @@ export default async function DashboardPage({
               </tr>
             ) : (
               scans.map((scan: any) => (
-                <tr key={scan.id} className="border-t border-[#1a1a22] hover:bg-[#14141c] transition-colors group cursor-pointer relative">
+                <tr key={scan.id} className="border-t border-[#2a2a3a] hover:bg-[#1a1a26] transition-colors group cursor-pointer relative">
                   <td className="px-4 py-3">
                     <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan for ${scan.site_name ?? scan.root_url}`} />
                     <div className="font-medium text-white text-sm">{scan.site_name ?? scan.root_url}</div>

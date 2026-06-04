@@ -46,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           <div className="flex min-h-screen">
             {/* Sidebar — dark, minimal */}
-            <aside className="w-[200px] flex flex-col fixed inset-y-0 left-0 z-10 bg-[#0c0c10] border-r border-[#1c1c24]">
+            <aside className="w-[200px] flex flex-col fixed inset-y-0 left-0 z-10 bg-[#08080c] border-r border-[#1c1c24]">
               {/* Logo */}
               <div className="px-4 pt-5 pb-4 border-b border-[#1c1c24]">
                 <div className="flex items-center gap-2.5">

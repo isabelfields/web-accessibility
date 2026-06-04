@@ -6,6 +6,7 @@ interface LatestScan {
   started_at: string
   unique_pattern_count: number
   raw_violation_count: number
+  patterns?: { impact: string; occurrences: number }[]
 }
 
 interface SiteCardProps {
@@ -19,48 +20,58 @@ interface SiteCardProps {
   }
 }
 
+function worstTier(patterns: { impact: string }[] = []): string | null {
+  if (patterns.some(p => p.impact === 'critical')) return 'T1'
+  if (patterns.some(p => p.impact === 'serious'))  return 'T2'
+  if (patterns.some(p => p.impact === 'moderate')) return 'T3'
+  if (patterns.some(p => p.impact === 'minor'))    return 'T4'
+  return null
+}
+
+const TIER_STYLE: Record<string, { text: string; bg: string }> = {
+  T1: { text: 'text-red-400',    bg: 'bg-red-500/15' },
+  T2: { text: 'text-orange-400', bg: 'bg-orange-500/15' },
+  T3: { text: 'text-amber-400',  bg: 'bg-amber-500/15' },
+  T4: { text: 'text-blue-400',   bg: 'bg-blue-500/15' },
+}
+
 export function SiteCard({ site }: SiteCardProps) {
   const { latestScan } = site
   const pageCount = site.pages?.length ?? 0
+  const tier = latestScan ? worstTier(latestScan.patterns ?? []) : null
 
   return (
     <Link
       href={`/sites/${site.id}`}
-      className="block bg-[#11111a] border border-[#1e1e2a] rounded-lg p-4 hover:bg-[#14141e] hover:border-[#26263a] transition-all group"
+      className="block bg-[#13131c] border border-[#2a2a3a] rounded-lg p-4 hover:bg-[#181826] hover:border-[#36364a] transition-all group"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0">
           <div className="font-semibold text-white text-sm leading-tight truncate">{site.name}</div>
-          <div className="text-xs text-white/90 mt-0.5">
+          <div className="text-xs text-white/60 mt-0.5">
             {pageCount} page{pageCount !== 1 ? 's' : ''}
             {site.division ? ` · ${site.division}` : ''}
           </div>
         </div>
-        <span className="text-xs text-white/90 group-hover:text-white transition-colors shrink-0 mt-0.5">→</span>
+        {tier && (
+          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${TIER_STYLE[tier].text} ${TIER_STYLE[tier].bg}`}>
+            {tier}
+          </span>
+        )}
       </div>
 
       {latestScan ? (
-        <>
-          <div className="flex items-center gap-3 text-xs">
-            <span className="text-red-400 font-medium">
-              {latestScan.raw_violation_count} error{latestScan.raw_violation_count !== 1 ? 's' : ''}
-            </span>
-            <span className="text-white/90">
-              {latestScan.unique_pattern_count} type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
-            </span>
-          </div>
-          <div className="mt-2.5 h-px w-full bg-[#1e1e2a] rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${
-                latestScan.raw_violation_count === 0 ? 'bg-emerald-500' :
-                latestScan.raw_violation_count < 10 ? 'bg-amber-500' : 'bg-red-500'
-              }`}
-              style={{ width: `${Math.min(100, (latestScan.raw_violation_count / 50) * 100)}%` }}
-            />
-          </div>
-        </>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-white font-medium">
+            {latestScan.raw_violation_count} error{latestScan.raw_violation_count !== 1 ? 's' : ''}
+          </span>
+          <span className="text-white/60">
+            {latestScan.unique_pattern_count} type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
+          </span>
+          <span className="text-white/40 group-hover:text-white/80 transition-colors">→</span>
+        </div>
       ) : (
-        <div className="text-xs text-white/90 italic">No scans yet</div>
+        <div className="text-xs text-white/50 italic">No scans yet</div>
       )}
     </Link>
   )
