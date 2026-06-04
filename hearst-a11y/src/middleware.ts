@@ -1,31 +1,33 @@
-import { auth } from '@/auth'
+import { withAuth } from 'next-auth/middleware'
 import { NextResponse } from 'next/server'
 
-export default auth((req) => {
-  const isLoggedIn = !!req.auth
-  const { pathname } = req.nextUrl
-  const isLoginPage = pathname === '/login'
-  const isAuthApi = pathname.startsWith('/api/auth')
-  const isCronApi = pathname.startsWith('/api/cron')
-  const isInvitePage = pathname.startsWith('/invite/')
-  const isAdminRoute = pathname.startsWith('/admin') || pathname.startsWith('/api/users')
+export default withAuth(
+  function middleware(req) {
+    const { pathname } = req.nextUrl
+    const isAdminRoute = pathname.startsWith('/admin') || pathname.startsWith('/api/users')
 
-  if (isAuthApi || isCronApi || isInvitePage) return NextResponse.next()
-  if (!isLoggedIn && !isLoginPage) {
-    return NextResponse.redirect(new URL('/login', req.nextUrl))
-  }
-  if (isLoggedIn && isLoginPage) {
-    return NextResponse.redirect(new URL('/', req.nextUrl))
-  }
-  if (isLoggedIn && isAdminRoute) {
-    const role = (req.auth as any)?.user?.role
-    if (role !== 'admin') {
-      return NextResponse.redirect(new URL('/', req.nextUrl))
+    if (isAdminRoute) {
+      const role = req.nextauth.token?.role
+      if (role !== 'admin') {
+        return NextResponse.redirect(new URL('/', req.nextUrl))
+      }
     }
+
+    return NextResponse.next()
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const { pathname } = req.nextUrl
+        // Allow invite pages and cron without auth
+        if (pathname.startsWith('/invite/') || pathname.startsWith('/api/cron')) return true
+        return !!token
+      },
+    },
+    pages: { signIn: '/login' },
   }
-  return NextResponse.next()
-})
+)
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth).*)'],
 }
