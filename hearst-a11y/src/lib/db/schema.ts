@@ -47,6 +47,18 @@ export const sites = pgTable('sites', {
   updatedAt: timestamp('updated_at').defaultNow(),
 })
 
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: text('email').notNull().unique(),
+  passwordHash: text('password_hash'),
+  role: text('role').notNull().default('user'), // 'admin' | 'user'
+  allowedDivisions: jsonb('allowed_divisions').default([]), // [] = all (admin), [...] = specific divisions
+  inviteToken: text('invite_token'),
+  inviteExpiresAt: timestamp('invite_expires_at'),
+  invitedBy: text('invited_by'),
+  createdAt: timestamp('created_at').defaultNow(),
+})
+
 // Migration SQL — run this in your Neon/Supabase SQL editor
 export const MIGRATION_SQL = `
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -105,4 +117,16 @@ ALTER TABLE scan_jobs ADD COLUMN IF NOT EXISTS score REAL DEFAULT 0;
 ALTER TABLE sites ADD COLUMN IF NOT EXISTS division TEXT;
 ALTER TABLE sites ADD COLUMN IF NOT EXISTS brand TEXT;
 ALTER TABLE sites ADD COLUMN IF NOT EXISTS region TEXT;
+
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT,
+  role TEXT NOT NULL DEFAULT 'user',
+  allowed_divisions JSONB DEFAULT '[]',
+  invite_token TEXT,
+  invite_expires_at TIMESTAMPTZ,
+  invited_by TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 `
