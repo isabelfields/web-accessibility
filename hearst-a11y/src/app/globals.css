@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,12 +7,10 @@
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background-color: #f4f5f7;
+    background-color: #0d0f12;
   }
 }
 
-@layer utilities {
-  .tabular-nums { font-variant-numeric: tabular-nums; }
-  .stat-num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-}
+::selection { background: rgba(59,126,200,0.35); color: #fff; }
+::-webkit-scrollbar { width: 6px; background: #0d0f12; }
+::-webkit-scrollbar-thumb { background: #252a38; border-radius: 3px; }

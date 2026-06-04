@@ -8,10 +8,10 @@ export const TIER_LABEL: Record<Tier, string> = {
 }
 
 export const TIER_COLOR: Record<Tier, { text: string; bg: string; border: string; dot: string; hex: string }> = {
-  tier1: { text: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-200',    dot: 'bg-red-500',    hex: '#ef4444' },
-  tier2: { text: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', dot: 'bg-orange-500', hex: '#f97316' },
-  tier3: { text: 'text-amber-600',  bg: 'bg-amber-50',  border: 'border-amber-200',  dot: 'bg-amber-400',  hex: '#f59e0b' },
-  tier4: { text: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-200',   dot: 'bg-blue-400',   hex: '#60a5fa' },
+  tier1: { text: 'text-red-400',    bg: 'bg-red-500/10',    border: 'border-red-500/30',    dot: 'bg-red-500',    hex: '#ef4444' },
+  tier2: { text: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30', dot: 'bg-orange-500', hex: '#f97316' },
+  tier3: { text: 'text-amber-400',  bg: 'bg-amber-500/10',  border: 'border-amber-500/30',  dot: 'bg-amber-400',  hex: '#f59e0b' },
+  tier4: { text: 'text-blue-400',   bg: 'bg-blue-500/10',   border: 'border-blue-500/30',   dot: 'bg-blue-400',   hex: '#60a5fa' },
 }
 
 export function impactToTier(impact: string): Tier {

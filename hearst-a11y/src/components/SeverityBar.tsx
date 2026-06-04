@@ -1,10 +1,10 @@
 'use client'
 
 const SEGMENTS = [
-  { key: 'critical', label: 'Tier 1', color: 'bg-red-500',    hex: '#ef4444' },
-  { key: 'serious',  label: 'Tier 2', color: 'bg-orange-500', hex: '#f97316' },
-  { key: 'moderate', label: 'Tier 3', color: 'bg-amber-400',  hex: '#fbbf24' },
-  { key: 'minor',    label: 'Tier 4', color: 'bg-blue-300',   hex: '#93c5fd' },
+  { key: 'critical', label: 'Critical', color: 'bg-indigo-700', hex: '#4338ca' },
+  { key: 'serious',  label: 'Serious',  color: 'bg-blue-600',   hex: '#2563eb' },
+  { key: 'moderate', label: 'Moderate', color: 'bg-sky-500',    hex: '#0ea5e9' },
+  { key: 'minor',    label: 'Minor',    color: 'bg-cyan-400',   hex: '#22d3ee' },
 ] as const
 
 interface SeverityBarProps {
@@ -19,7 +19,7 @@ export function SeverityBar({ counts, showLegend = true, height = 'h-3' }: Sever
 
   return (
     <div>
-      <div className={`flex w-full rounded-full overflow-hidden ${height} bg-gray-100`}>
+      <div className={`flex w-full rounded-full overflow-hidden ${height} bg-[#252a38]`}>
         {SEGMENTS.map(({ key, color }) => {
           const pct = (counts[key] / total) * 100
           if (pct === 0) return null
@@ -35,13 +35,17 @@ export function SeverityBar({ counts, showLegend = true, height = 'h-3' }: Sever
       </div>
       {showLegend && (
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5">
-          {SEGMENTS.map(({ key, label, color }) => counts[key] > 0 && (
-            <div key={key} className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-sm shrink-0 ${color}`} />
-              <span className="text-xs text-gray-500">{label}</span>
-              <span className="text-xs font-semibold text-gray-700">{counts[key]}</span>
-            </div>
-          ))}
+          {SEGMENTS.map(({ key, label, hex }) => {
+            const count = counts[key]
+            if (count === 0) return null
+            return (
+              <div key={key} className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: hex }} />
+                <span className="text-xs text-[#8892a4]">{label}</span>
+                <span className="text-xs font-semibold text-[#eef0f6]">{count}</span>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

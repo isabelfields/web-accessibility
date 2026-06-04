@@ -30,7 +30,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
     : (
       <button
         onClick={() => hasData && setOpen(true)}
-        className={`text-left hover:underline truncate max-w-xs block ${hasData ? 'text-brand-500 cursor-pointer' : 'text-blue-300 cursor-default'}`}
+        className={`text-left hover:underline truncate max-w-xs block ${hasData ? 'text-[#5b9bd6] cursor-pointer' : 'text-[#5a6272] cursor-default'}`}
         title={pageScore.url}
         disabled={!hasData}
       >
@@ -43,30 +43,30 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
       {trigger}
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setOpen(false)}>
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl mx-4 max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setOpen(false)}>
+          <div className="bg-[#141720] border border-[#252a38] rounded-xl shadow-xl w-full max-w-3xl mx-4 max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
             {/* Header */}
-            <div className="flex items-start justify-between px-6 py-4 border-b flex-shrink-0">
+            <div className="flex items-start justify-between px-6 py-4 border-b border-[#252a38] flex-shrink-0">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">{pageScore.label ?? 'Page'}</h2>
+                <h2 className="text-base font-semibold text-[#eef0f6]">{pageScore.label ?? 'Page'}</h2>
                 <a href={pageScore.url} target="_blank" rel="noopener noreferrer"
-                  className="text-sm text-brand-500 hover:underline break-all">
+                  className="text-sm text-[#5b9bd6] hover:underline break-all">
                   {pageScore.url}
                 </a>
                 <div className="flex items-center gap-3 mt-1">
                   {pageScore.score != null && (
-                    <span className="text-sm text-gray-500">Score: <strong>{pageScore.score}</strong></span>
+                    <span className="text-sm text-[#8892a4]">Score: <strong className="text-[#eef0f6]">{pageScore.score}</strong></span>
                   )}
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-[#8892a4]">
                     {pagePatterns.length} issue type{pagePatterns.length !== 1 ? 's' : ''}
                   </span>
                   {pageScore.violationCount != null && (
-                    <span className="text-sm text-gray-400">· {pageScore.violationCount} total WCAG errors</span>
+                    <span className="text-sm text-[#8892a4]">· {pageScore.violationCount} total violations</span>
                   )}
                 </div>
               </div>
               <button onClick={() => setOpen(false)}
-                className="text-gray-400 hover:text-gray-600 text-2xl leading-none ml-4 flex-shrink-0">
+                className="text-[#8892a4] hover:text-[#eef0f6] text-2xl leading-none ml-4 flex-shrink-0">
                 &times;
               </button>
             </div>
@@ -74,23 +74,23 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
             {/* Body */}
             <div className="overflow-y-auto px-6 py-5 space-y-5">
               {pagePatterns.length === 0 ? (
-                <div className="text-center py-10 text-gray-400 text-sm">No violations found on this page.</div>
+                <div className="text-center py-10 text-[#8892a4] text-sm">No violations found on this page.</div>
               ) : (
                 (['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
                   const group = pagePatterns.filter(p => p.impact === impact)
                   if (group.length === 0) return null
                   const cfg = {
-                    critical: { bar: 'bg-red-500',    text: 'text-red-600',    label: 'Critical' },
-                    serious:  { bar: 'bg-red-400', text: 'text-red-600', label: 'Serious' },
-                    moderate: { bar: 'bg-amber-400',  text: 'text-amber-600',  label: 'Moderate' },
-                    minor:    { bar: 'bg-blue-400',   text: 'text-blue-600',   label: 'Minor' },
+                    critical: { bar: 'bg-red-500',    text: 'text-red-400',    label: 'Critical' },
+                    serious:  { bar: 'bg-red-400',    text: 'text-red-400',    label: 'Serious' },
+                    moderate: { bar: 'bg-amber-400',  text: 'text-amber-400',  label: 'Moderate' },
+                    minor:    { bar: 'bg-blue-400',   text: 'text-blue-400',   label: 'Minor' },
                   }[impact]
                   return (
                     <div key={impact}>
                       <div className="flex items-center gap-2 mb-2 px-1">
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.bar}`} />
                         <span className={`text-xs font-semibold uppercase tracking-wider ${cfg.text}`}>{cfg.label}</span>
-                        <span className="text-xs text-gray-400">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
+                        <span className="text-xs text-[#8892a4]">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                       </div>
                       <div className="space-y-1.5">
                         {group.map(p => {

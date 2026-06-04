@@ -2,16 +2,23 @@
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
+const COLORS = {
+  critical: '#4338ca',
+  serious:  '#2563eb',
+  moderate: '#0ea5e9',
+  minor:    '#22d3ee',
+}
+
 interface Props {
   counts: { critical: number; serious: number; moderate: number; minor: number }
 }
 
 export function SeverityDonut({ counts }: Props) {
   const data = [
-    { name: 'Tier 1', value: counts.critical, color: '#ef4444' },
-    { name: 'Tier 2', value: counts.serious,  color: '#f97316' },
-    { name: 'Tier 3', value: counts.moderate, color: '#f59e0b' },
-    { name: 'Tier 4', value: counts.minor,    color: '#60a5fa' },
+    { name: 'Critical', value: counts.critical, color: COLORS.critical },
+    { name: 'Serious',  value: counts.serious,  color: COLORS.serious },
+    { name: 'Moderate', value: counts.moderate, color: COLORS.moderate },
+    { name: 'Minor',    value: counts.minor,    color: COLORS.minor },
   ].filter(d => d.value > 0)
 
   const total = data.reduce((s, d) => s + d.value, 0)
@@ -35,14 +42,14 @@ export function SeverityDonut({ counts }: Props) {
           ))}
         </Pie>
         <Tooltip
-          formatter={(val, name) => [`${val} (${Math.round(Number(val)/total*100)}%)`, name]}
+          formatter={(val) => { const n = Number(val); return [`${n} (${Math.round(n/total*100)}%)`] }}
           contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #f3f4f6', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
         />
         <Legend
           iconType="circle"
           iconSize={7}
           wrapperStyle={{ fontSize: 11 }}
-          formatter={(value) => <span style={{ color: '#6b7280' }}>{value}</span>}
+          formatter={(value) => <span style={{ color: '#8892a4' }}>{value}</span>}
         />
       </PieChart>
     </ResponsiveContainer>

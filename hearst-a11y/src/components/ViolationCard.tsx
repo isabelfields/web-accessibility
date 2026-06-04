@@ -2,13 +2,12 @@
 
 import { useState } from 'react'
 import type { ViolationPattern } from '@/types'
-import { impactToTier, TIER_LABEL, TIER_COLOR } from '@/lib/tiers'
 
-const TIER_STYLE: Record<string, { label: string; border: string; pill: string; dot: string }> = {
-  tier1: { label: 'Tier 1', border: 'border-l-red-500',    pill: 'bg-red-50 text-red-600 ring-1 ring-inset ring-red-200',       dot: 'bg-red-500' },
-  tier2: { label: 'Tier 2', border: 'border-l-orange-500', pill: 'bg-orange-50 text-orange-600 ring-1 ring-inset ring-orange-200', dot: 'bg-orange-500' },
-  tier3: { label: 'Tier 3', border: 'border-l-amber-400',  pill: 'bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-200',  dot: 'bg-amber-400' },
-  tier4: { label: 'Tier 4', border: 'border-l-blue-400',   pill: 'bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-200',    dot: 'bg-blue-400' },
+const IMPACT: Record<string, { label: string; border: string; pill: string; dot: string }> = {
+  critical: { label: 'Critical',  border: 'border-l-red-500',    pill: 'bg-red-500/20 text-red-400 ring-1 ring-inset ring-red-500/30',    dot: 'bg-red-500' },
+  serious:  { label: 'Serious',   border: 'border-l-red-400',    pill: 'bg-red-500/20 text-red-400 ring-1 ring-inset ring-red-500/30',    dot: 'bg-red-400' },
+  moderate: { label: 'Moderate',  border: 'border-l-amber-400',  pill: 'bg-amber-500/20 text-amber-400 ring-1 ring-inset ring-amber-500/30',  dot: 'bg-amber-400' },
+  minor:    { label: 'Minor',     border: 'border-l-blue-400',   pill: 'bg-blue-500/20 text-blue-400 ring-1 ring-inset ring-blue-500/30',    dot: 'bg-blue-400' },
 }
 
 const WCAG_RULES: Record<string, { name: string; wcag: string; what: string }> = {
@@ -53,8 +52,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
   const [open, setOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
 
-  const tier = impactToTier(pattern.impact)
-  const impact = TIER_STYLE[tier]
+  const impact = IMPACT[pattern.impact] ?? IMPACT.minor
   const ruleInfo = getRuleInfo(pattern.rule)
   const instanceCount = pattern.occurrences
   const pageCount = pattern.affectedPages?.length ?? 1
@@ -69,32 +67,33 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
   const hiddenCount = nodes.length - SHOW_LIMIT
 
   return (
-    <div className={`rounded-lg border border-gray-200 bg-white border-l-[3px] ${impact.border} overflow-hidden`}>
+    <div className={`bg-[#141720] border border-[#252a38] border-l-[3px] ${impact.border} rounded-lg overflow-hidden`}>
 
       {/* ── Collapsed header row ── */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-gray-50 transition-colors"
+        className="w-full text-left px-5 py-3 flex items-center gap-3 hover:bg-[#1e2230] transition-colors"
       >
-        <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide ${impact.pill}`}>
+        <span className={`shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md ${impact.pill}`}>
           {impact.label}
         </span>
-        <div className="flex-1 min-w-0 flex items-center gap-2">
-          <span className="font-semibold text-gray-900 text-sm">{ruleInfo.name}</span>
-          <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">{ruleInfo.wcag}</span>
-          <span className="text-xs text-gray-400 truncate hidden md:block">{pattern.description}</span>
+        <div className="flex-1 min-w-0">
+          <span className="font-semibold text-[#eef0f6] text-sm">{ruleInfo.name}</span>
+          <span className="text-xs text-[#8892a4] ml-2 bg-[#1e2230] px-1.5 py-0.5 rounded">{ruleInfo.wcag}</span>
+          <span className="text-xs text-[#5a6272] mx-1.5">·</span>
+          <span className="text-xs text-[#8892a4] truncate">{pattern.description}</span>
         </div>
-        <div className="hidden sm:flex items-center gap-4 shrink-0">
-          <div className="text-right">
-            <div className="text-sm font-semibold text-gray-800 tabular-nums leading-tight">{instanceCount}</div>
-            <div className="text-[10px] text-gray-400 uppercase tracking-wide">instances</div>
+        <div className="hidden sm:flex items-center gap-5 shrink-0 text-right">
+          <div>
+            <div className="text-sm font-semibold text-[#eef0f6] tabular-nums">{instanceCount}</div>
+            <div className="text-[10px] text-[#5a6272] uppercase tracking-wide">instance{instanceCount !== 1 ? 's' : ''}</div>
           </div>
-          <div className="text-right">
-            <div className="text-sm font-semibold text-gray-800 tabular-nums leading-tight">{pageCount}</div>
-            <div className="text-[10px] text-gray-400 uppercase tracking-wide">pages</div>
+          <div>
+            <div className="text-sm font-semibold text-[#eef0f6] tabular-nums">{pageCount}</div>
+            <div className="text-[10px] text-[#5a6272] uppercase tracking-wide">page{pageCount !== 1 ? 's' : ''}</div>
           </div>
         </div>
-        <svg className={`shrink-0 w-3.5 h-3.5 text-gray-300 transition-transform ${open ? 'rotate-180' : ''}`}
+        <svg className={`shrink-0 w-4 h-4 text-[#5a6272] transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -102,57 +101,57 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
 
       {/* ── Expanded body ── */}
       {open && (
-        <div className="border-t border-gray-100">
+        <div className="border-t border-[#252a38]">
 
           {/* What it means */}
           <div className="px-5 pt-4 pb-3">
-            <p className="text-sm text-gray-600 leading-relaxed">{ruleInfo.what ?? pattern.description}</p>
+            <p className="text-sm text-[#8892a4] leading-relaxed">{ruleInfo.what ?? pattern.description}</p>
           </div>
 
           {/* How to fix — prominent callout */}
           {pattern.fixSuggestion && (
-            <div className="mx-5 mb-4 bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 flex gap-3">
+            <div className="mx-5 mb-4 bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-3 flex gap-3">
               <svg className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <div className="text-xs font-semibold text-blue-700 mb-0.5 uppercase tracking-wide">How to fix</div>
-                <p className="text-sm text-blue-900 leading-relaxed">{pattern.fixSuggestion}</p>
+                <div className="text-xs font-semibold text-blue-400 mb-0.5 uppercase tracking-wide">How to fix</div>
+                <p className="text-sm text-[#8892a4] leading-relaxed">{pattern.fixSuggestion}</p>
               </div>
             </div>
           )}
 
           {/* Failing elements — compact table */}
           {nodes.length > 0 && (
-            <div className="border-t border-gray-100">
+            <div className="border-t border-[#252a38]">
               <div className="px-5 py-2.5 flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-[#5a6272] uppercase tracking-wider">
                   Failing elements · {nodes.length}
                 </span>
               </div>
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left px-4 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-8">#</th>
-                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-36">Page</th>
-                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Element</th>
+                  <tr className="border-b border-[#252a38]">
+                    <th className="text-left px-4 py-1.5 text-[10px] font-semibold text-[#5a6272] uppercase tracking-wider w-8">#</th>
+                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-[#5a6272] uppercase tracking-wider w-36">Page</th>
+                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-[#5a6272] uppercase tracking-wider">Element</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-[#1e2230]">
                   {visibleNodes.map((node, i) => (
-                    <tr key={i} className="hover:bg-gray-50/50">
-                      <td className="px-4 py-2 text-gray-300 font-mono">{i + 1}</td>
+                    <tr key={i} className="hover:bg-[#1e2230]">
+                      <td className="px-4 py-2 text-[#5a6272] font-mono">{i + 1}</td>
                       <td className="px-3 py-2">
                         {node.url ? (
                           <a href={node.url} target="_blank" rel="noopener noreferrer"
-                            className="text-brand-500 hover:underline font-mono truncate block max-w-[140px]"
+                            className="text-[#5b9bd6] hover:underline font-mono truncate block max-w-[140px]"
                             title={node.url}>
                             {pagePath(node.url)}
                           </a>
-                        ) : <span className="text-gray-300">—</span>}
+                        ) : <span className="text-[#5a6272]">—</span>}
                       </td>
                       <td className="px-3 py-2">
-                        <code className="font-mono text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded text-[11px] break-all">
+                        <code className="font-mono text-[#8892a4] bg-[#1e2230] px-1.5 py-0.5 rounded text-[11px] break-all">
                           {truncateHtml(node.html)}
                         </code>
                       </td>
@@ -163,7 +162,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
               {hiddenCount > 0 && !showAll && (
                 <button
                   onClick={() => setShowAll(true)}
-                  className="w-full text-center text-xs text-gray-400 hover:text-gray-600 py-2 border-t border-gray-100 hover:bg-gray-50 transition-colors"
+                  className="w-full text-center text-xs text-[#8892a4] hover:text-[#eef0f6] py-2 border-t border-[#252a38] hover:bg-[#1e2230] transition-colors"
                 >
                   + {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
                 </button>
@@ -172,12 +171,12 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
           )}
 
           {/* Footer — WCAG guidance link */}
-          <div className="px-5 py-2.5 border-t border-gray-100 flex items-center justify-between">
-            <span className="text-[11px] font-mono text-gray-300">{pattern.rule}</span>
+          <div className="px-5 py-2.5 border-t border-[#252a38] flex items-center justify-between">
+            <span className="text-[11px] font-mono text-[#5a6272]">{pattern.rule}</span>
             <a
               href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}?application=axeAPI`}
               target="_blank" rel="noopener noreferrer"
-              className="text-xs font-medium text-brand-500 hover:underline"
+              className="text-xs font-medium text-[#5b9bd6] hover:underline"
             >
               View WCAG guidance →
             </a>

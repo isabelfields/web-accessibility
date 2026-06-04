@@ -42,7 +42,7 @@ const NAV = [
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-[#f0f2f5] text-gray-900">
+      <body className="bg-[#0d0f12] text-[#eef0f6]">
         <Providers>
           <div className="flex min-h-screen">
             {/* Sidebar — brand blue */}
@@ -81,7 +81,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </aside>
 
             {/* Main */}
-            <main className="flex-1 ml-[220px] min-h-screen">
+            <main className="flex-1 ml-[220px] min-h-screen bg-[#0d0f12]">
               {children}
             </main>
           </div>

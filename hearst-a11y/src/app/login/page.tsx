@@ -30,39 +30,39 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-[#0d0f12]">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="text-xl font-semibold tracking-tight text-gray-900">Hearst A11y</div>
-          <div className="text-sm text-gray-400 mt-1">Sign in to continue</div>
+          <div className="text-xl font-semibold tracking-tight text-[#eef0f6]">Hearst A11y</div>
+          <div className="text-sm text-[#8892a4] mt-1">Sign in to continue</div>
         </div>
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 space-y-5">
+        <form onSubmit={handleSubmit} className="bg-[#141720] border border-[#252a38] rounded-xl p-8 space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
+            <label className="block text-sm font-medium text-[#8892a4] mb-1.5">Username</label>
             <input
               type="text"
               value={username}
               onChange={e => setUsername(e.target.value)}
               required
               autoFocus
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-lg border border-[#252a38] bg-[#1e2230] text-[#eef0f6] placeholder:text-[#5a6272] text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+            <label className="block text-sm font-medium text-[#8892a4] mb-1.5">Password</label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-lg border border-[#252a38] bg-[#1e2230] text-[#eef0f6] placeholder:text-[#5a6272] text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             />
           </div>
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="w-full py-2 rounded-lg bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition-colors disabled:opacity-50"
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
