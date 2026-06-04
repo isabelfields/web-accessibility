@@ -7,10 +7,16 @@ import { DivisionFilter } from '@/components/DivisionFilter'
 import { SeverityDonut } from '@/components/SeverityDonut'
 import { ScoreTrendChart } from '@/components/ScoreTrendChart'
 import { TopViolationsChart } from '@/components/TopViolationsChart'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/auth'
 
 export const dynamic = 'force-dynamic'
 
-async function getData(division?: string) {
+async function getData(division?: string, allowedDivisions?: string[]) {
+  // Non-admin users: restrict to their allowed divisions
+  if (allowedDivisions && allowedDivisions.length > 0 && !division) {
+    division = allowedDivisions[0]
+  }
   const [allSites, recentScans] = await Promise.all([
     sql`SELECT * FROM sites ORDER BY created_at DESC`.then(async (sites) => {
       return Promise.all(
@@ -145,9 +151,23 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ division?: string }>
 }) {
-  const { division } = await searchParams
-  const { sites, scans, activeDivisions, stats, severityCounts, topViolations, scoreTrends } = await getData(division)
-  const showDivisionCol = !division
+  const [{ division }, session] = await Promise.all([searchParams, getServerSession(authOptions)])
+  const isAdmin = (session?.user as any)?.role === 'admin'
+  const allowedDivisions = isAdmin ? [] : ((session?.user as any)?.allowedDivisions ?? [])
+
+  // For non-admins, if they try to view a division outside their allowed set, ignore it
+  const effectiveDivision = (!isAdmin && allowedDivisions.length > 0 && division && !allowedDivisions.includes(division))
+    ? allowedDivisions[0]
+    : division
+
+  const { sites, scans, activeDivisions, stats, severityCounts, topViolations, scoreTrends } = await getData(effectiveDivision, allowedDivisions)
+
+  // Non-admins only see their allowed divisions in the filter
+  const visibleDivisions = isAdmin
+    ? activeDivisions
+    : activeDivisions.filter(d => allowedDivisions.includes(d))
+
+  const showDivisionCol = !effectiveDivision
 
   return (
     <div className="min-h-screen bg-[#0c0c10]">
@@ -155,11 +175,16 @@ export default async function DashboardPage({
       <div className="border-b border-[#1c1c24] px-8 py-4 flex items-center justify-between sticky top-0 z-10 bg-[#0c0c10]/90 backdrop-blur-sm">
         <div>
           <h1 className="text-base font-semibold text-white tracking-tight">Dashboard</h1>
-          <p className="text-xs text-white/90 mt-0.5">{division ? `${division} division` : 'All Hearst properties'}</p>
+          <p className="text-xs text-white/70 mt-0.5">{division ? `${division} division` : 'All Hearst properties'}</p>
         </div>
-        {activeDivisions.length > 0 && (
+        {isAdmin && visibleDivisions.length > 0 && (
           <Suspense>
-            <DivisionFilter activeDivisions={activeDivisions} />
+            <DivisionFilter activeDivisions={visibleDivisions} />
+          </Suspense>
+        )}
+        {!isAdmin && allowedDivisions.length > 1 && visibleDivisions.length > 0 && (
+          <Suspense>
+            <DivisionFilter activeDivisions={visibleDivisions} />
           </Suspense>
         )}
       </div>
@@ -184,7 +209,7 @@ export default async function DashboardPage({
           </div>
           <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
             <div className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-3">Resolved</div>
-            <div className={`text-4xl font-bold tabular-nums leading-none ${stats.errorsResolved > 0 ? 'text-emerald-400' : 'text-white/40'}`}>{stats.errorsResolved}</div>
+            <div className={`text-4xl font-bold tabular-nums leading-none ${stats.errorsResolved > 0 ? 'text-emerald-400' : 'text-white/70'}`}>{stats.errorsResolved}</div>
             <div className="text-xs text-white/70 mt-2">vs previous scan</div>
           </div>
         </div>
@@ -207,11 +232,11 @@ export default async function DashboardPage({
 
         {/* Site cards */}
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[11px] font-medium text-white/90 uppercase tracking-widest">Sites</h2>
+          <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest">Sites</h2>
           <Link href="/sites" className="text-xs text-[#5b9bd6] hover:text-white font-medium transition-colors">View all →</Link>
         </div>
         {sites.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-[#1e1e2a] p-12 text-center text-white/90">
+          <div className="rounded-lg border border-dashed border-[#2a2a3a] p-12 text-center text-white/70">
             {division ? `No sites in ${division} yet.` : 'No sites yet.'}{' '}
             <a href="/sites" className="text-[#5b9bd6] underline">Add a site</a>.
           </div>
@@ -225,8 +250,8 @@ export default async function DashboardPage({
 
       {/* Recent scans */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[11px] font-medium text-white/90 uppercase tracking-widest">Recent Scans</h2>
-        <span className="text-xs text-white/90">Last 5</span>
+        <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest">Recent Scans</h2>
+        <span className="text-xs text-white/70">Last 5</span>
       </div>
       <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] overflow-hidden">
         <table className="w-full text-sm">
@@ -246,23 +271,23 @@ export default async function DashboardPage({
           <tbody>
             {scans.length === 0 ? (
               <tr>
-                <td colSpan={showDivisionCol ? 7 : 6} className="text-center py-8 text-white/90">
+                <td colSpan={showDivisionCol ? 7 : 6} className="text-center py-8 text-white/70">
                   No scans yet.
                 </td>
               </tr>
             ) : (
               scans.map((scan: any) => (
-                <tr key={scan.id} className="border-t border-[#2a2a3a] hover:bg-[#1a1a26] transition-colors group cursor-pointer relative">
+                <tr key={scan.id} className="border-t border-[#1a1a22] hover:bg-[#14141c] transition-colors group cursor-pointer relative">
                   <td className="px-4 py-3">
                     <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan for ${scan.site_name ?? scan.root_url}`} />
                     <div className="font-medium text-white text-sm">{scan.site_name ?? scan.root_url}</div>
-                    {scan.site_name && <div className="text-xs text-white/90 truncate max-w-xs mt-0.5">{scan.root_url}</div>}
+                    {scan.site_name && <div className="text-xs text-white/70 truncate max-w-xs mt-0.5">{scan.root_url}</div>}
                   </td>
                   {showDivisionCol && (
                     <td className="px-4 py-3 text-xs">
                       {scan.division
-                        ? <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#1e1e2a] text-white/90">{scan.division}</span>
-                        : <span className="text-white/90">—</span>
+                        ? <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#1e1e2a] text-white/80">{scan.division}</span>
+                        : <span className="text-white/70">—</span>
                       }
                     </td>
                   )}
@@ -271,14 +296,14 @@ export default async function DashboardPage({
                       scan.status === 'complete' ? 'bg-emerald-500/10 text-emerald-400' :
                       scan.status === 'running' ? 'bg-blue-500/10 text-blue-400' :
                       scan.status === 'failed' ? 'bg-red-500/10 text-red-400' :
-                      'bg-[#1e1e2a] text-white/90'
+                      'bg-[#1e1e2a] text-white/80'
                     }`}>
                       {scan.status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right text-white tabular-nums">{scan.pages_scanned ?? 0}</td>
                   <td className="px-4 py-3 text-right text-white tabular-nums">{scan.raw_violation_count ?? '—'}</td>
-                  <td className="px-4 py-3 text-right text-white/90 text-xs tabular-nums">{formatDate(scan.started_at)}</td>
+                  <td className="px-4 py-3 text-right text-white/70 text-xs tabular-nums">{formatDate(scan.started_at)}</td>
                   <td className="px-2 py-3 text-right relative z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <DeleteScanButton jobId={scan.id} />
                   </td>
