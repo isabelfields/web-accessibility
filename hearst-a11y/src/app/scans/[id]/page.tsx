@@ -6,6 +6,8 @@ import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { SeverityBar } from '@/components/SeverityBar'
 import { ExportPdfButton } from '@/components/ExportPdfButton'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/auth'
 import { patternsToWorstTier, TIER_LABEL, TIER_COLOR } from '@/lib/tiers'
 import type { ViolationPattern, PageScore } from '@/types'
 
@@ -55,7 +57,8 @@ function impactColor(impact: string) {
 }
 
 export default async function ScanDetailPage({ params }: RouteContext) {
-  const { id } = await params
+  const [{ id }, session] = await Promise.all([params, getServerSession(authOptions)])
+  const isAdmin = (session?.user as any)?.role === 'admin'
   const data = await getScan(id)
   if (!data) notFound()
 
@@ -130,7 +133,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {scan.status === 'complete' && <ExportPdfButton scanId={scan.id} />}
+          {scan.status === 'complete' && isAdmin && <ExportPdfButton scanId={scan.id} />}
           <DeleteScanButton jobId={scan.id} />
         </div>
       </div>

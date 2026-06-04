@@ -1,9 +1,11 @@
 import OpenAI from 'openai'
 import { StrippedViolation } from '@/types'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+let _openai: OpenAI | undefined
+function getOpenAI() {
+  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  return _openai
+}
 
 interface ViolationInput extends StrippedViolation {
   fingerprint: string
@@ -43,7 +45,7 @@ Respond with a JSON array only — no markdown, no preamble. Each item must have
 Example:
 [{"index":1,"fix":"Add \`aria-label\` to this button..."},{"index":2,"fix":"..."}]`
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',
     max_tokens: 1500,
     messages: [{ role: 'user', content: prompt }],

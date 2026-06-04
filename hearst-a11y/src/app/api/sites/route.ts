@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/auth'
 
 const SitePageSchema = z.object({
   url: z.string().url(),
@@ -17,10 +19,16 @@ const SiteSchema = z.object({
 })
 
 export async function GET() {
-  const sites = await sql`SELECT * FROM sites ORDER BY created_at DESC`
+  const session = await getServerSession(authOptions)
+  const isAdmin = (session?.user as any)?.role === 'admin'
+  const allowedDivisions = isAdmin ? [] : ((session?.user as any)?.allowedDivisions ?? [])
+
+  const sites = allowedDivisions.length > 0
+    ? await sql`SELECT * FROM sites WHERE division = ANY(${allowedDivisions}::text[]) ORDER BY created_at DESC`
+    : await sql`SELECT * FROM sites ORDER BY created_at DESC`
 
   const enriched = await Promise.all(
-    sites.map(async (site) => {
+    sites.map(async (site: any) => {
       const [latest] = await sql`
         SELECT status, started_at, unique_pattern_count, raw_violation_count, patterns
         FROM scan_jobs
