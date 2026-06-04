@@ -93,7 +93,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-5">
-          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Violations</div>
+          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">WCAG Errors</div>
           <div className="text-3xl font-bold text-gray-900 tabular-nums">{latestScan?.raw_violation_count ?? '—'}</div>
           <div className="text-xs text-gray-400 mt-1">{latestScan?.unique_pattern_count ?? 0} issue types</div>
         </div>
@@ -114,7 +114,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
       <div className="space-y-8">
         {/* Violations */}
         <div>
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Violations</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">WCAG Errors</h2>
           {patterns.length === 0 ? (
             <div className="bg-white rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-400">
               {latestScan ? 'No violations found. Great job!' : 'Run a scan to see violations.'}
@@ -216,7 +216,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                     <th className="text-left px-4 py-3 text-gray-600 font-medium">Label</th>
                     <th className="text-left px-4 py-3 text-gray-600 font-medium">URL</th>
                     <th className="text-left px-4 py-3 text-gray-600 font-medium">Template Type</th>
-                    <th className="text-right px-4 py-3 text-gray-600 font-medium">Violations</th>
+                    <th className="text-right px-4 py-3 text-gray-600 font-medium">WCAG Errors</th>
                     <th className="text-right px-4 py-3 text-gray-600 font-medium">Status</th>
                   </tr>
                 </thead>

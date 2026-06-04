@@ -16,7 +16,7 @@ async function getData(division?: string) {
       return Promise.all(
         sites.map(async (site) => {
           const [latest] = await sql`
-            SELECT score, status, started_at, unique_pattern_count, raw_violation_count
+            SELECT status, started_at, unique_pattern_count, raw_violation_count, patterns
             FROM scan_jobs
             WHERE site_id = ${site.id} AND status = 'complete'
             ORDER BY started_at DESC LIMIT 1
@@ -224,7 +224,7 @@ export default async function DashboardPage({
 
         {/* Top violations */}
         <div className="lg:col-span-3 rounded-xl border border-gray-200 shadow-sm bg-white p-5">
-          <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Top Violations Across All Sites</h2>
+          <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Top WCAG Errors Across All Sites</h2>
           <TopViolationsChart violations={topViolations} />
         </div>
       </div>
@@ -263,7 +263,7 @@ export default async function DashboardPage({
               <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
               <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Priority</th>
               <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Pages</th>
-              <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Violations</th>
+              <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">WCAG Errors</th>
               <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Started</th>
               <th className="px-2 py-3"></th>
             </tr>

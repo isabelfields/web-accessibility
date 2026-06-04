@@ -160,7 +160,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
 
             {/* Violations summary */}
             <div className="rounded-xl border border-gray-200 shadow-sm bg-white p-6 flex flex-col justify-between">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Violations</div>
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">WCAG Errors</div>
               <div className="text-4xl font-bold text-gray-900 tabular-nums leading-none">{totalViolations}</div>
               <div className="mt-3 space-y-1.5 text-xs text-gray-400">
                 <div className="flex justify-between"><span>Issue types</span><span className="font-semibold text-gray-600">{scan.unique_pattern_count ?? 0}</span></div>
@@ -204,7 +204,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                     <tr className="border-b border-gray-100">
                       <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Page</th>
                       <th className="text-left px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">URL</th>
-                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Violations</th>
+                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">WCAG Errors</th>
                       <th className="text-right px-4 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
                     </tr>
                   </thead>
@@ -239,12 +239,12 @@ export default async function ScanDetailPage({ params }: RouteContext) {
 
           {/* Violations */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">Issues Found</h2>
+            <h2 className="text-lg font-semibold text-gray-800">WCAG Errors Found</h2>
             <span className="text-sm text-gray-400">{patterns.length} issue type{patterns.length !== 1 ? 's' : ''} · {totalViolations} total</span>
           </div>
           {patterns.length === 0 ? (
             <div className="bg-white rounded-xl border border-dashed border-gray-300 p-12 text-center text-gray-400">
-              No violations found — great job!
+              No WCAG errors found — great job!
             </div>
           ) : (
             <div className="space-y-5">

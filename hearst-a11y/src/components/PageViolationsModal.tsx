@@ -61,7 +61,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
                     {pagePatterns.length} issue type{pagePatterns.length !== 1 ? 's' : ''}
                   </span>
                   {pageScore.violationCount != null && (
-                    <span className="text-sm text-gray-400">· {pageScore.violationCount} total violations</span>
+                    <span className="text-sm text-gray-400">· {pageScore.violationCount} total WCAG errors</span>
                   )}
                 </div>
               </div>

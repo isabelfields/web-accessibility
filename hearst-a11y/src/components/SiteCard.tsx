@@ -54,7 +54,7 @@ export function SiteCard({ site }: SiteCardProps) {
       {latestScan ? (
         <div className="mt-4 flex items-center gap-4 text-xs">
           <span className="text-gray-600 font-medium">
-            {latestScan.raw_violation_count} violation{latestScan.raw_violation_count !== 1 ? 's' : ''}
+            {latestScan.raw_violation_count} WCAG error{latestScan.raw_violation_count !== 1 ? 's' : ''}
           </span>
           <span className="text-gray-400">
             {latestScan.unique_pattern_count} issue type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
