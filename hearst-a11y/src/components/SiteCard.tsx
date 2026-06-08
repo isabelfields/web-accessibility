@@ -17,6 +17,7 @@ interface SiteCardProps {
     pages: { url: string; label: string; templateType: string }[]
     created_at: string
     latestScan: LatestScan | null
+    prevScan?: { raw_violation_count: number } | null
   }
 }
 
@@ -36,9 +37,14 @@ const TIER_STYLE: Record<string, { text: string; bg: string }> = {
 }
 
 export function SiteCard({ site }: SiteCardProps) {
-  const { latestScan } = site
+  const { latestScan, prevScan } = site
   const pageCount = site.pages?.length ?? 0
   const tier = latestScan ? worstTier(latestScan.patterns ?? []) : null
+
+  const delta =
+    latestScan && prevScan != null
+      ? prevScan.raw_violation_count - latestScan.raw_violation_count
+      : null
 
   return (
     <Link
@@ -53,11 +59,25 @@ export function SiteCard({ site }: SiteCardProps) {
             {site.division ? ` · ${site.division}` : ''}
           </div>
         </div>
-        {tier && (
-          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${TIER_STYLE[tier].text} ${TIER_STYLE[tier].bg}`}>
-            {tier}
-          </span>
-        )}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {delta !== null && delta !== 0 && (
+            <span
+              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                delta > 0
+                  ? 'text-emerald-400 bg-emerald-500/15'
+                  : 'text-red-400 bg-red-500/15'
+              }`}
+              title={delta > 0 ? `${delta} fewer errors than last scan` : `${Math.abs(delta)} more errors than last scan`}
+            >
+              {delta > 0 ? `↓ ${delta}` : `↑ ${Math.abs(delta)}`}
+            </span>
+          )}
+          {tier && (
+            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${TIER_STYLE[tier].text} ${TIER_STYLE[tier].bg}`}>
+              {tier}
+            </span>
+          )}
+        </div>
       </div>
 
       {latestScan ? (
