@@ -53,7 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {isAdmin && (
                 <>
                   <div className="pt-4 pb-1 px-3">
-                    <span className="text-[10px] font-semibold text-white/30 uppercase tracking-widest">Admin</span>
+                    <span className="text-[10px] font-semibold text-white/50 uppercase tracking-widest">Admin</span>
                   </div>
                   <Link href="/admin/users" className={navLink}>
                     <svg className="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,7 +73,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </div>
               )}
               <SignOutButton />
-              <div className="text-[10px] text-white/30">© Hearst Communications</div>
+              <div className="text-[10px] text-white/50">© Hearst Communications</div>
             </div>
           </aside>
 
