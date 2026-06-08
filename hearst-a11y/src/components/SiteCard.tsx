@@ -68,7 +68,7 @@ export function SiteCard({ site }: SiteCardProps) {
           <span className="text-white/60">
             {latestScan.unique_pattern_count} type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
           </span>
-          <span className="text-white/40 group-hover:text-white/80 transition-colors">→</span>
+          <span className="text-white/40 group-hover:text-white/80 transition-colors" aria-hidden="true">→</span>
         </div>
       ) : (
         <div className="text-xs text-white/50 italic">No scans yet</div>

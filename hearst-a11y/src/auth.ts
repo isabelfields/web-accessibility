@@ -14,12 +14,30 @@ export const authOptions: NextAuthOptions = {
           credentials?.username === process.env.ADMIN_USERNAME &&
           credentials?.password === process.env.ADMIN_PASSWORD
         ) {
-          return { id: '1', name: 'Admin' }
+          return { id: '1', name: 'Admin', role: 'admin' as const, allowedDivisions: [] }
         }
         return null
       },
     }),
   ],
+  callbacks: {
+    jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+        token.role = user.role
+        token.allowedDivisions = user.allowedDivisions
+      }
+      return token
+    },
+    session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id
+        session.user.role = token.role
+        session.user.allowedDivisions = token.allowedDivisions
+      }
+      return session
+    },
+  },
   pages: {
     signIn: '/login',
   },
