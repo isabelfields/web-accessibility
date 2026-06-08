@@ -128,7 +128,7 @@ export const HEARST_BRANDS: Record<HearstDivision, string[]> = {
   Television:         ['Central Coast ABC', 'KCCI-TV', 'KCRA-TV', 'KCWE-TV', 'KETV', 'KHBS-TV/KHOG-TV', 'KMBC-TV', 'KOAT-TV', 'KOCO-TV', 'KQCA-TV', 'KSBW-TV', 'The Arkansas CW', 'WAPT-TV', 'WBAL-TV', 'WBBH-TV', 'WCVB-TV', 'WCWG-TV', 'WDSU-TV', 'WESH-TV', 'WGAL-TV', 'WISN-TV', 'WJCL-TV', 'WKCF-TV', 'WLKY-TV', 'WLWT-TV', 'WMOR-TV', 'WMTW-TV', 'WPXT-TV', 'WMUR-TV', 'WPBF-TV', 'WPTZ-TV', 'WNNE-TV', 'WTAE-TV', 'WVTM-TV', 'WXII-TV', 'WYFF-TV', 'WZVN-TV', 'WBAL-AM/FM', 'WIYY-FM'],
   Newspapers:         ['Austin American-Statesman', 'Beaumont Enterprise', 'Chron', 'Connecticut Post', 'The Dallas Morning News', 'Edwardsville Intelligencer', 'Greenwich Time', 'Houston Chronicle', 'Journal-Courier', 'Journal Inquirer', 'Huron Daily Tribune', 'Laredo Morning Times', 'Manistee News Advocate', 'The Middletown Press', 'Midland Daily News', 'Midland Reporter-Telegram', 'MySA', 'New Haven Register', 'The News-Times', 'The Norwalk Hour', 'The Pioneer', 'Plainview Herald', 'Record-Journal', 'Republican-American', 'San Antonio Express-News', 'San Francisco Chronicle', 'Seattlepi.com', 'SFGATE', 'Stamford Advocate', 'The Telegraph', 'Times Union'],
   Transportation:     ['BlackBook', 'Car and Driver', 'Road & Track'],
-  Healthcare:         ['Hearst Health', 'Zynx Health'],
+  Healthcare:         ['FDB', 'Homecare Homebase', 'MCG', 'MHK', 'QGenda', 'Zynx'],
   HearstLab:          ['HearstLab'],
   'Level Up':         ['Level Up'],
   'Hearst Ventures':  ['Hearst Ventures'],
