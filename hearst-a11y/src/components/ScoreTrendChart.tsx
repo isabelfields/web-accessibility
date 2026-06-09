@@ -68,7 +68,7 @@ export function ScoreTrendChart({ trends }: { trends: SiteTrend[] }) {
         <Tooltip
           contentStyle={tooltipStyle}
           labelFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-          formatter={(val: any, name: string) => [val, name]}
+          formatter={(val: any, name: any) => [val, name]}
         />
         {trends.length > 1 && (
           <Legend
