@@ -45,14 +45,7 @@ function formatDate(d: string | Date | null) {
   })
 }
 
-function impactColor(impact: string) {
-  switch (impact) {
-    case 'critical': return 'bg-red-500/20 text-red-400'
-    case 'serious': return 'bg-red-500/20 text-red-400'
-    case 'moderate': return 'bg-amber-500/20 text-amber-400'
-    default: return 'bg-blue-500/20 text-blue-400'
-  }
-}
+const TIER_HEX: Record<string, string> = { tier1: '#002D82', tier2: '#005AC8', tier3: '#007AFF', tier4: '#5AC8FA' }
 
 export default async function ScanDetailPage({ params }: RouteContext) {
   const { id } = await params
@@ -68,7 +61,6 @@ export default async function ScanDetailPage({ params }: RouteContext) {
     if (byImpact[p.impact]) byImpact[p.impact].push(p)
   }
 
-  // Group into tiers for display
   const byTier = {
     tier1: byImpact.critical,
     tier2: byImpact.serious,
@@ -93,50 +85,51 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   }
 
   return (
-    <div className="px-8 py-6 bg-[#0d0f12] min-h-screen">
+    <div style={{ padding: '24px 32px', background: '#F5F5F7', minHeight: '100vh' }}>
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-white/90 mb-6">
-        <Link href="/" className="hover:text-white">Dashboard</Link>
-        <span className="text-[#252a38]">/</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#86868B', marginBottom: '20px' }}>
+        <Link href="/" style={{ color: '#007AFF', textDecoration: 'none' }}>Dashboard</Link>
+        <span style={{ color: '#D0D0D0' }}>/</span>
         {site && (
           <>
-            <Link href={`/sites/${site.id}`} className="hover:text-white">{site.name}</Link>
-            <span className="text-[#252a38]">/</span>
+            <Link href={`/sites/${site.id}`} style={{ color: '#007AFF', textDecoration: 'none' }}>{site.name}</Link>
+            <span style={{ color: '#D0D0D0' }}>/</span>
           </>
         )}
-        <span className="text-white font-medium">Scan {formatDate(scan.started_at)}</span>
+        <span style={{ color: '#1D1D1F', fontWeight: 500 }}>Scan {formatDate(scan.started_at)}</span>
       </div>
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px' }}>
         <div>
-          <h1 className="text-2xl font-bold text-white">
+          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#1D1D1F', margin: 0 }}>
             {site?.name ?? scan.root_url}
           </h1>
-          <p className="text-sm text-white/90 mt-1">{scan.root_url}</p>
-          <div className="flex items-center gap-3 mt-2">
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-              scan.status === 'complete' ? 'bg-emerald-500/20 text-emerald-400' :
-              scan.status === 'running' ? 'bg-blue-500/20 text-blue-400' :
-              scan.status === 'failed' ? 'bg-red-500/20 text-red-400' :
-              'bg-[#252a38] text-white/90'
-            }`}>
+          <p style={{ fontSize: '13px', color: '#86868B', marginTop: '4px' }}>{scan.root_url}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', padding: '2px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 500,
+              ...(scan.status === 'complete' ? { background: 'rgba(52,199,89,0.12)', color: '#1A7F37' } :
+                 scan.status === 'running'  ? { background: 'rgba(0,122,255,0.10)', color: '#007AFF' } :
+                 scan.status === 'failed'   ? { background: 'rgba(255,59,48,0.10)', color: '#D70015' } :
+                 { background: '#F5F5F7', color: '#86868B' })
+            }}>
               {scan.status}
             </span>
-            <span className="text-sm text-white/90">{formatDate(scan.started_at)}</span>
+            <span style={{ fontSize: '13px', color: '#3A3A3C' }}>{formatDate(scan.started_at)}</span>
             {scan.triggered_by && (
-              <span className="text-sm text-white/90 capitalize">· {scan.triggered_by}</span>
+              <span style={{ fontSize: '13px', color: '#86868B', textTransform: 'capitalize' }}>· {scan.triggered_by}</span>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {scan.status === 'complete' && <ExportPdfButton scanId={scan.id} />}
           <DeleteScanButton jobId={scan.id} />
         </div>
       </div>
 
       {scan.status !== 'complete' ? (
-        <div className="bg-[#141720] border border-dashed border-[#252a38] rounded-xl p-12 text-center text-white/90">
+        <div style={{ background: '#FFFFFF', borderRadius: '14px', border: '1px dashed #E0E0E0', padding: '48px', textAlign: 'center', color: '#86868B', fontSize: '14px' }}>
           {scan.status === 'failed' ? `Scan failed: ${scan.error ?? 'Unknown error'}` :
            scan.status === 'running' ? 'Scan is still running…' :
            scan.status === 'cancelled' ? 'Scan was cancelled.' : scan.status}
@@ -144,88 +137,78 @@ export default async function ScanDetailPage({ params }: RouteContext) {
       ) : (
         <>
           {/* Summary Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-            {/* Priority tier */}
-            <div className="rounded-lg bg-[#141720] border border-[#252a38] p-6 flex flex-col items-center justify-center">
-              <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-3">Priority</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '28px' }}>
+            <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderLeft: worstTier ? `3px solid ${TIER_HEX[worstTier]}` : undefined }}>
+              <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868B', marginBottom: '8px' }}>Priority</div>
               {worstTier ? (
                 <>
-                  <div className={`text-2xl font-bold ${TIER_COLOR[worstTier].text}`}>{TIER_LABEL[worstTier]}</div>
-                  <div className="text-xs text-white/90 mt-1">highest tier found</div>
+                  <div style={{ fontSize: '22px', fontWeight: 700, color: TIER_HEX[worstTier] }}>{TIER_LABEL[worstTier]}</div>
+                  <div style={{ fontSize: '11px', color: '#86868B', marginTop: '4px' }}>highest tier found</div>
                 </>
               ) : (
-                <div className="text-lg font-semibold text-emerald-400">No issues</div>
+                <div style={{ fontSize: '16px', fontWeight: 600, color: '#34C759' }}>No issues</div>
               )}
             </div>
 
-            {/* Violations summary */}
-            <div className="rounded-lg bg-[#141720] border border-[#252a38] p-6 flex flex-col justify-between">
-              <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-3">WCAG Errors</div>
-              <div className="text-4xl font-bold text-white tabular-nums leading-none">{totalViolations}</div>
-              <div className="mt-3 space-y-1.5 text-xs text-white/90">
-                <div className="flex justify-between"><span>Issue types</span><span className="font-semibold text-white">{scan.unique_pattern_count ?? 0}</span></div>
-                <div className="flex justify-between"><span>Pages scanned</span><span className="font-semibold text-white">{scan.pages_scanned ?? 0}</span></div>
+            <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868B', marginBottom: '8px' }}>WCAG Errors</div>
+              <div style={{ fontSize: '36px', fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.03em', lineHeight: 1 }}>{totalViolations}</div>
+              <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#86868B' }}>Issue types</span><span style={{ fontWeight: 600, color: '#1D1D1F' }}>{scan.unique_pattern_count ?? 0}</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#86868B' }}>Pages scanned</span><span style={{ fontWeight: 600, color: '#1D1D1F' }}>{scan.pages_scanned ?? 0}</span></div>
               </div>
             </div>
 
-            {/* WCAG A / AA / AAA */}
-            <div className="rounded-lg bg-[#141720] border border-[#252a38] p-6">
-              <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-4">By WCAG Level</div>
-              <div className="flex items-end gap-5">
-                <div>
-                  <div className="text-2xl font-bold text-white tabular-nums">{wcagLevels.A}</div>
-                  <div className="text-[11px] font-semibold text-white/90 mt-0.5">Level A</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white tabular-nums">{wcagLevels.AA}</div>
-                  <div className="text-[11px] font-semibold text-white/90 mt-0.5">Level AA</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white tabular-nums">{wcagLevels.AAA}</div>
-                  <div className="text-[11px] font-semibold text-white/90 mt-0.5">Level AAA</div>
-                </div>
+            <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', padding: '20px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868B', marginBottom: '16px' }}>By WCAG Level</div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '20px' }}>
+                {(['A', 'AA', 'AAA'] as const).map(lvl => (
+                  <div key={lvl}>
+                    <div style={{ fontSize: '24px', fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em' }}>{wcagLevels[lvl]}</div>
+                    <div style={{ fontSize: '11px', fontWeight: 500, color: '#86868B', marginTop: '2px' }}>Level {lvl}</div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Tier breakdown bar */}
-            <div className="rounded-lg bg-[#141720] border border-[#252a38] p-6">
-              <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-4">By Tier</div>
+            <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', padding: '20px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868B', marginBottom: '16px' }}>By Tier</div>
               <SeverityBar counts={severityCounts} height="h-3" />
             </div>
           </div>
 
           {/* Per-page issues */}
           {pageScores.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold text-white mb-4">Page Issues</h2>
-              <div className="rounded-lg bg-[#141720] border border-[#252a38] overflow-hidden">
-                <table className="w-full text-sm">
+            <div style={{ marginBottom: '28px' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1D1D1F', marginBottom: '16px' }}>Page Issues</h2>
+              <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                   <thead>
-                    <tr className="bg-[#1e2230] border-b border-[#252a38]">
-                      <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Page</th>
-                      <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">URL</th>
-                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">WCAG Errors</th>
-                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Status</th>
+                    <tr style={{ background: '#F5F5F7', borderBottom: '1px solid #E0E0E0' }}>
+                      <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Page</th>
+                      <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>URL</th>
+                      <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>WCAG Errors</th>
+                      <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pageScores.map((ps, i) => (
                       <PageViolationsModal key={i} pageScore={ps} patterns={patterns}>
-                        <tr className={`border-t border-[#252a38] transition-colors ${ps.score != null ? 'hover:bg-[#1e2230] cursor-pointer' : ''}`}>
-                          <td className="px-4 py-3 font-medium text-white">{ps.label ?? '—'}</td>
-                          <td className="px-4 py-3">
-                            <span className="text-[#5b9bd6] truncate block max-w-sm">{ps.url}</span>
+                        <tr style={{ borderBottom: '1px solid #F0F0F0', cursor: ps.score != null ? 'pointer' : 'default', transition: 'background 0.12s' }}>
+                          <td style={{ padding: '13px 16px', fontWeight: 500, color: '#1D1D1F' }}>{ps.label ?? '—'}</td>
+                          <td style={{ padding: '13px 16px' }}>
+                            <span style={{ color: '#007AFF', display: 'block', maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ps.url}</span>
                             {ps.error && (
-                              <div className="text-xs text-red-400 mt-0.5 truncate max-w-sm" title={ps.error}>
+                              <div style={{ fontSize: '12px', color: '#D70015', marginTop: '2px', maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={ps.error}>
                                 ⚠ {ps.error.length > 80 ? ps.error.slice(0, 80) + '…' : ps.error}
                               </div>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-right text-white">{ps.violationCount ?? '—'}</td>
-                          <td className="px-4 py-3 text-right">
+                          <td style={{ padding: '13px 16px', textAlign: 'right', color: '#1D1D1F', fontWeight: 500 }}>{ps.violationCount ?? '—'}</td>
+                          <td style={{ padding: '13px 16px', textAlign: 'right' }}>
                             {ps.score == null
-                              ? <span className="text-xs font-normal bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md">Failed</span>
-                              : <span className="text-xs text-white/90">Scanned</span>
+                              ? <span style={{ fontSize: '12px', fontWeight: 500, background: 'rgba(255,59,48,0.10)', color: '#D70015', padding: '2px 8px', borderRadius: '6px' }}>Failed</span>
+                              : <span style={{ fontSize: '12px', color: '#34C759', fontWeight: 500 }}>Scanned</span>
                             }
                           </td>
                         </tr>
@@ -238,28 +221,28 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           )}
 
           {/* Violations */}
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">WCAG Errors Found</h2>
-            <span className="text-sm text-white/90">{patterns.length} issue type{patterns.length !== 1 ? 's' : ''} · {totalViolations} total</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1D1D1F', margin: 0 }}>WCAG Errors Found</h2>
+            <span style={{ fontSize: '13px', color: '#86868B' }}>{patterns.length} issue type{patterns.length !== 1 ? 's' : ''} · {totalViolations} total</span>
           </div>
           {patterns.length === 0 ? (
-            <div className="bg-[#141720] rounded-xl border border-dashed border-[#252a38] p-12 text-center text-white/90">
+            <div style={{ background: '#FFFFFF', borderRadius: '14px', border: '1px dashed #E0E0E0', padding: '48px', textAlign: 'center', color: '#86868B', fontSize: '14px' }}>
               No WCAG errors found — great job!
             </div>
           ) : (
-            <div className="space-y-5">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {(['tier1', 'tier2', 'tier3', 'tier4'] as const).map(tier => {
                 const group = byTier[tier]
                 if (group.length === 0) return null
-                const c = TIER_COLOR[tier]
+                const hex = TIER_HEX[tier]
                 return (
                   <div key={tier}>
-                    <div className="flex items-center gap-2.5 mb-2.5 px-1">
-                      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${c.text}`}>{TIER_LABEL[tier]}</h3>
-                      <span className="text-xs text-white/90 font-medium">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', padding: '0 4px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: hex, flexShrink: 0, display: 'inline-block' }} />
+                      <h3 style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: hex, margin: 0 }}>{TIER_LABEL[tier]}</h3>
+                      <span style={{ fontSize: '12px', color: '#86868B', fontWeight: 500 }}>{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                     </div>
-                    <div className="space-y-1.5">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {group.map(p => (
                         <ViolationCard key={p.fingerprint} pattern={p} />
                       ))}
