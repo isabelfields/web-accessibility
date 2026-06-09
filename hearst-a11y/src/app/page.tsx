@@ -172,10 +172,10 @@ export default async function DashboardPage({
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
       {/* Top bar */}
-      <div className="border-b border-[var(--border)] px-8 py-4 flex items-center justify-between sticky top-0 z-10 bg-[var(--bg-header)]/90 backdrop-blur-sm">
+      <div className="border-b border-[var(--border)] px-8 py-5 flex items-center justify-between sticky top-0 z-10 bg-[var(--bg-header)]/95 backdrop-blur-sm">
         <div>
-          <h1 className="text-base font-semibold text-[var(--text)] tracking-tight">Dashboard</h1>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">{division ? `${division} division` : 'All Hearst properties'}</p>
+          <h1 className="text-xl font-bold text-[var(--text)] tracking-tight">Dashboard</h1>
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">{division ? `${division} division` : 'All Hearst properties'}</p>
         </div>
         {isAdmin && visibleDivisions.length > 0 && (
           <Suspense>
@@ -190,50 +190,50 @@ export default async function DashboardPage({
       </div>
 
       <div className="px-8 py-6">
-        {/* Stat cards — clean, no decorations */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <div className="card p-5">
-            <div className="text-xs font-semibold text-[var(--text)] uppercase tracking-widest mb-3">Sites</div>
-            <div className="text-4xl font-bold text-[var(--text)] tabular-nums leading-none">{stats.siteCount}</div>
-            <div className="text-xs text-[var(--text-muted)] mt-2">{stats.totalPages} pages monitored</div>
+        {/* Stat cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="card p-6">
+            <div className="text-[11px] font-semibold text-[var(--text-subtle)] uppercase tracking-widest mb-4">Sites</div>
+            <div className="text-5xl font-extrabold text-[var(--text)] tabular-nums leading-none tracking-tight">{stats.siteCount}</div>
+            <div className="text-sm text-[var(--text-muted)] mt-3 font-medium">{stats.totalPages} pages monitored</div>
           </div>
-          <div className="card p-5 border-t-2 border-t-red-400">
-            <div className="text-xs font-semibold text-[var(--text)] uppercase tracking-widest mb-3">Tier 1 Critical</div>
-            <div className="text-4xl font-bold text-red-500 tabular-nums leading-none">{severityCounts.critical}</div>
-            <div className="text-xs text-[var(--text-muted)] mt-2">across all sites</div>
+          <div className="card p-6 border-l-4 border-l-red-500">
+            <div className="text-[11px] font-semibold text-[var(--text-subtle)] uppercase tracking-widest mb-4">Tier 1 Critical</div>
+            <div className="text-5xl font-extrabold text-red-500 tabular-nums leading-none tracking-tight">{severityCounts.critical}</div>
+            <div className="text-sm text-[var(--text-muted)] mt-3 font-medium">across all sites</div>
           </div>
-          <div className="card p-5">
-            <div className="text-xs font-semibold text-[var(--text)] uppercase tracking-widest mb-3">WCAG Errors</div>
-            <div className="text-4xl font-bold text-[var(--text)] tabular-nums leading-none">{stats.totalErrors}</div>
-            <div className="text-xs text-[var(--text-muted)] mt-2">latest scans</div>
+          <div className="card p-6">
+            <div className="text-[11px] font-semibold text-[var(--text-subtle)] uppercase tracking-widest mb-4">WCAG Errors</div>
+            <div className="text-5xl font-extrabold text-[var(--text)] tabular-nums leading-none tracking-tight">{stats.totalErrors}</div>
+            <div className="text-sm text-[var(--text-muted)] mt-3 font-medium">latest scans</div>
           </div>
-          <div className="card p-5">
-            <div className="text-xs font-semibold text-[var(--text)] uppercase tracking-widest mb-3">Resolved</div>
-            <div className={`text-4xl font-bold tabular-nums leading-none ${stats.errorsResolved > 0 ? 'text-emerald-400' : 'text-[var(--text-muted)]'}`}>{stats.errorsResolved}</div>
-            <div className="text-xs text-[var(--text-muted)] mt-2">vs previous scan</div>
+          <div className="card p-6 border-l-4 border-l-emerald-500">
+            <div className="text-[11px] font-semibold text-[var(--text-subtle)] uppercase tracking-widest mb-4">Resolved</div>
+            <div className={`text-5xl font-extrabold tabular-nums leading-none tracking-tight ${stats.errorsResolved > 0 ? 'text-emerald-500' : 'text-[var(--text-subtle)]'}`}>{stats.errorsResolved}</div>
+            <div className="text-sm text-[var(--text-muted)] mt-3 font-medium">vs previous scan</div>
           </div>
         </div>
 
         {/* Analytics charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-6">
-          <div className="lg:col-span-2 card p-5">
-            <h2 className="text-xs font-semibold text-[var(--text)] uppercase tracking-widest mb-4">Issue Trend Over Time</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div className="lg:col-span-2 card p-6">
+            <h2 className="text-sm font-bold text-[var(--text)] mb-5">Issue Trend Over Time</h2>
             <ScoreTrendChart trends={scoreTrends} />
           </div>
-          <div className="card p-5">
-            <h2 className="text-xs font-semibold text-[var(--text)] uppercase tracking-widest mb-2">Issues by Tier</h2>
+          <div className="card p-6">
+            <h2 className="text-sm font-bold text-[var(--text)] mb-3">Issues by Tier</h2>
             <SeverityDonut counts={severityCounts} />
           </div>
-          <div className="lg:col-span-3 card p-5">
-            <h2 className="text-xs font-semibold text-[var(--text)] uppercase tracking-widest mb-4">Top WCAG Errors Across All Sites</h2>
+          <div className="lg:col-span-3 card p-6">
+            <h2 className="text-sm font-bold text-[var(--text)] mb-5">Top WCAG Errors Across All Sites</h2>
             <TopViolationsChart violations={topViolations} />
           </div>
         </div>
 
         {/* Site cards */}
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-semibold text-[var(--text)] uppercase tracking-widest">Sites</h2>
-          <Link href="/sites" className="text-xs text-[#5b9bd6] hover:text-[var(--text)] font-medium transition-colors">View all →</Link>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold text-[var(--text)]">Sites</h2>
+          <Link href="/sites" className="text-sm text-[var(--accent)] hover:text-[var(--text)] font-semibold transition-colors">View all →</Link>
         </div>
         {sites.length === 0 ? (
           <div className="rounded-lg border border-dashed border-[var(--border)] p-12 text-center text-[var(--text-muted)]">
@@ -241,7 +241,7 @@ export default async function DashboardPage({
             <a href="/sites" className="text-[#5b9bd6] underline">Add a site</a>.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
             {sites.map((site: any) => (
               <SiteCard key={site.id} site={site} />
             ))}
@@ -249,9 +249,9 @@ export default async function DashboardPage({
         )}
 
       {/* Recent scans */}
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-xs font-semibold text-[var(--text)] uppercase tracking-widest">Recent Scans</h2>
-        <span className="text-xs text-[var(--text-muted)]">Last 5</span>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-bold text-[var(--text)]">Recent Scans</h2>
+        <span className="text-sm text-[var(--text-muted)]">Last 5</span>
       </div>
       <div className="card overflow-hidden">
         <table className="w-full text-sm">

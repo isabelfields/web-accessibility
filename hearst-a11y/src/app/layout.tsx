@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: 'Web accessibility audit dashboard for Hearst properties',
 }
 
-const navLink = "flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)] transition-colors"
+const navLink = "flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-semibold text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)] transition-colors"
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions)
@@ -22,7 +22,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="bg-[var(--bg-base)] text-[var(--text)] antialiased">
         <div className="flex min-h-screen">
           {/* Sidebar */}
-          <aside className="w-56 flex flex-col fixed inset-y-0 left-0 z-10 bg-[var(--bg-sidebar)] border-r border-[var(--border)] shadow-[1px_0_0_0_var(--border)]">
+          <aside className="w-56 flex flex-col fixed inset-y-0 left-0 z-10 bg-[var(--bg-sidebar)] border-r border-[var(--border)] shadow-[var(--shadow-sidebar)]">
             {/* Logo */}
             <div className="px-5 pt-5 pb-4 border-b border-[var(--border)]">
               <img src="/hearst-logo.svg" alt="Hearst" className="h-6 w-auto brightness-0 dark:invert opacity-90" />

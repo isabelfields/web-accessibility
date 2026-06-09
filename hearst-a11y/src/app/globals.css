@@ -4,19 +4,20 @@
 @tailwind utilities;
 
 :root {
-  --bg-base: #eef2f7;
+  --bg-base: #edf0f7;
   --bg-card: #ffffff;
   --bg-sidebar: #ffffff;
-  --bg-elevated: #f1f5fb;
-  --bg-header: #f8fafc;
-  --border: #e4e9f0;
-  --border-strong: #c8d3e0;
-  --text: #0f172a;
-  --text-muted: #334155;
-  --text-subtle: #64748b;
+  --bg-elevated: #f0f4fa;
+  --bg-header: #ffffff;
+  --border: #e8edf5;
+  --border-strong: #c5d0e0;
+  --text: #0a0f1e;
+  --text-muted: #3d4b63;
+  --text-subtle: #6b7a96;
   --accent: #2563eb;
-  --shadow-card: 0 1px 3px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.04);
-  --shadow-card-hover: 0 4px 12px rgba(15,23,42,0.10), 0 2px 4px rgba(15,23,42,0.06);
+  --shadow-card: 0 1px 2px rgba(10,15,30,0.04), 0 4px 16px rgba(10,15,30,0.07);
+  --shadow-card-hover: 0 2px 6px rgba(10,15,30,0.06), 0 12px 32px rgba(10,15,30,0.12);
+  --shadow-sidebar: 2px 0 16px rgba(10,15,30,0.06);
 }
 
 .dark {
@@ -48,12 +49,16 @@
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: 1rem;
   box-shadow: var(--shadow-card);
 }
 .card-hover:hover {
   box-shadow: var(--shadow-card-hover);
   border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+.card-hover {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
 ::selection { background: rgba(59,126,200,0.35); color: #fff; }
