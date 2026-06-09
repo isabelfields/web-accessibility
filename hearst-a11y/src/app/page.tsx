@@ -1,6 +1,6 @@
 import { sql } from '@/lib/db'
 import Link from 'next/link'
-import { Suspense } from 'react'
+import React, { Suspense } from 'react'
 import { SiteCard } from '@/components/SiteCard'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { DivisionFilter } from '@/components/DivisionFilter'
@@ -204,45 +204,27 @@ export default async function DashboardPage({
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 mb-7" style={{ gap: '20px' }}>
-          <div className="card">
-            <div className="stat-label">Sites</div>
-            <div className="stat-number">{stats.siteCount}</div>
-            <div className="stat-sub">{stats.totalPages} pages monitored</div>
-          </div>
-
-          <div className="card" style={{ borderLeft: '4px solid var(--color-tier1)' }}>
-            <div className="stat-label">Tier 1 Critical</div>
-            <div className="stat-number-hero">{severityCounts.critical}</div>
-            <div className="stat-sub">across all sites</div>
-          </div>
-
-          <div className="card">
-            <div className="stat-label">WCAG Errors</div>
-            <div className="stat-number">{stats.totalErrors}</div>
-            <div className="stat-sub">latest scans</div>
-          </div>
-
-          <div className="card" style={stats.errorsResolved > 0 ? { borderLeft: '4px solid var(--color-tier4)' } : undefined}>
-            <div className="stat-label">Resolved</div>
-            <div className="stat-number" style={{ color: stats.errorsResolved > 0 ? 'var(--color-tier4)' : 'var(--color-text-muted)' }}>
-              {stats.errorsResolved}
-            </div>
-            <div className="stat-sub">vs previous scan</div>
-          </div>
+          <StatCard label="Sites" value={stats.siteCount} sub={`${stats.totalPages} pages monitored`} />
+          <StatCard label="Tier 1 Critical" value={severityCounts.critical} sub="across all sites"
+            accentBorder="var(--color-tier1)" heroColor="var(--color-tier1)" heroSize={56} />
+          <StatCard label="WCAG Errors" value={stats.totalErrors} sub="latest scans" />
+          <StatCard label="Resolved" value={stats.errorsResolved} sub="vs previous scan"
+            accentBorder={stats.errorsResolved > 0 ? 'var(--color-tier4)' : undefined}
+            heroColor={stats.errorsResolved > 0 ? 'var(--color-tier4)' : 'var(--color-text-muted)'} />
         </div>
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-3 mb-7" style={{ gap: '20px' }}>
-          <div className="lg:col-span-2 card">
-            <h2 className="section-title">Issue Trend Over Time</h2>
+          <div className="lg:col-span-2" style={cardStyle}>
+            <div style={sectionTitleStyle}>Issue Trend Over Time</div>
             <ScoreTrendChart trends={scoreTrends} />
           </div>
-          <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <h2 className="section-title" style={{ alignSelf: 'flex-start', width: '100%' }}>Issues by Tier</h2>
+          <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ ...sectionTitleStyle, alignSelf: 'flex-start', width: '100%' }}>Issues by Tier</div>
             <SeverityDonut counts={severityCounts} />
           </div>
-          <div className="lg:col-span-3 card">
-            <h2 className="section-title">Top WCAG Errors Across All Sites</h2>
+          <div className="lg:col-span-3" style={cardStyle}>
+            <div style={sectionTitleStyle}>Top WCAG Errors Across All Sites</div>
             <TopViolationsChart violations={topViolations} />
           </div>
         </div>
@@ -275,7 +257,7 @@ export default async function DashboardPage({
           <h2 className="text-[13px] font-bold" style={{ color: 'var(--color-text-primary)' }}>Recent Scans</h2>
           <span className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>Last 5</span>
         </div>
-        <div className="card overflow-hidden">
+        <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
           <table className="data-table">
             <thead>
               <tr>
@@ -335,6 +317,58 @@ export default async function DashboardPage({
           </table>
         </div>
 
+      </div>
+    </div>
+  )
+}
+
+const cardStyle: React.CSSProperties = {
+  background: '#FFFFFF',
+  borderRadius: '12px',
+  padding: '28px 28px 24px',
+  boxShadow: '0 1px 3px rgba(10,22,40,0.08), 0 1px 2px rgba(10,22,40,0.04)',
+}
+
+const sectionTitleStyle: React.CSSProperties = {
+  fontSize: '11px',
+  fontWeight: 600,
+  letterSpacing: '0.07em',
+  textTransform: 'uppercase',
+  color: 'var(--color-text-muted)',
+  marginBottom: '20px',
+}
+
+function StatCard({
+  label, value, sub, accentBorder, heroColor, heroSize = 48,
+}: {
+  label: string
+  value: number
+  sub: string
+  accentBorder?: string
+  heroColor?: string
+  heroSize?: number
+}) {
+  return (
+    <div style={{
+      ...cardStyle,
+      borderLeft: accentBorder ? `4px solid ${accentBorder}` : undefined,
+    }}>
+      <div style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
+        {label}
+      </div>
+      <div style={{
+        fontSize: `${heroSize}px`,
+        fontWeight: 700,
+        lineHeight: 1,
+        letterSpacing: '-0.02em',
+        color: heroColor ?? 'var(--color-text-primary)',
+        margin: '12px 0 6px',
+        fontVariantNumeric: 'tabular-nums',
+      }}>
+        {value}
+      </div>
+      <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+        {sub}
       </div>
     </div>
   )
