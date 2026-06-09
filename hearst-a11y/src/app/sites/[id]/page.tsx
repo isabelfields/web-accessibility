@@ -9,6 +9,7 @@ import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { ViolationCard } from '@/components/ViolationCard'
 import { EditSiteButton } from '@/components/EditSiteButton'
 import { PageViolationsModal } from '@/components/PageViolationsModal'
+import { SiteTrendChart } from '@/components/SiteTrendChart'
 import { patternsToWorstTier, TIER_LABEL, TIER_COLOR, impactToTier } from '@/lib/tiers'
 import type { ViolationPattern, SitePage } from '@/types'
 
@@ -76,6 +77,13 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
       pageTrendMap[ps.url].push({ date, violationCount: ps.violationCount ?? null })
     }
   }
+
+  // Build site-level trend from completed scans (oldest → newest)
+  const siteTrend = [...completedScans].reverse().map((s: any) => ({
+    date: new Date(s.completed_at ?? s.started_at).toISOString(),
+    errors: s.raw_violation_count ?? 0,
+    score: s.score ?? null,
+  }))
 
   const patterns: ViolationPattern[] = latestScan?.patterns ?? []
   const byTier: Record<string, ViolationPattern[]> = { tier1: [], tier2: [], tier3: [], tier4: [] }
@@ -172,6 +180,18 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         <div className="space-y-8">
+
+          {/* Site trend chart */}
+          {completedScans.length > 0 && (
+            <section aria-labelledby="trend-heading">
+              <h2 id="trend-heading" className="text-[15px] font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
+                Trends
+              </h2>
+              <div className="card p-5">
+                <SiteTrendChart data={siteTrend} />
+              </div>
+            </section>
+          )}
 
           {/* Per-page breakdown */}
           {pageScores.length > 0 && (
