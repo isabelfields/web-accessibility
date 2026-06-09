@@ -279,10 +279,21 @@ function StatCard({ label, value, sub, accentColor, heroSize = 44, tooltip }: {
           {label}
         </div>
         {tooltip && (
-          <span title={tooltip} style={{ cursor: 'help', color: '#C0C0C0', lineHeight: 1 }}>
+          <span style={{ position: 'relative', display: 'inline-flex', cursor: 'help', color: '#C0C0C0', lineHeight: 1 }}
+            className="stat-tooltip-trigger">
             <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
               <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0 3.5c.4 0 .75.33.75.75v3.5a.75.75 0 0 1-1.5 0v-3.5c0-.42.34-.75.75-.75z"/>
             </svg>
+            <span className="stat-tooltip-box" style={{
+              position: 'absolute', bottom: '18px', left: '50%', transform: 'translateX(-50%)',
+              background: '#1D1D1F', color: '#FFFFFF', fontSize: '11px', lineHeight: 1.5,
+              padding: '6px 10px', borderRadius: '6px', whiteSpace: 'nowrap',
+              pointerEvents: 'none', opacity: 0, transition: 'opacity 0.15s',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 50,
+              maxWidth: '220px', whiteSpace: 'normal', textAlign: 'center',
+            }}>
+              {tooltip}
+            </span>
           </span>
         )}
       </div>
