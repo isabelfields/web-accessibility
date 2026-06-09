@@ -23,19 +23,19 @@ export function SeverityDonut({ counts }: Props) {
 
   const total = data.reduce((s, d) => s + d.value, 0)
   if (total === 0) return (
-    <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: '#86868B' }}>
+    <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: '#86868B' }}>
       No data yet
     </div>
   )
 
   return (
-    <div style={{ width: '100%', height: '200px', position: 'relative' }}>
+    <div style={{ width: '100%', height: '220px', position: 'relative' }}>
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
+        <PieChart margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
           <Pie
             data={data}
             cx="50%"
-            cy="42%"
+            cy="48%"
             innerRadius={52}
             outerRadius={76}
             paddingAngle={2}
@@ -69,7 +69,7 @@ export function SeverityDonut({ counts }: Props) {
       {/* Center label — positioned over the donut hole */}
       <div style={{
         position: 'absolute',
-        top: '42%',
+        top: '48%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
         textAlign: 'center',
