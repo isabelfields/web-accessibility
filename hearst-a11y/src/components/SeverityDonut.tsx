@@ -25,7 +25,7 @@ export function SeverityDonut({ counts }: Props) {
   if (total === 0) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '160px', fontSize: '14px', color: '#86868B' }}>No data yet</div>
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', height: '200px' }}>
       <ResponsiveContainer width="100%" height={200}>
         <PieChart>
           <Pie
