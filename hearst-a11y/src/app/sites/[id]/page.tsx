@@ -66,6 +66,17 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   const pageScores: Array<{ url: string; label?: string; score: number | null; violationCount: number | null; error?: string }> =
     latestScan?.page_scores ?? []
 
+  // Build per-page trend data from all completed scans (oldest first)
+  const pageTrendMap: Record<string, Array<{ date: string; violationCount: number | null }>> = {}
+  for (const scan of [...completedScans].reverse()) {
+    const scores: Array<{ url: string; violationCount: number | null }> = scan.page_scores ?? []
+    const date = new Date(scan.completed_at ?? scan.started_at).toISOString()
+    for (const ps of scores) {
+      if (!pageTrendMap[ps.url]) pageTrendMap[ps.url] = []
+      pageTrendMap[ps.url].push({ date, violationCount: ps.violationCount ?? null })
+    }
+  }
+
   const patterns: ViolationPattern[] = latestScan?.patterns ?? []
   const byTier: Record<string, ViolationPattern[]> = { tier1: [], tier2: [], tier3: [], tier4: [] }
   for (const p of patterns) {
@@ -192,7 +203,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                         )
                         const pageTier = patternsToWorstTier(pagePatterns)
                         return (
-                          <PageViolationsModal key={i} pageScore={ps} patterns={patterns}>
+                          <PageViolationsModal key={i} pageScore={ps} patterns={patterns} pageTrend={pageTrendMap[ps.url]}>
                             <tr className={ps.score != null ? 'cursor-pointer' : ''}>
                               <td className="font-semibold">{ps.label ?? '—'}</td>
                               <td>
