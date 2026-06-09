@@ -53,14 +53,14 @@ export function SeverityDonut({ counts }: Props) {
   return (
     <div>
       <div className="relative">
-        <ResponsiveContainer width="100%" height={180}>
+        <ResponsiveContainer width="100%" height={220}>
           <PieChart>
             <Pie
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={55}
-              outerRadius={82}
+              innerRadius={62}
+              outerRadius={96}
               paddingAngle={2}
               dataKey="value"
               strokeWidth={0}
@@ -80,8 +80,8 @@ export function SeverityDonut({ counts }: Props) {
         </ResponsiveContainer>
         {/* Center label */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="mono font-bold text-[28px] leading-none" style={{ color: 'var(--color-text-primary)' }}>{total}</span>
-          <span className="text-[11px] font-semibold uppercase tracking-wider mt-1" style={{ color: 'var(--color-text-muted)' }}>total</span>
+          <span className="mono font-bold leading-none" style={{ fontSize: '36px', color: 'var(--color-text-primary)', letterSpacing: '-0.02em' }}>{total}</span>
+          <span className="font-semibold uppercase tracking-wider mt-1" style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>total</span>
         </div>
       </div>
 

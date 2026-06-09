@@ -36,19 +36,19 @@ export function TopViolationsChart({ violations }: Props) {
   }))
 
   return (
-    <ResponsiveContainer width="100%" height={data.length * 38 + 20}>
-      <BarChart data={data} layout="vertical" margin={{ top: 0, right: 60, left: 0, bottom: 0 }}>
+    <ResponsiveContainer width="100%" height={data.length * 42 + 24}>
+      <BarChart data={data} layout="vertical" margin={{ top: 0, right: 64, left: 0, bottom: 0 }}>
         <XAxis
           type="number"
           tick={{ fontSize: 11, fill: '#718096', fontFamily: 'JetBrains Mono, monospace' }}
           tickLine={false}
           axisLine={false}
-          domain={[0, maxCount * 1.1]}
+          domain={[0, maxCount * 1.15]}
         />
         <YAxis
           type="category"
           dataKey="rule"
-          width={150}
+          width={180}
           tick={{ fontSize: 12, fill: '#4A5568', fontFamily: 'JetBrains Mono, monospace' }}
           tickLine={false}
           axisLine={false}

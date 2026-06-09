@@ -40,70 +40,79 @@ export function SiteCard({ site }: SiteCardProps) {
       : null
 
   return (
-    <Link href={`/sites/${site.id}`} className="block card card-hover p-5 group">
+    <Link
+      href={`/sites/${site.id}`}
+      className="block card-hover"
+      style={{
+        background: '#FFFFFF',
+        borderRadius: '12px',
+        padding: '20px 20px 16px',
+        boxShadow: '0 1px 3px rgba(10,22,40,0.08), 0 1px 2px rgba(10,22,40,0.04)',
+        display: 'block',
+        textDecoration: 'none',
+      }}
+    >
       {/* Header: name + tier badge */}
-      <div className="flex items-start justify-between gap-3 mb-1">
-        <div className="font-bold text-[15px] leading-tight" style={{ color: 'var(--color-text-primary)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+        <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)', lineHeight: 1.3 }}>
           {site.name}
         </div>
-        {tier && <span className={`badge-${tier} shrink-0`}>{tier.toUpperCase()}</span>}
+        {tier && <span className={`badge-${tier}`} style={{ flexShrink: 0 }}>{tier.toUpperCase()}</span>}
       </div>
 
-      {/* Subtitle */}
-      <div className="text-[13px] mb-4" style={{ color: 'var(--color-text-muted)' }}>
+      {/* Meta */}
+      <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '14px' }}>
         {pageCount} page{pageCount !== 1 ? 's' : ''}
         {site.division ? ` · ${site.division}` : ''}
       </div>
 
       {/* Divider */}
-      <div className="mb-3" style={{ height: '1px', background: 'var(--color-border)' }} />
+      <div style={{ height: '1px', background: 'var(--color-border)', marginBottom: '14px' }} />
 
       {/* Stats row */}
       {latestScan ? (
-        <div className="flex items-center justify-between">
-          <div className="flex items-baseline gap-4">
-            <div>
-              <span className="mono font-semibold text-[20px] leading-none" style={{ color: 'var(--color-text-primary)' }}>
-                {latestScan.raw_violation_count}
-              </span>
-              <span className="text-[12px] ml-1.5" style={{ color: 'var(--color-text-muted)' }}>
-                error{latestScan.raw_violation_count !== 1 ? 's' : ''}
-              </span>
-            </div>
-            <div>
-              <span className="mono font-medium text-[14px]" style={{ color: 'var(--color-text-secondary)' }}>
-                {latestScan.unique_pattern_count}
-              </span>
-              <span className="text-[12px] ml-1" style={{ color: 'var(--color-text-muted)' }}>
-                type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
-              </span>
-            </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div>
+            <span className="mono" style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text-primary)', letterSpacing: '-0.01em' }}>
+              {latestScan.raw_violation_count}
+            </span>
+            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginLeft: '4px' }}>
+              error{latestScan.raw_violation_count !== 1 ? 's' : ''}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div>
+            <span className="mono" style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text-primary)', letterSpacing: '-0.01em' }}>
+              {latestScan.unique_pattern_count}
+            </span>
+            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginLeft: '4px' }}>
+              type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
             {delta !== null && delta !== 0 && (
               <span
-                className="text-[12px] font-semibold px-2 py-0.5 rounded-full"
-                style={delta > 0
-                  ? { background: 'rgba(58,125,68,0.10)', color: '#3A7D44' }
-                  : { background: 'rgba(200,0,42,0.10)', color: '#C8002A' }
-                }
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  ...(delta > 0
+                    ? { background: 'rgba(58,125,68,0.10)', color: '#3A7D44' }
+                    : { background: 'rgba(200,0,42,0.10)', color: '#C8002A' })
+                }}
                 title={delta > 0 ? `${delta} fewer errors than last scan` : `${Math.abs(delta)} more errors than last scan`}
               >
                 {delta > 0 ? `↓ ${delta}` : `↑ ${Math.abs(delta)}`}
               </span>
             )}
-            <svg
-              className="w-4 h-4"
-              style={{ color: 'var(--color-hearst-blue)' }}
-              fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              style={{ color: 'var(--color-hearst-blue)', flexShrink: 0 }} aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>
         </div>
       ) : (
-        <div className="text-[13px] italic" style={{ color: 'var(--color-text-muted)' }}>No scans yet</div>
+        <div style={{ fontSize: '13px', fontStyle: 'italic', color: 'var(--color-text-muted)' }}>No scans yet</div>
       )}
     </Link>
   )

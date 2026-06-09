@@ -179,7 +179,7 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      <div className="px-8 py-7">
+      <div className="px-8 py-8">
 
         {/* T1 Critical Banner */}
         {criticalSiteCount > 0 && (
@@ -203,49 +203,46 @@ export default async function DashboardPage({
         )}
 
         {/* Stat cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
-          <div className="card p-6">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.07em] mb-4" style={{ color: 'var(--color-text-muted)' }}>Sites</div>
-            <div className="text-[48px] font-bold leading-none tabular-nums" style={{ color: 'var(--color-text-primary)' }}>{stats.siteCount}</div>
-            <div className="text-[13px] font-medium mt-3" style={{ color: 'var(--color-text-secondary)' }}>{stats.totalPages} pages monitored</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 mb-7" style={{ gap: '20px' }}>
+          <div className="card">
+            <div className="stat-label">Sites</div>
+            <div className="stat-number">{stats.siteCount}</div>
+            <div className="stat-sub">{stats.totalPages} pages monitored</div>
           </div>
 
-          <div className="card p-6" style={{ borderLeft: '4px solid var(--color-tier1)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.07em] mb-4" style={{ color: 'var(--color-text-muted)' }}>Tier 1 Critical</div>
-            <div className="text-[48px] font-bold leading-none tabular-nums" style={{ color: 'var(--color-tier1)' }}>{severityCounts.critical}</div>
-            <div className="text-[13px] font-medium mt-3" style={{ color: 'var(--color-text-secondary)' }}>across all sites</div>
+          <div className="card" style={{ borderLeft: '4px solid var(--color-tier1)' }}>
+            <div className="stat-label">Tier 1 Critical</div>
+            <div className="stat-number-hero">{severityCounts.critical}</div>
+            <div className="stat-sub">across all sites</div>
           </div>
 
-          <div className="card p-6">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.07em] mb-4" style={{ color: 'var(--color-text-muted)' }}>WCAG Errors</div>
-            <div className="text-[48px] font-bold leading-none tabular-nums" style={{ color: 'var(--color-text-primary)' }}>{stats.totalErrors}</div>
-            <div className="text-[13px] font-medium mt-3" style={{ color: 'var(--color-text-secondary)' }}>latest scans</div>
+          <div className="card">
+            <div className="stat-label">WCAG Errors</div>
+            <div className="stat-number">{stats.totalErrors}</div>
+            <div className="stat-sub">latest scans</div>
           </div>
 
-          <div className="card p-6" style={stats.errorsResolved > 0 ? { borderLeft: '4px solid var(--color-tier4)' } : undefined}>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.07em] mb-4" style={{ color: 'var(--color-text-muted)' }}>Resolved</div>
-            <div
-              className="text-[48px] font-bold leading-none tabular-nums"
-              style={{ color: stats.errorsResolved > 0 ? 'var(--color-tier4)' : 'var(--color-text-muted)' }}
-            >
+          <div className="card" style={stats.errorsResolved > 0 ? { borderLeft: '4px solid var(--color-tier4)' } : undefined}>
+            <div className="stat-label">Resolved</div>
+            <div className="stat-number" style={{ color: stats.errorsResolved > 0 ? 'var(--color-tier4)' : 'var(--color-text-muted)' }}>
               {stats.errorsResolved}
             </div>
-            <div className="text-[13px] font-medium mt-3" style={{ color: 'var(--color-text-secondary)' }}>vs previous scan</div>
+            <div className="stat-sub">vs previous scan</div>
           </div>
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-7">
-          <div className="lg:col-span-2 card p-6">
-            <h2 className="text-[13px] font-bold mb-5" style={{ color: 'var(--color-text-primary)' }}>Issue Trend Over Time</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 mb-7" style={{ gap: '20px' }}>
+          <div className="lg:col-span-2 card">
+            <h2 className="section-title">Issue Trend Over Time</h2>
             <ScoreTrendChart trends={scoreTrends} />
           </div>
-          <div className="card p-6">
-            <h2 className="text-[13px] font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>Issues by Tier</h2>
+          <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <h2 className="section-title" style={{ alignSelf: 'flex-start', width: '100%' }}>Issues by Tier</h2>
             <SeverityDonut counts={severityCounts} />
           </div>
-          <div className="lg:col-span-3 card p-6">
-            <h2 className="text-[13px] font-bold mb-5" style={{ color: 'var(--color-text-primary)' }}>Top WCAG Errors Across All Sites</h2>
+          <div className="lg:col-span-3 card">
+            <h2 className="section-title">Top WCAG Errors Across All Sites</h2>
             <TopViolationsChart violations={topViolations} />
           </div>
         </div>
@@ -266,7 +263,7 @@ export default async function DashboardPage({
             <a href="/sites" className="underline" style={{ color: 'var(--color-hearst-blue)' }}>Add a site</a>.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-7">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 mb-7" style={{ gap: '20px' }}>
             {sites.map((site: any) => (
               <SiteCard key={site.id} site={site} />
             ))}

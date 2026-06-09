@@ -83,8 +83,18 @@ export function RunScanButton({ siteId }: { siteId: string }) {
         disabled={loading}
         className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-50 transition-colors"
         style={{ background: 'var(--color-hearst-blue)' }}
-        onMouseEnter={(e) => { if (!loading) (e.currentTarget as HTMLElement).style.background = 'var(--color-hearst-blue-lt)' }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--color-hearst-blue)' }}
+        onMouseEnter={(e) => {
+          if (!loading) {
+            const el = e.currentTarget as HTMLElement
+            el.style.background = '#1A6FD4'
+            el.style.boxShadow = '0 4px 12px rgba(0,87,184,0.30)'
+          }
+        }}
+        onMouseLeave={(e) => {
+          const el = e.currentTarget as HTMLElement
+          el.style.background = '#0057B8'
+          el.style.boxShadow = 'none'
+        }}
       >
         {loading ? (
           <>
