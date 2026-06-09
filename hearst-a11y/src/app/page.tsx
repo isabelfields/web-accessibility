@@ -290,7 +290,7 @@ function StatCard({ label, value, sub, accentColor, heroSize = 44, tooltip }: {
               padding: '6px 10px', borderRadius: '6px', whiteSpace: 'nowrap',
               pointerEvents: 'none', opacity: 0, transition: 'opacity 0.15s',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 50,
-              maxWidth: '220px', whiteSpace: 'normal', textAlign: 'center',
+              maxWidth: '220px', textAlign: 'center',
             }}>
               {tooltip}
             </span>
