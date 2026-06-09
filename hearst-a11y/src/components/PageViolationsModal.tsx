@@ -75,43 +75,51 @@ export function PageViolationsModal({ pageScore, patterns, pageTrend, children }
 
             {/* Body */}
             <div className="overflow-y-auto px-6 py-5 space-y-5">
-              {pageTrend && pageTrend.filter(d => d.violationCount != null).length >= 2 && (
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+              {pageTrend && pageTrend.length > 0 && (
+                <div className="rounded-lg p-4" style={{ background: 'var(--color-bg-elevated, #F5F7FA)', border: '1px solid var(--color-border, #DDE3EC)' }}>
+                  <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--color-text-muted, #718096)' }}>
                     WCAG Errors Over Time
                   </div>
-                  <ResponsiveContainer width="100%" height={140}>
-                    <LineChart data={pageTrend} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
-                      <CartesianGrid strokeDasharray="0" stroke="rgba(10,22,40,0.08)" vertical={false} />
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 10, fill: '#718096', fontFamily: 'JetBrains Mono, monospace' }}
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      />
-                      <YAxis
-                        allowDecimals={false}
-                        tick={{ fontSize: 10, fill: '#718096', fontFamily: 'JetBrains Mono, monospace' }}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <Tooltip
-                        contentStyle={{ background: '#fff', border: '1px solid #DDE3EC', borderRadius: 8, fontSize: 12 }}
-                        labelFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        formatter={(val: any) => [val, 'Errors']}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="violationCount"
-                        stroke="#0057B8"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 4, strokeWidth: 0 }}
-                        connectNulls
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {pageTrend.filter(d => d.violationCount != null).length < 2 ? (
+                    <div className="text-sm text-center py-4" style={{ color: 'var(--color-text-muted, #718096)' }}>
+                      Run more scans to see trends
+                    </div>
+                  ) : (
+                    <div style={{ width: '100%', height: 140 }}>
+                      <ResponsiveContainer width="100%" height={140}>
+                        <LineChart data={pageTrend} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
+                          <CartesianGrid strokeDasharray="0" stroke="rgba(10,22,40,0.08)" vertical={false} />
+                          <XAxis
+                            dataKey="date"
+                            tick={{ fontSize: 10, fill: '#718096', fontFamily: 'JetBrains Mono, monospace' }}
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          />
+                          <YAxis
+                            allowDecimals={false}
+                            tick={{ fontSize: 10, fill: '#718096', fontFamily: 'JetBrains Mono, monospace' }}
+                            tickLine={false}
+                            axisLine={false}
+                          />
+                          <Tooltip
+                            contentStyle={{ background: '#fff', border: '1px solid #DDE3EC', borderRadius: 8, fontSize: 12 }}
+                            labelFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            formatter={(val: any) => [val, 'Errors']}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="violationCount"
+                            stroke="#0057B8"
+                            strokeWidth={2}
+                            dot={{ r: 3, fill: '#0057B8', strokeWidth: 0 }}
+                            activeDot={{ r: 4, strokeWidth: 0 }}
+                            connectNulls
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
                 </div>
               )}
               {pagePatterns.length === 0 ? (
