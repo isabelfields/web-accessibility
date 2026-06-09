@@ -30,7 +30,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
     : (
       <button
         onClick={() => hasData && setOpen(true)}
-        className={`text-left hover:underline truncate max-w-xs block ${hasData ? 'text-[#5b9bd6] cursor-pointer' : 'text-white/90 cursor-default'}`}
+        className={`text-left hover:underline truncate max-w-xs block ${hasData ? 'text-[#5b9bd6] cursor-pointer' : 'text-[var(--text-muted)] cursor-default'}`}
         title={pageScore.url}
         disabled={!hasData}
       >
@@ -44,29 +44,29 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setOpen(false)}>
-          <div className="bg-[#141720] border border-[#252a38] rounded-xl shadow-xl w-full max-w-3xl mx-4 max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-xl w-full max-w-3xl mx-4 max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
             {/* Header */}
-            <div className="flex items-start justify-between px-6 py-4 border-b border-[#252a38] flex-shrink-0">
+            <div className="flex items-start justify-between px-6 py-4 border-b border-[var(--border)] flex-shrink-0">
               <div>
-                <h2 className="text-base font-semibold text-white">{pageScore.label ?? 'Page'}</h2>
+                <h2 className="text-base font-semibold text-[var(--text)]">{pageScore.label ?? 'Page'}</h2>
                 <a href={pageScore.url} target="_blank" rel="noopener noreferrer"
                   className="text-sm text-[#5b9bd6] hover:underline break-all">
                   {pageScore.url}
                 </a>
                 <div className="flex items-center gap-3 mt-1">
                   {pageScore.score != null && (
-                    <span className="text-sm text-white/90">Score: <strong className="text-white">{pageScore.score}</strong></span>
+                    <span className="text-sm text-[var(--text-muted)]">Score: <strong className="text-[var(--text)]">{pageScore.score}</strong></span>
                   )}
-                  <span className="text-sm text-white/90">
+                  <span className="text-sm text-[var(--text-muted)]">
                     {pagePatterns.length} issue type{pagePatterns.length !== 1 ? 's' : ''}
                   </span>
                   {pageScore.violationCount != null && (
-                    <span className="text-sm text-white/90">· {pageScore.violationCount} total violations</span>
+                    <span className="text-sm text-[var(--text-muted)]">· {pageScore.violationCount} total violations</span>
                   )}
                 </div>
               </div>
               <button onClick={() => setOpen(false)}
-                className="text-white/90 hover:text-white text-2xl leading-none ml-4 flex-shrink-0">
+                className="text-[var(--text-muted)] hover:text-[var(--text)] text-2xl leading-none ml-4 flex-shrink-0">
                 &times;
               </button>
             </div>
@@ -74,7 +74,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
             {/* Body */}
             <div className="overflow-y-auto px-6 py-5 space-y-5">
               {pagePatterns.length === 0 ? (
-                <div className="text-center py-10 text-white/90 text-sm">No violations found on this page.</div>
+                <div className="text-center py-10 text-[var(--text-muted)] text-sm">No violations found on this page.</div>
               ) : (
                 (['critical', 'serious', 'moderate', 'minor'] as const).map(impact => {
                   const group = pagePatterns.filter(p => p.impact === impact)
@@ -90,7 +90,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
                       <div className="flex items-center gap-2 mb-2 px-1">
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.bar}`} />
                         <span className={`text-xs font-semibold uppercase tracking-wider ${cfg.text}`}>{cfg.label}</span>
-                        <span className="text-xs text-white/90">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
+                        <span className="text-xs text-[var(--text-muted)]">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                       </div>
                       <div className="space-y-1.5">
                         {group.map(p => {

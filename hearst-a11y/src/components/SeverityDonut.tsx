@@ -22,7 +22,16 @@ export function SeverityDonut({ counts }: Props) {
   ].filter(d => d.value > 0)
 
   const total = data.reduce((s, d) => s + d.value, 0)
-  if (total === 0) return <div className="flex items-center justify-center h-40 text-sm text-white/90">No data yet</div>
+  const tooltipStyle = {
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border)',
+    borderRadius: '6px',
+    color: 'var(--text)',
+    fontSize: 12,
+    boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+  }
+
+  if (total === 0) return <div className="flex items-center justify-center h-40 text-sm text-[var(--text-muted)]">No data yet</div>
 
   return (
     <ResponsiveContainer width="100%" height={200}>
@@ -43,20 +52,13 @@ export function SeverityDonut({ counts }: Props) {
         </Pie>
         <Tooltip
           formatter={(val) => { const n = Number(val); return [`${n} (${Math.round(n/total*100)}%)`] }}
-          contentStyle={{
-            fontSize: 12,
-            borderRadius: 6,
-            border: '1px solid #1e1e2a',
-            background: '#11111a',
-            color: '#e8e8f0',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-          }}
+          contentStyle={tooltipStyle}
         />
         <Legend
           iconType="circle"
           iconSize={6}
           wrapperStyle={{ fontSize: 10 }}
-          formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.9)' }}>{value}</span>}
+          formatter={(value) => <span style={{ color: 'var(--text-muted)' }}>{value}</span>}
         />
       </PieChart>
     </ResponsiveContainer>

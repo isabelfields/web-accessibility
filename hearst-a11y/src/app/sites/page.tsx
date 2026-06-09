@@ -139,7 +139,7 @@ export default function SitesPage() {
               {filtered.map(site => (
                 <tr key={site.id} className="hover:bg-[#1e2230] transition-colors">
                   <td className="px-4 py-3">
-                    <Link href={`/sites/${site.id}`} className="font-medium text-[#5b9bd6] hover:text-blue-300">
+                    <Link href={`/sites/${site.id}`} className="font-medium text-blue-600 dark:text-[#5b9bd6] hover:text-blue-800 dark:hover:text-blue-300">
                       {site.name}
                     </Link>
                   </td>
@@ -171,7 +171,7 @@ export default function SitesPage() {
                     <div className="flex items-center justify-end gap-3">
                       <button
                         onClick={() => setEditingSite(site)}
-                        className="text-[#5b9bd6] hover:text-blue-300 text-xs font-medium"
+                        className="text-blue-600 dark:text-[#5b9bd6] hover:text-blue-800 dark:hover:text-blue-300 text-xs font-medium"
                       >
                         Edit
                       </button>

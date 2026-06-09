@@ -49,12 +49,12 @@ export function SiteCard({ site }: SiteCardProps) {
   return (
     <Link
       href={`/sites/${site.id}`}
-      className="block bg-[#13131c] border border-[#2a2a3a] rounded-lg p-4 hover:bg-[#181826] hover:border-[#36364a] transition-all group"
+      className="block bg-[var(--bg-card)] border border-[var(--border)] rounded-lg p-4 hover:bg-[var(--bg-elevated)] hover:border-[var(--border-strong)] transition-all group"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0">
-          <div className="font-semibold text-white text-sm leading-tight truncate">{site.name}</div>
-          <div className="text-xs text-white/60 mt-0.5">
+          <div className="font-semibold text-[var(--text)] text-sm leading-tight truncate">{site.name}</div>
+          <div className="text-xs text-[var(--text-muted)] mt-0.5">
             {pageCount} page{pageCount !== 1 ? 's' : ''}
             {site.division ? ` · ${site.division}` : ''}
           </div>
@@ -82,16 +82,16 @@ export function SiteCard({ site }: SiteCardProps) {
 
       {latestScan ? (
         <div className="flex items-center justify-between text-xs">
-          <span className="text-white font-medium">
+          <span className="text-[var(--text)] font-medium">
             {latestScan.raw_violation_count} error{latestScan.raw_violation_count !== 1 ? 's' : ''}
           </span>
-          <span className="text-white/60">
+          <span className="text-[var(--text-muted)]">
             {latestScan.unique_pattern_count} type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
           </span>
-          <span className="text-white/40 group-hover:text-white/80 transition-colors" aria-hidden="true">→</span>
+          <span className="text-[var(--text-subtle)] group-hover:text-[var(--text-muted)] transition-colors" aria-hidden="true">→</span>
         </div>
       ) : (
-        <div className="text-xs text-white/50 italic">No scans yet</div>
+        <div className="text-xs text-[var(--text-subtle)] italic">No scans yet</div>
       )}
     </Link>
   )
