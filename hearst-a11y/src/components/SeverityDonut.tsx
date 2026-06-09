@@ -70,7 +70,7 @@ export function SeverityDonut({ counts }: Props) {
               ))}
             </Pie>
             <Tooltip
-              formatter={(val: any, name: string) => {
+              formatter={(val: any, name: any) => {
                 const n = Number(val)
                 return [`${n} (${Math.round(n / total * 100)}%)`, name]
               }}
