@@ -44,7 +44,6 @@ async function getData(division?: string, allowedDivisions?: string[]) {
   const scans = division ? recentScans.filter((s: any) => s.division === division) : recentScans
 
   const totalPages = sites.reduce((sum: number, s: any) => sum + (Array.isArray(s.pages) ? s.pages.length : 0), 0)
-  const totalErrors = sites.reduce((sum: number, s: any) => sum + (s.latestScan?.raw_violation_count ?? 0), 0)
   const errorsResolved = sites.reduce((sum: number, s: any) => {
     const latest = s.latestScan?.raw_violation_count ?? 0
     const prev = s.prevScan?.raw_violation_count ?? latest
@@ -79,6 +78,8 @@ async function getData(division?: string, allowedDivisions?: string[]) {
   const t1SiteCount = sites.filter((s: any) =>
     ((s.latestScan?.patterns ?? []) as any[]).some((p: any) => p.impact === 'critical')
   ).length
+
+  const totalErrors = severityCounts.critical + severityCounts.serious + severityCounts.moderate + severityCounts.minor
 
   return { sites, scans, activeDivisions, stats: { totalPages, totalErrors, errorsResolved, siteCount: sites.length }, severityCounts, topViolations, scoreTrends, t1SiteCount }
 }
