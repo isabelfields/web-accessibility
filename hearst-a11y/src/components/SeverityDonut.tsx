@@ -3,10 +3,10 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const COLORS = {
-  critical: '#1e40af',
-  serious:  '#2563eb',
-  moderate: '#60a5fa',
-  minor:    '#bfdbfe',
+  critical: '#002D82',
+  serious:  '#005AC8',
+  moderate: '#007AFF',
+  minor:    '#5AC8FA',
 }
 
 interface Props {
@@ -22,7 +22,7 @@ export function SeverityDonut({ counts }: Props) {
   ].filter(d => d.value > 0)
 
   const total = data.reduce((s, d) => s + d.value, 0)
-  if (total === 0) return <div className="flex items-center justify-center h-40 text-sm text-white/90">No data yet</div>
+  if (total === 0) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '160px', fontSize: '14px', color: '#86868B' }}>No data yet</div>
 
   return (
     <ResponsiveContainer width="100%" height={200}>
@@ -45,18 +45,18 @@ export function SeverityDonut({ counts }: Props) {
           formatter={(val) => { const n = Number(val); return [`${n} (${Math.round(n/total*100)}%)`] }}
           contentStyle={{
             fontSize: 12,
-            borderRadius: 6,
-            border: '1px solid #1e1e2a',
-            background: '#11111a',
-            color: '#e8e8f0',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+            borderRadius: 8,
+            border: '1px solid #E0E0E0',
+            background: '#FFFFFF',
+            color: '#1D1D1F',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
           }}
         />
         <Legend
           iconType="circle"
           iconSize={6}
           wrapperStyle={{ fontSize: 10 }}
-          formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.9)' }}>{value}</span>}
+          formatter={(value) => <span style={{ color: '#3A3A3C' }}>{value}</span>}
         />
       </PieChart>
     </ResponsiveContainer>

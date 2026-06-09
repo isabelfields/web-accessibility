@@ -14,11 +14,11 @@ interface Props {
   trends: SiteTrend[]
 }
 
-const LINE_COLORS = ['#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#bfdbfe']
+const LINE_COLORS = ['#002D82', '#005AC8', '#007AFF', '#5AC8FA', '#1D4ED8', '#60A5FA']
 
 export function ScoreTrendChart({ trends }: Props) {
   if (trends.length === 0 || trends.every(t => t.scores.length < 2)) {
-    return <div className="flex items-center justify-center h-40 text-sm text-white/90">Run more scans to see trends</div>
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '160px', fontSize: '14px', color: '#86868B' }}>Run more scans to see trends</div>
   }
 
   const allDates = [...new Set(
@@ -37,28 +37,28 @@ export function ScoreTrendChart({ trends }: Props) {
   return (
     <ResponsiveContainer width="100%" height={200}>
       <LineChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="2 4" stroke="#1e1e2a" vertical={false} />
+        <CartesianGrid strokeDasharray="2 4" stroke="#F0F0F0" vertical={false} />
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.85)' }}
+          tick={{ fontSize: 10, fill: '#86868B' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         />
         <YAxis
           domain={[0, 100]}
-          tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.85)' }}
+          tick={{ fontSize: 10, fill: '#86868B' }}
           tickLine={false}
           axisLine={false}
         />
         <Tooltip
           contentStyle={{
             fontSize: 12,
-            borderRadius: 6,
-            border: '1px solid #1e1e2a',
-            background: '#11111a',
-            color: '#e8e8f0',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+            borderRadius: 8,
+            border: '1px solid #E0E0E0',
+            background: '#FFFFFF',
+            color: '#1D1D1F',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
           }}
           labelFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         />
@@ -67,7 +67,7 @@ export function ScoreTrendChart({ trends }: Props) {
             iconType="circle"
             iconSize={6}
             wrapperStyle={{ fontSize: 10 }}
-            formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.9)' }}>{value}</span>}
+            formatter={(value) => <span style={{ color: '#3A3A3C' }}>{value}</span>}
           />
         )}
         {trends.map((site, i) => (

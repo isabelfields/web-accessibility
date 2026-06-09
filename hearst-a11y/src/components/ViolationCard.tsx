@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import type { ViolationPattern } from '@/types'
 
-const IMPACT: Record<string, { label: string; border: string; pill: string; dot: string }> = {
-  critical: { label: 'Critical',  border: 'border-l-red-500',    pill: 'bg-red-500/20 text-red-400 ring-1 ring-inset ring-red-500/30',    dot: 'bg-red-500' },
-  serious:  { label: 'Serious',   border: 'border-l-red-400',    pill: 'bg-red-500/20 text-red-400 ring-1 ring-inset ring-red-500/30',    dot: 'bg-red-400' },
-  moderate: { label: 'Moderate',  border: 'border-l-amber-400',  pill: 'bg-amber-500/20 text-amber-400 ring-1 ring-inset ring-amber-500/30',  dot: 'bg-amber-400' },
-  minor:    { label: 'Minor',     border: 'border-l-blue-400',   pill: 'bg-blue-500/20 text-blue-400 ring-1 ring-inset ring-blue-500/30',    dot: 'bg-blue-400' },
+const IMPACT: Record<string, { label: string; borderColor: string; pillBg: string; pillText: string; pillBorder: string }> = {
+  critical: { label: 'Critical', borderColor: '#002D82', pillBg: 'rgba(0,45,130,0.10)',   pillText: '#002D82', pillBorder: 'rgba(0,45,130,0.25)' },
+  serious:  { label: 'Serious',  borderColor: '#005AC8', pillBg: 'rgba(0,90,200,0.10)',   pillText: '#005AC8', pillBorder: 'rgba(0,90,200,0.25)' },
+  moderate: { label: 'Moderate', borderColor: '#007AFF', pillBg: 'rgba(0,122,255,0.10)',  pillText: '#007AFF', pillBorder: 'rgba(0,122,255,0.25)' },
+  minor:    { label: 'Minor',    borderColor: '#5AC8FA', pillBg: 'rgba(90,200,250,0.12)', pillText: '#0A84CC', pillBorder: 'rgba(90,200,250,0.35)' },
 }
 
 const WCAG_RULES: Record<string, { name: string; wcag: string; what: string }> = {
@@ -67,33 +67,45 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
   const hiddenCount = nodes.length - SHOW_LIMIT
 
   return (
-    <div className={`bg-[#141720] border border-[#252a38] border-l-[3px] ${impact.border} rounded-lg overflow-hidden`}>
+    <div style={{
+      background: '#FFFFFF',
+      border: '1px solid #E0E0E0',
+      borderLeft: `3px solid ${impact.borderColor}`,
+      borderRadius: '10px',
+      overflow: 'hidden',
+    }}>
 
       {/* ── Collapsed header row ── */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full text-left px-5 py-3 flex items-center gap-3 hover:bg-[#1e2230] transition-colors"
+        style={{ width: '100%', textAlign: 'left', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '12px', background: 'transparent', cursor: 'pointer', transition: 'background 0.12s' }}
+        onMouseEnter={e => (e.currentTarget.style.background = '#F7F9FF')}
+        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
       >
-        <span className={`shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md ${impact.pill}`}>
+        <span style={{
+          flexShrink: 0, fontSize: '11px', fontWeight: 600, fontFamily: '"JetBrains Mono", monospace',
+          padding: '2px 10px', borderRadius: '999px',
+          background: impact.pillBg, color: impact.pillText, border: `1px solid ${impact.pillBorder}`,
+        }}>
           {impact.label}
         </span>
-        <div className="flex-1 min-w-0">
-          <span className="font-semibold text-white text-sm">{ruleInfo.name}</span>
-          <span className="text-xs text-white/90 ml-2 bg-[#1e2230] px-1.5 py-0.5 rounded">{ruleInfo.wcag}</span>
-          <span className="text-xs text-white/90 mx-1.5">·</span>
-          <span className="text-xs text-white/90 truncate">{pattern.description}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ fontWeight: 600, color: '#1D1D1F', fontSize: '14px' }}>{ruleInfo.name}</span>
+          <span style={{ fontSize: '12px', color: '#86868B', marginLeft: '8px', background: '#F5F5F7', padding: '2px 6px', borderRadius: '4px', fontFamily: '"JetBrains Mono", monospace' }}>{ruleInfo.wcag}</span>
+          <span style={{ fontSize: '12px', color: '#86868B', margin: '0 6px' }}>·</span>
+          <span style={{ fontSize: '12px', color: '#3A3A3C' }}>{pattern.description}</span>
         </div>
-        <div className="hidden sm:flex items-center gap-5 shrink-0 text-right">
+        <div className="hidden sm:flex" style={{ alignItems: 'center', gap: '20px', flexShrink: 0, textAlign: 'right' }}>
           <div>
-            <div className="text-sm font-semibold text-white tabular-nums">{instanceCount}</div>
-            <div className="text-[10px] text-white/90 uppercase tracking-wide">instance{instanceCount !== 1 ? 's' : ''}</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace' }}>{instanceCount}</div>
+            <div style={{ fontSize: '10px', color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>instance{instanceCount !== 1 ? 's' : ''}</div>
           </div>
           <div>
-            <div className="text-sm font-semibold text-white tabular-nums">{pageCount}</div>
-            <div className="text-[10px] text-white/90 uppercase tracking-wide">page{pageCount !== 1 ? 's' : ''}</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace' }}>{pageCount}</div>
+            <div style={{ fontSize: '10px', color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>page{pageCount !== 1 ? 's' : ''}</div>
           </div>
         </div>
-        <svg className={`shrink-0 w-4 h-4 text-white/90 transition-transform ${open ? 'rotate-180' : ''}`}
+        <svg style={{ flexShrink: 0, width: '16px', height: '16px', color: '#86868B', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -101,57 +113,57 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
 
       {/* ── Expanded body ── */}
       {open && (
-        <div className="border-t border-[#252a38]">
+        <div style={{ borderTop: '1px solid #F0F0F0' }}>
 
           {/* What it means */}
-          <div className="px-5 pt-4 pb-3">
-            <p className="text-sm text-white/90 leading-relaxed">{ruleInfo.what ?? pattern.description}</p>
+          <div style={{ padding: '16px 20px 12px' }}>
+            <p style={{ fontSize: '14px', color: '#3A3A3C', lineHeight: 1.6 }}>{ruleInfo.what ?? pattern.description}</p>
           </div>
 
-          {/* How to fix — prominent callout */}
+          {/* How to fix */}
           {pattern.fixSuggestion && (
-            <div className="mx-5 mb-4 bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-3 flex gap-3">
-              <svg className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div style={{ margin: '0 20px 16px', background: 'rgba(0,122,255,0.06)', border: '1px solid rgba(0,122,255,0.20)', borderRadius: '8px', padding: '12px 16px', display: 'flex', gap: '12px' }}>
+              <svg style={{ width: '16px', height: '16px', color: '#007AFF', flexShrink: 0, marginTop: '2px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <div className="text-xs font-semibold text-blue-400 mb-0.5 uppercase tracking-wide">How to fix</div>
-                <p className="text-sm text-white/90 leading-relaxed">{pattern.fixSuggestion}</p>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: '#007AFF', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>How to fix</div>
+                <p style={{ fontSize: '14px', color: '#3A3A3C', lineHeight: 1.6 }}>{pattern.fixSuggestion}</p>
               </div>
             </div>
           )}
 
-          {/* Failing elements — compact table */}
+          {/* Failing elements */}
           {nodes.length > 0 && (
-            <div className="border-t border-[#252a38]">
-              <div className="px-5 py-2.5 flex items-center justify-between">
-                <span className="text-xs font-semibold text-white/90 uppercase tracking-wider">
+            <div style={{ borderTop: '1px solid #F0F0F0' }}>
+              <div style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Failing elements · {nodes.length}
                 </span>
               </div>
-              <table className="w-full text-xs">
+              <table className="w-full" style={{ fontSize: '12px' }}>
                 <thead>
-                  <tr className="border-b border-[#252a38]">
-                    <th className="text-left px-4 py-1.5 text-[10px] font-semibold text-white/90 uppercase tracking-wider w-8">#</th>
-                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-white/90 uppercase tracking-wider w-36">Page</th>
-                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-white/90 uppercase tracking-wider">Element</th>
+                  <tr style={{ borderBottom: '1px solid #F0F0F0' }}>
+                    <th style={{ textAlign: 'left', padding: '6px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em', width: '32px' }}>#</th>
+                    <th style={{ textAlign: 'left', padding: '6px 12px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em', width: '144px' }}>Page</th>
+                    <th style={{ textAlign: 'left', padding: '6px 12px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Element</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#1e2230]">
+                <tbody>
                   {visibleNodes.map((node, i) => (
-                    <tr key={i} className="hover:bg-[#1e2230]">
-                      <td className="px-4 py-2 text-white/90 font-mono">{i + 1}</td>
-                      <td className="px-3 py-2">
+                    <tr key={i} style={{ borderBottom: '1px solid #F5F5F7' }}>
+                      <td style={{ padding: '8px 16px', color: '#86868B', fontFamily: '"JetBrains Mono", monospace' }}>{i + 1}</td>
+                      <td style={{ padding: '8px 12px' }}>
                         {node.url ? (
                           <a href={node.url} target="_blank" rel="noopener noreferrer"
-                            className="text-[#5b9bd6] hover:underline font-mono truncate block max-w-[140px]"
+                            style={{ color: '#007AFF', textDecoration: 'none', fontFamily: '"JetBrains Mono", monospace', fontSize: '11px', display: 'block', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                             title={node.url}>
                             {pagePath(node.url)}
                           </a>
-                        ) : <span className="text-white/90">—</span>}
+                        ) : <span style={{ color: '#86868B' }}>—</span>}
                       </td>
-                      <td className="px-3 py-2">
-                        <code className="font-mono text-white/90 bg-[#1e2230] px-1.5 py-0.5 rounded text-[11px] break-all">
+                      <td style={{ padding: '8px 12px' }}>
+                        <code style={{ fontFamily: '"JetBrains Mono", monospace', color: '#3A3A3C', background: '#F5F5F7', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', wordBreak: 'break-all' }}>
                           {truncateHtml(node.html)}
                         </code>
                       </td>
@@ -162,7 +174,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
               {hiddenCount > 0 && !showAll && (
                 <button
                   onClick={() => setShowAll(true)}
-                  className="w-full text-center text-xs text-white/90 hover:text-white py-2 border-t border-[#252a38] hover:bg-[#1e2230] transition-colors"
+                  style={{ width: '100%', textAlign: 'center', fontSize: '12px', color: '#007AFF', padding: '8px', borderTop: '1px solid #F0F0F0', background: 'transparent', cursor: 'pointer' }}
                 >
                   + {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
                 </button>
@@ -170,13 +182,13 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
             </div>
           )}
 
-          {/* Footer — WCAG guidance link */}
-          <div className="px-5 py-2.5 border-t border-[#252a38] flex items-center justify-between">
-            <span className="text-[11px] font-mono text-white/90">{pattern.rule}</span>
+          {/* Footer */}
+          <div style={{ padding: '10px 20px', borderTop: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '11px', fontFamily: '"JetBrains Mono", monospace', color: '#86868B' }}>{pattern.rule}</span>
             <a
               href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}?application=axeAPI`}
               target="_blank" rel="noopener noreferrer"
-              className="text-xs font-medium text-[#5b9bd6] hover:underline"
+              style={{ fontSize: '12px', fontWeight: 500, color: '#007AFF', textDecoration: 'none' }}
             >
               View WCAG guidance →
             </a>

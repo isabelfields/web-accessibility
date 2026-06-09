@@ -81,7 +81,8 @@ export function RunScanButton({ siteId }: { siteId: string }) {
       <button
         onClick={handleRun}
         disabled={loading}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        style={{ background: '#007AFF', color: '#FFFFFF', fontSize: '14px', fontWeight: 500, padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1, display: 'inline-flex', alignItems: 'center', gap: '8px', transition: 'background 0.15s' }}
+        className="inline-flex items-center gap-2"
       >
         {loading ? (
           <>

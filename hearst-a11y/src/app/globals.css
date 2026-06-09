@@ -1,16 +1,286 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────────────
+   CSS CUSTOM PROPERTIES  —  v3.0 token system
+───────────────────────────────────────────── */
+:root {
+  /* Tier colors — the visual language of the entire product */
+  --tier-1: #002D82;
+  --tier-2: #005AC8;
+  --tier-3: #007AFF;
+  --tier-4: #5AC8FA;
+
+  /* Backgrounds */
+  --bg-base:    #F5F5F7;
+  --bg-surface: #FFFFFF;
+  --bg-sidebar: #0A1628;
+
+  /* Text */
+  --text-primary:   #1D1D1F;
+  --text-secondary: #3A3A3C;
+  --text-muted:     #86868B;
+  --text-inverse:   #FFFFFF;
+
+  /* Borders */
+  --border:     #F0F0F0;
+  --border-mid: #E0E0E0;
+
+  /* Semantic */
+  --color-resolved: #34C759;
+
+  /* Radius */
+  --radius-card: 14px;
+  --radius-btn:   8px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-card:   0 1px 2px rgba(0,0,0,0.05);
+  --shadow-raised: 0 6px 20px rgba(0,0,0,0.09);
+  --shadow-btn:    0 4px 12px rgba(0,122,255,0.30);
+
+  /* Typography */
+  --font-ui:   "Inter", -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  /* Legacy aliases for components not yet migrated */
+  --color-bg-base:        var(--bg-base);
+  --color-bg-surface:     var(--bg-surface);
+  --color-bg-sidebar:     var(--bg-sidebar);
+  --color-bg-elevated:    #F5F5F7;
+  --color-hearst-blue:    var(--tier-3);
+  --color-hearst-blue-lt: #1A6FD4;
+  --color-hearst-tint:    rgba(0,122,255,0.06);
+  --color-text-primary:   var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted:     var(--text-muted);
+  --color-tier1:          var(--tier-1);
+  --color-tier2:          var(--tier-2);
+  --color-tier3:          var(--tier-3);
+  --color-tier4:          var(--tier-4);
+  --color-border:         var(--border);
+  --color-border-strong:  var(--border-mid);
+  --shadow-modal:         0 20px 60px rgba(0,0,0,0.15);
+
+  /* bg/text shorthands */
+  --bg-card:     var(--bg-surface);
+  --bg-elevated: var(--bg-base);
+  --bg-header:   var(--bg-surface);
+  --text:        var(--text-primary);
+  --text-subtle: var(--text-muted);
+  --border-strong: var(--border-mid);
+  --accent:      var(--tier-3);
+}
+
+/* Dark mode — keep the existing dark theme for toggle users */
+.dark {
+  --bg-base:    #0c0c10;
+  --bg-surface: #13131c;
+  --bg-sidebar: #08080c;
+  --text-primary:   #ffffff;
+  --text-secondary: rgba(255,255,255,0.7);
+  --text-muted:     rgba(255,255,255,0.5);
+  --border:         #2a2a3a;
+  --border-mid:     #36364a;
+  --shadow-card:    none;
+  --shadow-raised:  none;
+
+  --color-bg-base:       var(--bg-base);
+  --color-bg-surface:    var(--bg-surface);
+  --color-bg-elevated:   #1e1e2a;
+  --color-text-primary:  var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted:    var(--text-muted);
+  --color-border:        var(--border);
+  --color-border-strong: var(--border-mid);
+  --bg-card:             var(--bg-surface);
+  --bg-elevated:         #1e1e2a;
+  --bg-header:           var(--bg-base);
+  --text:                var(--text-primary);
+  --text-subtle:         var(--text-muted);
+  --border-strong:       var(--border-mid);
+}
+
+/* ─────────────────────────────────────────────
+   BASE
+───────────────────────────────────────────── */
 @layer base {
   body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-ui);
     -webkit-font-smoothing: antialiased;
-    background-color: #0d0f12;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--tier-3);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 }
 
-::selection { background: rgba(59,126,200,0.35); color: #fff; }
-::-webkit-scrollbar { width: 6px; background: #0d0f12; }
-::-webkit-scrollbar-thumb { background: #252a38; border-radius: 3px; }
+/* ─────────────────────────────────────────────
+   CARD
+───────────────────────────────────────────── */
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 22px 22px 18px;
+  border: none;
+}
+.card.overflow-hidden {
+  padding: 0;
+}
+.dark .card {
+  background: #13131c;
+  border: 1px solid #2a2a3a;
+  box-shadow: none;
+}
+
+/* ─────────────────────────────────────────────
+   TIER PILL BADGES
+───────────────────────────────────────────── */
+.badge-t1 {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 600;
+  color: #002D82;
+  background: rgba(0,45,130,0.10);
+  border: 1px solid rgba(0,45,130,0.25);
+  padding: 3px 10px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center;
+  white-space: nowrap;
+}
+.badge-t2 {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 600;
+  color: #005AC8;
+  background: rgba(0,90,200,0.10);
+  border: 1px solid rgba(0,90,200,0.25);
+  padding: 3px 10px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center;
+  white-space: nowrap;
+}
+.badge-t3 {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 600;
+  color: #007AFF;
+  background: rgba(0,122,255,0.10);
+  border: 1px solid rgba(0,122,255,0.25);
+  padding: 3px 10px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center;
+  white-space: nowrap;
+}
+.badge-t4 {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 600;
+  color: #0A84CC;
+  background: rgba(90,200,250,0.12);
+  border: 1px solid rgba(90,200,250,0.35);
+  padding: 3px 10px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center;
+  white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────────
+   DATA TABLE
+───────────────────────────────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table thead tr {
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border-mid);
+}
+.data-table th {
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.data-table td {
+  padding: 13px 16px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+}
+.data-table tbody tr {
+  transition: background 0.12s ease;
+  cursor: default;
+}
+.data-table tbody tr.clickable {
+  cursor: pointer;
+}
+.data-table tbody tr:hover {
+  background: #F7F9FF;
+}
+.dark .data-table tbody tr:hover {
+  background: #1e1e2a;
+}
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ─────────────────────────────────────────────
+   SIDEBAR NAV
+───────────────────────────────────────────── */
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.58);
+  text-decoration: none;
+  transition: color 0.15s ease, background 0.15s ease;
+  border-left: 3px solid transparent;
+}
+.sidebar-nav-link:hover {
+  color: rgba(255,255,255,0.95);
+  background: rgba(255,255,255,0.07);
+}
+.sidebar-nav-link:focus-visible {
+  outline: 2px solid rgba(0,122,255,0.7);
+  outline-offset: 1px;
+}
+
+/* ─────────────────────────────────────────────
+   MONO UTILITY
+───────────────────────────────────────────── */
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* ─────────────────────────────────────────────
+   SCROLLBAR
+───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 3px; }
+::selection { background: rgba(0,122,255,0.18); }
+
+/* ─────────────────────────────────────────────
+   REDUCED MOTION
+───────────────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  .card-hover {
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .card-hover:hover {
+    box-shadow: var(--shadow-raised);
+    transform: translateY(-2px);
+  }
+}

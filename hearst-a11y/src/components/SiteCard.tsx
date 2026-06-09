@@ -28,50 +28,57 @@ function worstTier(patterns: { impact: string }[] = []): string | null {
   return null
 }
 
-const TIER_STYLE: Record<string, { text: string; bg: string }> = {
-  T1: { text: 'text-red-400',    bg: 'bg-red-500/15' },
-  T2: { text: 'text-orange-400', bg: 'bg-orange-500/15' },
-  T3: { text: 'text-amber-400',  bg: 'bg-amber-500/15' },
-  T4: { text: 'text-blue-400',   bg: 'bg-blue-500/15' },
+const TIER_BADGE: Record<string, { color: string; bg: string; border: string }> = {
+  T1: { color: '#002D82', bg: 'rgba(0,45,130,0.10)',   border: 'rgba(0,45,130,0.25)' },
+  T2: { color: '#005AC8', bg: 'rgba(0,90,200,0.10)',   border: 'rgba(0,90,200,0.25)' },
+  T3: { color: '#007AFF', bg: 'rgba(0,122,255,0.10)',  border: 'rgba(0,122,255,0.25)' },
+  T4: { color: '#0A84CC', bg: 'rgba(90,200,250,0.12)', border: 'rgba(90,200,250,0.35)' },
 }
 
 export function SiteCard({ site }: SiteCardProps) {
   const { latestScan } = site
   const pageCount = site.pages?.length ?? 0
   const tier = latestScan ? worstTier(latestScan.patterns ?? []) : null
+  const tb = tier ? TIER_BADGE[tier] : null
 
   return (
     <Link
       href={`/sites/${site.id}`}
-      className="block bg-[#13131c] border border-[#2a2a3a] rounded-lg p-4 hover:bg-[#181826] hover:border-[#36364a] transition-all group"
+      className="card card-hover block"
+      style={{ textDecoration: 'none', padding: '16px 18px' }}
     >
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="min-w-0">
-          <div className="font-semibold text-white text-sm leading-tight truncate">{site.name}</div>
-          <div className="text-xs text-white/60 mt-0.5">
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontWeight: 600, color: '#1D1D1F', fontSize: '14px', lineHeight: '1.3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{site.name}</div>
+          <div style={{ fontSize: '12px', color: '#86868B', marginTop: '2px' }}>
             {pageCount} page{pageCount !== 1 ? 's' : ''}
             {site.division ? ` · ${site.division}` : ''}
           </div>
         </div>
-        {tier && (
-          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${TIER_STYLE[tier].text} ${TIER_STYLE[tier].bg}`}>
+        {tb && tier && (
+          <span style={{
+            flexShrink: 0, fontSize: '10px', fontWeight: 600,
+            fontFamily: '"JetBrains Mono", monospace',
+            padding: '2px 8px', borderRadius: '999px',
+            color: tb.color, background: tb.bg, border: `1px solid ${tb.border}`,
+          }}>
             {tier}
           </span>
         )}
       </div>
 
       {latestScan ? (
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-white font-medium">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
+          <span style={{ fontWeight: 600, color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace' }}>
             {latestScan.raw_violation_count} error{latestScan.raw_violation_count !== 1 ? 's' : ''}
           </span>
-          <span className="text-white/60">
+          <span style={{ color: '#86868B' }}>
             {latestScan.unique_pattern_count} type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
           </span>
-          <span className="text-white/40 group-hover:text-white/80 transition-colors" aria-hidden="true">→</span>
+          <span style={{ color: '#007AFF' }} aria-hidden="true">→</span>
         </div>
       ) : (
-        <div className="text-xs text-white/50 italic">No scans yet</div>
+        <div style={{ fontSize: '12px', color: '#86868B', fontStyle: 'italic' }}>No scans yet</div>
       )}
     </Link>
   )

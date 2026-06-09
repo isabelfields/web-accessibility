@@ -1,6 +1,6 @@
+import React, { Suspense } from 'react'
 import { sql } from '@/lib/db'
 import Link from 'next/link'
-import { Suspense } from 'react'
 import { SiteCard } from '@/components/SiteCard'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { DivisionFilter } from '@/components/DivisionFilter'
@@ -12,125 +12,75 @@ import { authOptions } from '@/auth'
 
 export const dynamic = 'force-dynamic'
 
+const TIER_COLORS = { t1: '#002D82', t2: '#005AC8', t3: '#007AFF', t4: '#0A84CC' }
+
 async function getData(division?: string, allowedDivisions?: string[]) {
-  // Non-admin users: restrict to their allowed divisions
   if (allowedDivisions && allowedDivisions.length > 0 && !division) {
     division = allowedDivisions[0]
   }
   const [allSites, recentScans] = await Promise.all([
     sql`SELECT * FROM sites ORDER BY created_at DESC`.then(async (sites) => {
-      return Promise.all(
-        sites.map(async (site) => {
-          const [latest] = await sql`
-            SELECT status, started_at, unique_pattern_count, raw_violation_count, patterns
-            FROM scan_jobs
-            WHERE site_id = ${site.id} AND status = 'complete'
-            ORDER BY started_at DESC LIMIT 1
-          `
-          const [prev] = await sql`
-            SELECT raw_violation_count FROM scan_jobs
-            WHERE site_id = ${site.id} AND status = 'complete'
-            ORDER BY started_at DESC LIMIT 1 OFFSET 1
-          `
-          return { ...site, latestScan: latest ?? null, prevScan: prev ?? null }
-        })
-      )
+      return Promise.all(sites.map(async (site) => {
+        const [latest] = await sql`
+          SELECT status, started_at, unique_pattern_count, raw_violation_count, patterns
+          FROM scan_jobs WHERE site_id = ${site.id} AND status = 'complete'
+          ORDER BY started_at DESC LIMIT 1`
+        const [prev] = await sql`
+          SELECT raw_violation_count FROM scan_jobs
+          WHERE site_id = ${site.id} AND status = 'complete'
+          ORDER BY started_at DESC LIMIT 1 OFFSET 1`
+        return { ...site, latestScan: latest ?? null, prevScan: prev ?? null }
+      }))
     }),
-    sql`
-      SELECT sj.id, sj.root_url, s.name as site_name, s.division,
-             sj.status, sj.score, sj.pages_scanned, sj.raw_violation_count,
-             sj.started_at, sj.triggered_by
-      FROM scan_jobs sj
-      LEFT JOIN sites s ON s.id = sj.site_id
-      ORDER BY sj.started_at DESC
-      LIMIT 5
-    `,
+    sql`SELECT sj.id, sj.root_url, s.name as site_name, s.division,
+           sj.status, sj.score, sj.pages_scanned, sj.raw_violation_count,
+           sj.started_at, sj.triggered_by
+        FROM scan_jobs sj LEFT JOIN sites s ON s.id = sj.site_id
+        ORDER BY sj.started_at DESC LIMIT 5`,
   ])
 
-  const activeDivisions = [...new Set(
-    allSites.map((s: any) => s.division).filter(Boolean)
-  )] as string[]
+  const activeDivisions = [...new Set(allSites.map((s: any) => s.division).filter(Boolean))] as string[]
+  const sites = division ? allSites.filter((s: any) => s.division === division) : allSites
+  const scans = division ? recentScans.filter((s: any) => s.division === division) : recentScans
 
-  const sites = division
-    ? allSites.filter((s: any) => s.division === division)
-    : allSites
-
-  const scans = division
-    ? recentScans.filter((s: any) => s.division === division)
-    : recentScans
-
-  const filteredScores = sites
-    .map((s: any) => s.latestScan?.score)
-    .filter((sc: any) => sc != null) as number[]
-  const avgScore = filteredScores.length
-    ? Math.round(filteredScores.reduce((a, b) => a + b, 0) / filteredScores.length)
-    : null
-
-  const totalPages = sites.reduce((sum: number, s: any) =>
-    sum + (Array.isArray(s.pages) ? s.pages.length : 0), 0)
-
-  const totalErrors = sites.reduce((sum: number, s: any) =>
-    sum + (s.latestScan?.raw_violation_count ?? 0), 0)
-
+  const totalPages = sites.reduce((sum: number, s: any) => sum + (Array.isArray(s.pages) ? s.pages.length : 0), 0)
+  const totalErrors = sites.reduce((sum: number, s: any) => sum + (s.latestScan?.raw_violation_count ?? 0), 0)
   const errorsResolved = sites.reduce((sum: number, s: any) => {
     const latest = s.latestScan?.raw_violation_count ?? 0
     const prev = s.prevScan?.raw_violation_count ?? latest
     return sum + Math.max(0, prev - latest)
   }, 0)
 
-  // Analytics: severity counts aggregated from latest scan patterns
   const severityCounts = { critical: 0, serious: 0, moderate: 0, minor: 0 }
   const violationMap = new Map<string, { count: number; impact: string }>()
-
   for (const site of sites) {
-    const siteId = (site as any).id
-    const [latestWithPatterns] = await sql`
-      SELECT patterns FROM scan_jobs
-      WHERE site_id = ${siteId} AND status = 'complete'
-      ORDER BY started_at DESC LIMIT 1
-    `
-    if (!latestWithPatterns?.patterns) continue
-    for (const p of latestWithPatterns.patterns as any[]) {
+    const [row] = await sql`SELECT patterns FROM scan_jobs
+      WHERE site_id = ${(site as any).id} AND status = 'complete'
+      ORDER BY started_at DESC LIMIT 1`
+    if (!row?.patterns) continue
+    for (const p of row.patterns as any[]) {
       const impact = p.impact as keyof typeof severityCounts
       if (impact in severityCounts) severityCounts[impact] += p.occurrences
-      const existing = violationMap.get(p.rule)
-      if (existing) {
-        existing.count += p.occurrences
-      } else {
-        violationMap.set(p.rule, { count: p.occurrences, impact: p.impact })
-      }
+      const ex = violationMap.get(p.rule)
+      ex ? (ex.count += p.occurrences) : violationMap.set(p.rule, { count: p.occurrences, impact: p.impact })
     }
   }
 
   const topViolations = [...violationMap.entries()]
-    .map(([rule, v]) => ({ rule, ...v }))
-    .sort((a, b) => b.count - a.count)
+    .map(([rule, v]) => ({ rule, ...v })).sort((a, b) => b.count - a.count)
 
-  // Score trends: last 10 scans per site
-  const scoreTrends = await Promise.all(
-    sites.slice(0, 6).map(async (site: any) => {
-      const rows = await sql`
-        SELECT score, started_at::date::text as date
-        FROM scan_jobs
-        WHERE site_id = ${site.id} AND status = 'complete'
-        ORDER BY started_at DESC LIMIT 10
-      `
-      return {
-        name: site.name,
-        scores: rows.reverse().map((r: any) => ({ date: r.date, score: Math.round(r.score) })),
-      }
-    })
-  )
+  const scoreTrends = await Promise.all(sites.slice(0, 6).map(async (site: any) => {
+    const rows = await sql`SELECT score, started_at::date::text as date FROM scan_jobs
+      WHERE site_id = ${site.id} AND status = 'complete'
+      ORDER BY started_at DESC LIMIT 10`
+    return { name: site.name, scores: rows.reverse().map((r: any) => ({ date: r.date, score: Math.round(r.score) })) }
+  }))
 
-  return {
-    sites,
-    scans,
-    activeDivisions,
-    stats: { avgScore, totalPages, totalErrors, errorsResolved, siteCount: sites.length },
-    severityCounts,
-    topViolations,
-    scoreTrends,
-  }
+  const t1SiteCount = sites.filter((s: any) =>
+    ((s.latestScan?.patterns ?? []) as any[]).some((p: any) => p.impact === 'critical')
+  ).length
+
+  return { sites, scans, activeDivisions, stats: { totalPages, totalErrors, errorsResolved, siteCount: sites.length }, severityCounts, topViolations, scoreTrends, t1SiteCount }
 }
 
 function formatDate(d: string | Date | null) {
@@ -138,182 +88,206 @@ function formatDate(d: string | Date | null) {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-function scoreColor(score: number) {
-  if (score >= 90) return 'text-green-600'
-  if (score >= 80) return 'text-lime-600'
-  if (score >= 70) return 'text-yellow-600'
-  if (score >= 60) return 'text-orange-500'
-  return 'text-red-500'
+// ── Shared inline style constants ──────────────────────────
+const S = {
+  card: {
+    background: '#FFFFFF',
+    borderRadius: '14px',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+    padding: '22px 22px 18px',
+  } as React.CSSProperties,
+  sectionLabel: {
+    fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em',
+    textTransform: 'uppercase' as const, color: '#86868B', marginBottom: '16px',
+  } as React.CSSProperties,
+  pageBase: { background: '#F5F5F7', minHeight: '100vh' } as React.CSSProperties,
 }
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ division?: string }>
-}) {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ division?: string }> }) {
   const [{ division }, session] = await Promise.all([searchParams, getServerSession(authOptions)])
   const isAdmin = (session?.user as any)?.role === 'admin'
   const allowedDivisions = isAdmin ? [] : ((session?.user as any)?.allowedDivisions ?? [])
-
-  // For non-admins, if they try to view a division outside their allowed set, ignore it
   const effectiveDivision = (!isAdmin && allowedDivisions.length > 0 && division && !allowedDivisions.includes(division))
-    ? allowedDivisions[0]
-    : division
+    ? allowedDivisions[0] : division
 
-  const { sites, scans, activeDivisions, stats, severityCounts, topViolations, scoreTrends } = await getData(effectiveDivision, allowedDivisions)
+  const { sites, scans, activeDivisions, stats, severityCounts, topViolations, scoreTrends, t1SiteCount } =
+    await getData(effectiveDivision, allowedDivisions)
 
-  // Non-admins only see their allowed divisions in the filter
-  const visibleDivisions = isAdmin
-    ? activeDivisions
-    : activeDivisions.filter(d => allowedDivisions.includes(d))
-
+  const visibleDivisions = isAdmin ? activeDivisions : activeDivisions.filter(d => allowedDivisions.includes(d))
   const showDivisionCol = !effectiveDivision
 
   return (
-    <div className="min-h-screen bg-[#0c0c10]">
+    <div style={S.pageBase}>
       {/* Top bar */}
-      <div className="border-b border-[#1c1c24] px-8 py-4 flex items-center justify-between sticky top-0 z-10 bg-[#0c0c10]/90 backdrop-blur-sm">
+      <div style={{
+        background: '#FFFFFF', borderBottom: '1px solid #F0F0F0',
+        padding: '0 28px', height: '52px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        position: 'sticky', top: 0, zIndex: 10,
+      }}>
         <div>
-          <h1 className="text-base font-semibold text-white tracking-tight">Dashboard</h1>
-          <p className="text-xs text-white/70 mt-0.5">{division ? `${division} division` : 'All Hearst properties'}</p>
+          <span style={{ fontSize: '15px', fontWeight: 600, color: '#1D1D1F' }}>Dashboard</span>
+          <span style={{ fontSize: '12px', color: '#86868B', marginLeft: '10px' }}>
+            {effectiveDivision ? `${effectiveDivision} division` : 'All Hearst properties'}
+          </span>
         </div>
-        {isAdmin && visibleDivisions.length > 0 && (
-          <Suspense>
-            <DivisionFilter activeDivisions={visibleDivisions} />
-          </Suspense>
-        )}
-        {!isAdmin && allowedDivisions.length > 1 && visibleDivisions.length > 0 && (
-          <Suspense>
-            <DivisionFilter activeDivisions={visibleDivisions} />
-          </Suspense>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {isAdmin && visibleDivisions.length > 0 && <Suspense><DivisionFilter activeDivisions={visibleDivisions} /></Suspense>}
+          {!isAdmin && allowedDivisions.length > 1 && visibleDivisions.length > 0 && <Suspense><DivisionFilter activeDivisions={visibleDivisions} /></Suspense>}
+        </div>
       </div>
 
-      <div className="px-8 py-6">
-        {/* Stat cards — clean, no decorations */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
-            <div className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-3">Sites</div>
-            <div className="text-4xl font-bold text-white tabular-nums leading-none">{stats.siteCount}</div>
-            <div className="text-xs text-white/70 mt-2">{stats.totalPages} pages monitored</div>
+      <div style={{ padding: '22px 28px' }}>
+
+        {/* T1 Critical Banner */}
+        {t1SiteCount > 0 && (
+          <div role="alert" style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+            background: 'rgba(0,45,130,0.06)', border: '1px solid rgba(0,45,130,0.20)',
+            borderRadius: '10px', padding: '12px 18px', marginBottom: '20px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <svg width="16" height="16" fill="none" stroke="#002D82" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.962-.833-2.732 0L3.07 16.5C2.3 17.333 3.262 19 4.802 19z" />
+              </svg>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#002D82' }}>
+                {t1SiteCount} site{t1SiteCount !== 1 ? 's have' : ' has'} Tier 1 Critical errors requiring immediate attention
+              </span>
+            </div>
+            <Link href="/sites" style={{ fontSize: '13px', fontWeight: 600, color: '#002D82', textDecoration: 'none', flexShrink: 0 }}>
+              View sites →
+            </Link>
           </div>
-          <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
-            <div className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-3">Tier 1 Critical</div>
-            <div className="text-4xl font-bold text-red-400 tabular-nums leading-none">{severityCounts.critical}</div>
-            <div className="text-xs text-white/70 mt-2">across all sites</div>
-          </div>
-          <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
-            <div className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-3">WCAG Errors</div>
-            <div className="text-4xl font-bold text-white tabular-nums leading-none">{stats.totalErrors}</div>
-            <div className="text-xs text-white/70 mt-2">latest scans</div>
-          </div>
-          <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
-            <div className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-3">Resolved</div>
-            <div className={`text-4xl font-bold tabular-nums leading-none ${stats.errorsResolved > 0 ? 'text-emerald-400' : 'text-white/70'}`}>{stats.errorsResolved}</div>
-            <div className="text-xs text-white/70 mt-2">vs previous scan</div>
-          </div>
+        )}
+
+        {/* Stat cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '14px', marginBottom: '20px' }}>
+          <StatCard label="Sites" value={stats.siteCount} sub={`${stats.totalPages} pages monitored`} />
+          <StatCard label="Tier 1 Critical" value={severityCounts.critical} sub="across all sites"
+            accentColor={TIER_COLORS.t1} heroSize={52} />
+          <StatCard label="WCAG Errors" value={stats.totalErrors} sub="latest scans" />
+          <StatCard label="Resolved" value={stats.errorsResolved} sub="vs previous scan"
+            accentColor={stats.errorsResolved > 0 ? '#34C759' : undefined} />
         </div>
 
-        {/* Analytics charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-6">
-          <div className="lg:col-span-2 bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
-            <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-4">Issue Trend Over Time</h2>
+        {/* Charts */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '14px', marginBottom: '20px' }}>
+          <div style={S.card}>
+            <div style={S.sectionLabel}>Issue Trend Over Time</div>
             <ScoreTrendChart trends={scoreTrends} />
           </div>
-          <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
-            <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-2">Issues by Tier</h2>
+          <div style={{ ...S.card, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ ...S.sectionLabel, alignSelf: 'flex-start', width: '100%' }}>Issues by Tier</div>
             <SeverityDonut counts={severityCounts} />
           </div>
-          <div className="lg:col-span-3 bg-[#13131c] rounded-lg border border-[#2a2a3a] p-5">
-            <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest mb-4">Top WCAG Errors Across All Sites</h2>
-            <TopViolationsChart violations={topViolations} />
-          </div>
+        </div>
+        <div style={{ ...S.card, marginBottom: '20px' }}>
+          <div style={S.sectionLabel}>Top WCAG Errors Across All Sites</div>
+          <TopViolationsChart violations={topViolations} />
         </div>
 
-        {/* Site cards */}
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest">Sites</h2>
-          <Link href="/sites" className="text-xs text-[#5b9bd6] hover:text-white font-medium transition-colors">View all →</Link>
+        {/* Sites */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: '#1D1D1F' }}>Sites</span>
+          <Link href="/sites" style={{ fontSize: '13px', fontWeight: 500, color: '#007AFF', textDecoration: 'none' }}>View all →</Link>
         </div>
         {sites.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-[#2a2a3a] p-12 text-center text-white/70">
-            {division ? `No sites in ${division} yet.` : 'No sites yet.'}{' '}
-            <a href="/sites" className="text-[#5b9bd6] underline">Add a site</a>.
+          <div style={{ border: '1px dashed #C0C0C0', borderRadius: '14px', padding: '48px', textAlign: 'center', color: '#86868B', fontSize: '14px' }}>
+            {effectiveDivision ? `No sites in ${effectiveDivision} yet.` : 'No sites yet.'}{' '}
+            <a href="/sites" style={{ color: '#007AFF' }}>Add a site</a>.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-6">
-            {sites.map((site: any) => (
-              <SiteCard key={site.id} site={site} />
-            ))}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '14px', marginBottom: '20px' }}>
+            {sites.map((site: any) => <SiteCard key={site.id} site={site} />)}
           </div>
         )}
 
-      {/* Recent scans */}
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest">Recent Scans</h2>
-        <span className="text-xs text-white/70">Last 5</span>
-      </div>
-      <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-[#1a1a26] border-b border-[#2a2a3a]">
-              <th className="text-left px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Site</th>
-              {showDivisionCol && (
-                <th className="text-left px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Division</th>
-              )}
-              <th className="text-left px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Status</th>
-              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Pages</th>
-              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">WCAG Errors</th>
-              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Started</th>
-              <th className="px-2 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {scans.length === 0 ? (
+        {/* Recent Scans */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: '#1D1D1F' }}>Recent Scans</span>
+          <span style={{ fontSize: '12px', color: '#86868B' }}>Last 5</span>
+        </div>
+        <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+          <table className="data-table">
+            <caption className="sr-only">Recent accessibility scans</caption>
+            <thead>
               <tr>
-                <td colSpan={showDivisionCol ? 7 : 6} className="text-center py-8 text-white/70">
-                  No scans yet.
-                </td>
+                <th scope="col">Site</th>
+                {showDivisionCol && <th scope="col">Division</th>}
+                <th scope="col">Status</th>
+                <th scope="col" style={{ textAlign: 'right' }}>Pages</th>
+                <th scope="col" style={{ textAlign: 'right' }}>WCAG Errors</th>
+                <th scope="col" style={{ textAlign: 'right' }}>Started</th>
+                <th scope="col" style={{ width: '32px' }}></th>
               </tr>
-            ) : (
-              scans.map((scan: any) => (
-                <tr key={scan.id} className="border-t border-[#1a1a22] hover:bg-[#14141c] transition-colors group cursor-pointer relative">
-                  <td className="px-4 py-3">
+            </thead>
+            <tbody>
+              {scans.length === 0 ? (
+                <tr><td colSpan={showDivisionCol ? 7 : 6} style={{ textAlign: 'center', padding: '40px', color: '#86868B' }}>No scans yet.</td></tr>
+              ) : scans.map((scan: any) => (
+                <tr key={scan.id} className="clickable group relative">
+                  <td>
                     <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan for ${scan.site_name ?? scan.root_url}`} />
-                    <div className="font-medium text-white text-sm">{scan.site_name ?? scan.root_url}</div>
-                    {scan.site_name && <div className="text-xs text-white/70 truncate max-w-xs mt-0.5">{scan.root_url}</div>}
+                    <div style={{ fontWeight: 500, fontSize: '13px', color: '#1D1D1F' }}>{scan.site_name ?? scan.root_url}</div>
+                    {scan.site_name && <div className="mono" style={{ fontSize: '11px', color: '#86868B', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '260px' }}>{scan.root_url}</div>}
                   </td>
                   {showDivisionCol && (
-                    <td className="px-4 py-3 text-xs">
+                    <td>
                       {scan.division
-                        ? <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#1e1e2a] text-white/80">{scan.division}</span>
-                        : <span className="text-white/70">—</span>
-                      }
+                        ? <span style={{ fontSize: '12px', padding: '2px 8px', borderRadius: '6px', background: '#F5F5F7', color: '#3A3A3C' }}>{scan.division}</span>
+                        : <span style={{ color: '#86868B' }}>—</span>}
                     </td>
                   )}
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                      scan.status === 'complete' ? 'bg-emerald-500/10 text-emerald-400' :
-                      scan.status === 'running' ? 'bg-blue-500/10 text-blue-400' :
-                      scan.status === 'failed' ? 'bg-red-500/10 text-red-400' :
-                      'bg-[#1e1e2a] text-white/80'
-                    }`}>
-                      {scan.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right text-white tabular-nums">{scan.pages_scanned ?? 0}</td>
-                  <td className="px-4 py-3 text-right text-white tabular-nums">{scan.raw_violation_count ?? '—'}</td>
-                  <td className="px-4 py-3 text-right text-white/70 text-xs tabular-nums">{formatDate(scan.started_at)}</td>
-                  <td className="px-2 py-3 text-right relative z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <td><ScanStatusBadge status={scan.status} /></td>
+                  <td style={{ textAlign: 'right' }}><span className="mono" style={{ fontWeight: 500, fontSize: '13px' }}>{scan.pages_scanned ?? 0}</span></td>
+                  <td style={{ textAlign: 'right' }}><span className="mono" style={{ fontWeight: 600, fontSize: '13px' }}>{scan.raw_violation_count ?? '—'}</span></td>
+                  <td style={{ textAlign: 'right' }}><span style={{ fontSize: '12px', color: '#86868B' }}>{formatDate(scan.started_at)}</span></td>
+                  <td style={{ textAlign: 'right', position: 'relative', zIndex: 10 }} className="opacity-0 group-hover:opacity-100 transition-opacity">
                     <DeleteScanButton jobId={scan.id} />
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
       </div>
     </div>
+  )
+}
+
+function StatCard({ label, value, sub, accentColor, heroSize = 44 }: {
+  label: string; value: number; sub: string; accentColor?: string; heroSize?: number
+}) {
+  return (
+    <div style={{
+      background: '#FFFFFF', borderRadius: '14px',
+      boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+      padding: '22px 22px 18px',
+      borderLeft: accentColor ? `3px solid ${accentColor}` : undefined,
+    }}>
+      <div style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#86868B' }}>
+        {label}
+      </div>
+      <div style={{ fontSize: `${heroSize}px`, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, color: accentColor ?? '#1D1D1F', margin: '10px 0 6px', fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </div>
+      <div style={{ fontSize: '12px', color: '#86868B' }}>{sub}</div>
+    </div>
+  )
+}
+
+function ScanStatusBadge({ status }: { status: string }) {
+  const map: Record<string, { bg: string; color: string }> = {
+    complete: { bg: 'rgba(52,199,89,0.10)',  color: '#1A7F37' },
+    running:  { bg: 'rgba(0,122,255,0.10)',  color: '#005AC8' },
+    failed:   { bg: 'rgba(0,45,130,0.10)',   color: '#002D82' },
+    queued:   { bg: 'rgba(0,90,200,0.10)',   color: '#005AC8' },
+  }
+  const s = map[status] ?? { bg: '#F5F5F7', color: '#86868B' }
+  return (
+    <span style={{ ...s, fontSize: '12px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', display: 'inline-flex', alignItems: 'center' }}>
+      {status}
+    </span>
   )
 }

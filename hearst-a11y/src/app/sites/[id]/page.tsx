@@ -55,84 +55,86 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   }
   const worstTier = patternsToWorstTier(patterns)
 
+  const TIER_HEX: Record<string, string> = { tier1: '#002D82', tier2: '#005AC8', tier3: '#007AFF', tier4: '#5AC8FA' }
+
   return (
-    <div className="px-8 py-6 bg-[#0d0f12] min-h-screen">
+    <div style={{ padding: '24px 32px', background: '#F5F5F7', minHeight: '100vh' }}>
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px' }}>
         <div>
-          <div className="flex items-center gap-2 text-sm text-white/90 mb-2">
-            <Link href="/sites" className="hover:text-white">Sites</Link>
-            <span className="text-[#252a38]">/</span>
-            <span className="text-white font-medium">{site.name}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#86868B', marginBottom: '6px' }}>
+            <Link href="/sites" style={{ color: '#007AFF', textDecoration: 'none' }}>Sites</Link>
+            <span style={{ color: '#D0D0D0' }}>/</span>
+            <span style={{ color: '#1D1D1F', fontWeight: 500 }}>{site.name}</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">{site.name}</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#1D1D1F', margin: 0 }}>{site.name}</h1>
           {latestScan && (
-            <p className="text-sm text-white/90 mt-1">
+            <p style={{ fontSize: '13px', color: '#86868B', marginTop: '4px' }}>
               Last scanned {formatDate(latestScan.started_at)}
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <EditSiteButton site={{ id: site.id, name: site.name, division: site.division, pages }} />
           <RunScanButton siteId={site.id} />
         </div>
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="rounded-lg bg-[#141720] border border-[#252a38] p-5 flex flex-col items-center justify-center">
-          <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-2">Priority</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '28px' }}>
+        <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderLeft: worstTier ? `3px solid ${TIER_HEX[worstTier]}` : undefined }}>
+          <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868B', marginBottom: '8px' }}>Priority</div>
           {worstTier ? (
             <>
-              <div className={`text-2xl font-bold ${TIER_COLOR[worstTier].text}`}>{TIER_LABEL[worstTier]}</div>
-              <div className="text-xs text-white/90 mt-1">highest tier found</div>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: TIER_HEX[worstTier] }}>{TIER_LABEL[worstTier]}</div>
+              <div style={{ fontSize: '11px', color: '#86868B', marginTop: '4px' }}>highest tier found</div>
             </>
           ) : (
-            <div className="text-lg font-semibold text-emerald-400">{latestScan ? 'No issues' : 'No scans yet'}</div>
+            <div style={{ fontSize: '16px', fontWeight: 600, color: '#34C759' }}>{latestScan ? 'No issues' : 'No scans yet'}</div>
           )}
         </div>
 
-        <div className="rounded-lg bg-[#141720] border border-[#252a38] p-5">
-          <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-2">WCAG Errors</div>
-          <div className="text-3xl font-bold text-white tabular-nums">{latestScan?.raw_violation_count ?? '—'}</div>
-          <div className="text-xs text-white/90 mt-1">{latestScan?.unique_pattern_count ?? 0} issue types</div>
+        <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', padding: '20px' }}>
+          <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868B', marginBottom: '8px' }}>WCAG Errors</div>
+          <div style={{ fontSize: '32px', fontWeight: 700, color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace', letterSpacing: '-0.03em' }}>{latestScan?.raw_violation_count ?? '—'}</div>
+          <div style={{ fontSize: '11px', color: '#86868B', marginTop: '4px' }}>{latestScan?.unique_pattern_count ?? 0} issue types</div>
         </div>
 
-        <div className="rounded-lg bg-[#141720] border border-[#252a38] p-5">
-          <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-2">Pages Scanned</div>
-          <div className="text-3xl font-bold text-white tabular-nums">{latestScan?.pages_scanned ?? '—'}</div>
-          <div className="text-xs text-white/90 mt-1">{pages.length} configured</div>
+        <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', padding: '20px' }}>
+          <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868B', marginBottom: '8px' }}>Pages Scanned</div>
+          <div style={{ fontSize: '32px', fontWeight: 700, color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace', letterSpacing: '-0.03em' }}>{latestScan?.pages_scanned ?? '—'}</div>
+          <div style={{ fontSize: '11px', color: '#86868B', marginTop: '4px' }}>{pages.length} configured</div>
         </div>
 
-        <div className="rounded-lg bg-[#141720] border border-[#252a38] p-5">
-          <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-2">Total Scans</div>
-          <div className="text-3xl font-bold text-white tabular-nums">{scans.length}</div>
-          <div className="text-xs text-white/90 mt-1">{completedScans.length} completed</div>
+        <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', padding: '20px' }}>
+          <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868B', marginBottom: '8px' }}>Total Scans</div>
+          <div style={{ fontSize: '32px', fontWeight: 700, color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace', letterSpacing: '-0.03em' }}>{scans.length}</div>
+          <div style={{ fontSize: '11px', color: '#86868B', marginTop: '4px' }}>{completedScans.length} completed</div>
         </div>
       </div>
 
-      <div className="space-y-8">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
         {/* Violations */}
         <div>
-          <h2 className="text-lg font-semibold text-white mb-4">WCAG Errors</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1D1D1F', marginBottom: '16px' }}>WCAG Errors</h2>
           {patterns.length === 0 ? (
-            <div className="bg-[#141720] rounded-xl border border-dashed border-[#252a38] p-10 text-center text-white/90">
+            <div style={{ background: '#FFFFFF', borderRadius: '14px', border: '1px dashed #E0E0E0', padding: '40px', textAlign: 'center', color: '#86868B', fontSize: '14px' }}>
               {latestScan ? 'No violations found. Great job!' : 'Run a scan to see violations.'}
             </div>
           ) : (
-            <div className="space-y-5">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {(['tier1', 'tier2', 'tier3', 'tier4'] as const).map(tier => {
                 const group = byTier[tier]
                 if (group.length === 0) return null
-                const c = TIER_COLOR[tier]
+                const hex = TIER_HEX[tier]
                 return (
                   <div key={tier}>
-                    <div className="flex items-center gap-2.5 mb-2.5 px-1">
-                      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${c.text}`}>{TIER_LABEL[tier]}</h3>
-                      <span className="text-xs text-white/90 font-medium">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', padding: '0 4px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: hex, flexShrink: 0, display: 'inline-block' }} />
+                      <h3 style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: hex, margin: 0 }}>{TIER_LABEL[tier]}</h3>
+                      <span style={{ fontSize: '12px', color: '#86868B', fontWeight: 500 }}>{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                     </div>
-                    <div className="space-y-1.5">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {group.map(p => (
                         <ViolationCard key={p.fingerprint} pattern={p} />
                       ))}
@@ -146,46 +148,47 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
         {/* Scan History */}
         <div>
-          <h2 className="text-lg font-semibold text-white mb-4">Scan History</h2>
-          <div className="rounded-lg bg-[#141720] border border-[#252a38] overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-[#1e2230] border-b border-[#252a38]">
-                <tr>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Started</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Status</th>
-                  <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Pages</th>
-                  <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Issues</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Triggered By</th>
-                  <th className="px-4 py-3"></th>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1D1D1F', marginBottom: '16px' }}>Scan History</h2>
+          <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ background: '#F5F5F7', borderBottom: '1px solid #E0E0E0' }}>
+                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Started</th>
+                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Status</th>
+                  <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Pages</th>
+                  <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Issues</th>
+                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Triggered By</th>
+                  <th style={{ padding: '10px 16px' }}></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#252a38]">
+              <tbody>
                 {scans.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-8 text-white/90">No scans yet.</td>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: '#86868B', fontSize: '14px' }}>No scans yet.</td>
                   </tr>
                 ) : (
                   scans.map((scan: any) => (
-                    <tr key={scan.id} className="hover:bg-[#1e2230] group relative cursor-pointer transition-colors">
-                      <td className="px-4 py-3 text-white">
-                        <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan from ${formatDate(scan.started_at)}`} />
+                    <tr key={scan.id} className="group" style={{ borderBottom: '1px solid #F0F0F0', position: 'relative', cursor: 'pointer', transition: 'background 0.12s' }}>
+                      <td style={{ padding: '13px 16px', color: '#1D1D1F' }}>
+                        <Link href={`/scans/${scan.id}`} style={{ position: 'absolute', inset: 0 }} aria-label={`View scan from ${formatDate(scan.started_at)}`} />
                         {formatDate(scan.started_at)}
                       </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                          scan.status === 'complete' ? 'bg-emerald-500/20 text-emerald-400' :
-                          scan.status === 'running' ? 'bg-blue-500/20 text-blue-400' :
-                          scan.status === 'failed' ? 'bg-red-500/20 text-red-400' :
-                          'bg-[#252a38] text-white/90'
-                        }`}>
+                      <td style={{ padding: '13px 16px' }}>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', padding: '2px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 500,
+                          ...(scan.status === 'complete' ? { background: 'rgba(52,199,89,0.12)', color: '#1A7F37' } :
+                             scan.status === 'running'  ? { background: 'rgba(0,122,255,0.10)', color: '#007AFF' } :
+                             scan.status === 'failed'   ? { background: 'rgba(255,59,48,0.10)', color: '#D70015' } :
+                             { background: '#F5F5F7', color: '#86868B' })
+                        }}>
                           {scan.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right text-white">{scan.pages_scanned ?? 0}</td>
-                      <td className="px-4 py-3 text-right text-white">{scan.raw_violation_count ?? 0}</td>
-                      <td className="px-4 py-3 text-white/90 capitalize">{scan.triggered_by}</td>
-                      <td className="px-4 py-3 text-right relative z-10">
-                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <td style={{ padding: '13px 16px', textAlign: 'right', color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace' }}>{scan.pages_scanned ?? 0}</td>
+                      <td style={{ padding: '13px 16px', textAlign: 'right', color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace' }}>{scan.raw_violation_count ?? 0}</td>
+                      <td style={{ padding: '13px 16px', color: '#3A3A3C', textTransform: 'capitalize' }}>{scan.triggered_by}</td>
+                      <td style={{ padding: '13px 16px', textAlign: 'right', position: 'relative', zIndex: 10 }}>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
                           {(scan.status === 'running' || scan.status === 'queued') && (
                             <CancelScanButton jobId={scan.id} />
                           )}
@@ -204,47 +207,47 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
         {/* Pages */}
         <div>
-          <h2 className="text-lg font-semibold text-white mb-4">Configured Pages</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1D1D1F', marginBottom: '16px' }}>Configured Pages</h2>
           {pages.length === 0 ? (
-            <div className="text-white/90 italic text-sm">No pages configured.</div>
+            <div style={{ color: '#86868B', fontStyle: 'italic', fontSize: '14px' }}>No pages configured.</div>
           ) : (
-            <div className="rounded-lg bg-[#141720] border border-[#252a38] overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-[#1e2230] border-b border-[#252a38]">
-                  <tr>
-                    <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Label</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">URL</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Template Type</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">WCAG Errors</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Status</th>
+            <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ background: '#F5F5F7', borderBottom: '1px solid #E0E0E0' }}>
+                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Label</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>URL</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Template Type</th>
+                    <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>WCAG Errors</th>
+                    <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#252a38]">
+                <tbody>
                   {pages.map((page, i) => {
                     const ps = pageScores.find(s => s.url === page.url)
                     return (
-                      <tr key={i} className="hover:bg-[#1e2230] transition-colors">
-                        <td className="px-4 py-3 font-medium text-white">{page.label}</td>
-                        <td className="px-4 py-3">
+                      <tr key={i} style={{ borderBottom: '1px solid #F0F0F0', transition: 'background 0.12s' }}>
+                        <td style={{ padding: '13px 16px', fontWeight: 500, color: '#1D1D1F' }}>{page.label}</td>
+                        <td style={{ padding: '13px 16px' }}>
                           <PageViolationsModal
                             pageScore={ps ?? { url: page.url, label: page.label, score: null as any, violationCount: null as any }}
                             patterns={patterns}
                           />
                         </td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#252a38] text-white/90 capitalize">
+                        <td style={{ padding: '13px 16px' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 500, background: '#F5F5F7', color: '#3A3A3C', textTransform: 'capitalize' }}>
                             {page.templateType}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right text-white">
+                        <td style={{ padding: '13px 16px', textAlign: 'right', color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace' }}>
                           {ps ? (ps.violationCount ?? '—') : '—'}
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td style={{ padding: '13px 16px', textAlign: 'right' }}>
                           {!ps
-                            ? <span className="text-xs text-white/90">—</span>
+                            ? <span style={{ fontSize: '12px', color: '#86868B' }}>—</span>
                             : ps.score == null
-                              ? <span className="text-xs font-normal bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md">Failed</span>
-                              : <span className="text-xs text-white/90">Scanned</span>
+                              ? <span style={{ fontSize: '12px', fontWeight: 500, background: 'rgba(255,59,48,0.10)', color: '#D70015', padding: '2px 8px', borderRadius: '6px' }}>Failed</span>
+                              : <span style={{ fontSize: '12px', color: '#34C759', fontWeight: 500 }}>Scanned</span>
                           }
                         </td>
                       </tr>
