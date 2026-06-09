@@ -1,17 +1,19 @@
 'use client'
 
 import { useState, cloneElement, isValidElement } from 'react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { ViolationCard } from './ViolationCard'
 import type { ViolationPattern, PageScore } from '@/types'
 
 interface Props {
   pageScore: PageScore
   patterns: ViolationPattern[]
+  pageTrend?: Array<{ date: string; violationCount: number | null }>
   /** If provided, renders as the clickable trigger instead of the default URL button */
   children?: React.ReactElement
 }
 
-export function PageViolationsModal({ pageScore, patterns, children }: Props) {
+export function PageViolationsModal({ pageScore, patterns, pageTrend, children }: Props) {
   const [open, setOpen] = useState(false)
 
   const pagePatterns = patterns.filter(p =>
@@ -73,6 +75,45 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
 
             {/* Body */}
             <div className="overflow-y-auto px-6 py-5 space-y-5">
+              {pageTrend && pageTrend.filter(d => d.violationCount != null).length >= 2 && (
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+                    WCAG Errors Over Time
+                  </div>
+                  <ResponsiveContainer width="100%" height={140}>
+                    <LineChart data={pageTrend} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
+                      <CartesianGrid strokeDasharray="0" stroke="rgba(10,22,40,0.08)" vertical={false} />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 10, fill: '#718096', fontFamily: 'JetBrains Mono, monospace' }}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      />
+                      <YAxis
+                        allowDecimals={false}
+                        tick={{ fontSize: 10, fill: '#718096', fontFamily: 'JetBrains Mono, monospace' }}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <Tooltip
+                        contentStyle={{ background: '#fff', border: '1px solid #DDE3EC', borderRadius: 8, fontSize: 12 }}
+                        labelFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        formatter={(val: any) => [val, 'Errors']}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="violationCount"
+                        stroke="#0057B8"
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 4, strokeWidth: 0 }}
+                        connectNulls
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
               {pagePatterns.length === 0 ? (
                 <div className="text-center py-10 text-[var(--text-muted)] text-sm">No violations found on this page.</div>
               ) : (
