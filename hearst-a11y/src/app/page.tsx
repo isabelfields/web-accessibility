@@ -163,12 +163,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '14px', marginBottom: '20px' }}>
-          <StatCard label="Sites" value={stats.siteCount} sub={`${stats.totalPages} pages monitored`} />
+          <StatCard label="Sites" value={stats.siteCount} sub={`${stats.totalPages} pages monitored`}
+            tooltip="Total number of sites being monitored" />
           <StatCard label="Tier 1 Critical" value={severityCounts.critical} sub="across all sites"
-            accentColor={TIER_COLORS.t1} heroSize={52} />
-          <StatCard label="WCAG Errors" value={stats.totalErrors} sub="latest scans" accentColor="#007AFF" />
+            accentColor={TIER_COLORS.t1} heroSize={52}
+            tooltip="Total element-level failures rated Critical severity across all sites' latest scans" />
+          <StatCard label="WCAG Errors" value={stats.totalErrors} sub="latest scans" accentColor="#007AFF"
+            tooltip="Number of distinct WCAG rule violations found across all sites' latest scans" />
           <StatCard label="Resolved" value={stats.errorsResolved} sub="vs previous scan"
-            accentColor={stats.errorsResolved > 0 ? '#34C759' : undefined} />
+            accentColor={stats.errorsResolved > 0 ? '#34C759' : undefined}
+            tooltip="Violations fixed since each site's previous scan" />
         </div>
 
         {/* Charts */}
@@ -178,7 +182,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <ScoreTrendChart trends={scoreTrends} />
           </div>
           <div style={{ ...S.card, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ ...S.sectionLabel, alignSelf: 'flex-start', width: '100%' }}>Issues by Tier</div>
+            <div style={{ alignSelf: 'flex-start', width: '100%', marginBottom: '4px' }}>
+              <div style={{ ...S.sectionLabel, marginBottom: '2px' }}>Issues by Tier</div>
+              <div style={{ fontSize: '11px', color: '#86868B' }}>Total element-level failures by severity</div>
+            </div>
             <SeverityDonut counts={severityCounts} />
           </div>
         </div>
@@ -257,8 +264,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   )
 }
 
-function StatCard({ label, value, sub, accentColor, heroSize = 44 }: {
-  label: string; value: number; sub: string; accentColor?: string; heroSize?: number
+function StatCard({ label, value, sub, accentColor, heroSize = 44, tooltip }: {
+  label: string; value: number; sub: string; accentColor?: string; heroSize?: number; tooltip?: string
 }) {
   return (
     <div style={{
@@ -267,8 +274,17 @@ function StatCard({ label, value, sub, accentColor, heroSize = 44 }: {
       padding: '22px 22px 18px',
       borderLeft: accentColor ? `3px solid ${accentColor}` : undefined,
     }}>
-      <div style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#86868B' }}>
-        {label}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#86868B' }}>
+          {label}
+        </div>
+        {tooltip && (
+          <span title={tooltip} style={{ cursor: 'help', color: '#C0C0C0', lineHeight: 1 }}>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0 3.5c.4 0 .75.33.75.75v3.5a.75.75 0 0 1-1.5 0v-3.5c0-.42.34-.75.75-.75z"/>
+            </svg>
+          </span>
+        )}
       </div>
       <div style={{ fontSize: `${heroSize}px`, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, color: accentColor ?? '#1D1D1F', margin: '10px 0 6px', fontVariantNumeric: 'tabular-nums' }}>
         {value}
