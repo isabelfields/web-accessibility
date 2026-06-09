@@ -22,16 +22,20 @@ export function SeverityDonut({ counts }: Props) {
   ].filter(d => d.value > 0)
 
   const total = data.reduce((s, d) => s + d.value, 0)
-  if (total === 0) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '160px', fontSize: '14px', color: '#86868B' }}>No data yet</div>
+  if (total === 0) return (
+    <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: '#86868B' }}>
+      No data yet
+    </div>
+  )
 
   return (
-    <div style={{ position: 'relative', height: '200px' }}>
-      <ResponsiveContainer width="100%" height={200}>
+    <div style={{ width: '100%', height: '200px', position: 'relative' }}>
+      <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={data}
             cx="50%"
-            cy="45%"
+            cy="42%"
             innerRadius={52}
             outerRadius={76}
             paddingAngle={2}
@@ -61,7 +65,8 @@ export function SeverityDonut({ counts }: Props) {
           />
         </PieChart>
       </ResponsiveContainer>
-      {/* Center label */}
+
+      {/* Center label — positioned over the donut hole */}
       <div style={{
         position: 'absolute',
         top: '42%',
@@ -69,11 +74,12 @@ export function SeverityDonut({ counts }: Props) {
         transform: 'translate(-50%, -50%)',
         textAlign: 'center',
         pointerEvents: 'none',
+        lineHeight: 1,
       }}>
-        <div style={{ fontSize: '22px', fontWeight: 700, color: '#1D1D1F', lineHeight: 1, letterSpacing: '-0.02em' }}>
+        <div style={{ fontSize: '20px', fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em' }}>
           {total.toLocaleString()}
         </div>
-        <div style={{ fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>
+        <div style={{ fontSize: '9px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '3px' }}>
           TOTAL
         </div>
       </div>

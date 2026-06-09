@@ -79,7 +79,7 @@ async function getData(division?: string, allowedDivisions?: string[]) {
     ((s.latestScan?.patterns ?? []) as any[]).some((p: any) => p.impact === 'critical')
   ).length
 
-  const totalErrors = severityCounts.critical + severityCounts.serious + severityCounts.moderate + severityCounts.minor
+  const totalErrors = sites.reduce((sum: number, s: any) => sum + (s.latestScan?.raw_violation_count ?? 0), 0)
 
   return { sites, scans, activeDivisions, stats: { totalPages, totalErrors, errorsResolved, siteCount: sites.length }, severityCounts, topViolations, scoreTrends, t1SiteCount }
 }
