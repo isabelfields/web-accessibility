@@ -69,7 +69,7 @@ export function SiteCard({ site }: SiteCardProps) {
 
       {latestScan ? (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
-          <span style={{ fontWeight: 600, color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace' }}>
+          <span style={{ fontWeight: 600, color: '#1D1D1F' }}>
             {latestScan.raw_violation_count} error{latestScan.raw_violation_count !== 1 ? 's' : ''}
           </span>
           <span style={{ color: '#86868B' }}>
