@@ -1,66 +1,217 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg-base: #edf0f7;
-  --bg-card: #ffffff;
-  --bg-sidebar: #ffffff;
-  --bg-elevated: #f0f4fa;
-  --bg-header: #ffffff;
-  --border: #e8edf5;
-  --border-strong: #c5d0e0;
-  --text: #0a0f1e;
-  --text-muted: #3d4b63;
-  --text-subtle: #6b7a96;
-  --accent: #2563eb;
-  --shadow-card: 0 1px 2px rgba(10,15,30,0.04), 0 4px 16px rgba(10,15,30,0.07);
-  --shadow-card-hover: 0 2px 6px rgba(10,15,30,0.06), 0 12px 32px rgba(10,15,30,0.12);
-  --shadow-sidebar: 2px 0 16px rgba(10,15,30,0.06);
+  /* Backgrounds */
+  --color-bg-base:        #F0F4F8;
+  --color-bg-surface:     #FFFFFF;
+  --color-bg-sidebar:     #0A1628;
+  --color-bg-elevated:    #F7F9FC;
+
+  /* Brand */
+  --color-hearst-blue:    #0057B8;
+  --color-hearst-blue-lt: #1A6FD4;
+  --color-hearst-tint:    #E8F0FA;
+
+  /* Tier colors */
+  --color-tier1: #C8002A;
+  --color-tier2: #D4600A;
+  --color-tier3: #B08400;
+  --color-tier4: #3A7D44;
+
+  /* Typography */
+  --color-text-primary:   #0D1B2A;
+  --color-text-secondary: #4A5568;
+  --color-text-muted:     #718096;
+  --color-text-inverse:   #FFFFFF;
+
+  /* Borders */
+  --color-border:        #DDE3EC;
+  --color-border-strong: #B0BED0;
+
+  /* Shadows */
+  --shadow-card:   0 1px 3px rgba(10,22,40,0.08), 0 1px 2px rgba(10,22,40,0.04);
+  --shadow-raised: 0 4px 12px rgba(10,22,40,0.10), 0 2px 4px rgba(10,22,40,0.06);
+  --shadow-modal:  0 20px 60px rgba(10,22,40,0.20);
+  --shadow-sidebar: 2px 0 20px rgba(10,22,40,0.12);
+
+  /* Radius */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-pill: 999px;
+
+  /* Legacy aliases used by older components */
+  --bg-base:         var(--color-bg-base);
+  --bg-card:         var(--color-bg-surface);
+  --bg-sidebar:      var(--color-bg-sidebar);
+  --bg-elevated:     var(--color-bg-elevated);
+  --bg-header:       var(--color-bg-surface);
+  --border:          var(--color-border);
+  --border-strong:   var(--color-border-strong);
+  --text:            var(--color-text-primary);
+  --text-muted:      var(--color-text-secondary);
+  --text-subtle:     var(--color-text-muted);
+  --accent:          var(--color-hearst-blue);
+  --shadow-card-hover: var(--shadow-raised);
 }
 
 .dark {
-  --bg-base: #0c0c10;
-  --bg-card: #13131c;
-  --bg-sidebar: #08080c;
-  --bg-elevated: #1e1e2a;
-  --bg-header: #1a1a26;
-  --border: #2a2a3a;
-  --border-strong: #36364a;
-  --text: #ffffff;
-  --text-muted: rgba(255,255,255,0.7);
-  --text-subtle: rgba(255,255,255,0.5);
-  --accent: #5b9bd6;
-  --shadow-card: none;
-  --shadow-card-hover: none;
+  --color-bg-base:        #0c0c10;
+  --color-bg-surface:     #13131c;
+  --color-bg-sidebar:     #08080c;
+  --color-bg-elevated:    #1e1e2a;
+  --color-border:         #2a2a3a;
+  --color-border-strong:  #36364a;
+  --color-text-primary:   #ffffff;
+  --color-text-secondary: rgba(255,255,255,0.7);
+  --color-text-muted:     rgba(255,255,255,0.5);
+  --color-hearst-blue:    #5b9bd6;
+  --color-hearst-blue-lt: #7ab3e0;
+  --color-hearst-tint:    rgba(91,155,214,0.12);
+  --shadow-card:          none;
+  --shadow-raised:        none;
+  --shadow-modal:         0 20px 60px rgba(0,0,0,0.5);
+  --shadow-sidebar:       none;
+
+  --bg-base:       var(--color-bg-base);
+  --bg-card:       var(--color-bg-surface);
+  --bg-sidebar:    var(--color-bg-sidebar);
+  --bg-elevated:   var(--color-bg-elevated);
+  --bg-header:     var(--color-bg-base);
+  --border:        var(--color-border);
+  --border-strong: var(--color-border-strong);
+  --text:          var(--color-text-primary);
+  --text-muted:    var(--color-text-secondary);
+  --text-subtle:   var(--color-text-muted);
+  --accent:        var(--color-hearst-blue);
 }
 
 @layer base {
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
-    background-color: var(--bg-base);
-    color: var(--text);
+    background-color: var(--color-bg-base);
+    color: var(--color-text-primary);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-hearst-blue);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
   }
 }
 
-/* Card depth */
+/* ── Card ── */
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
 }
-.card-hover:hover {
-  box-shadow: var(--shadow-card-hover);
-  border-color: var(--border-strong);
-  transform: translateY(-1px);
-}
 .card-hover {
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+}
+.card-hover:hover {
+  box-shadow: var(--shadow-raised);
+  transform: translateY(-1px);
+  border-color: var(--color-border-strong);
 }
 
-::selection { background: rgba(59,126,200,0.35); color: #fff; }
-::-webkit-scrollbar { width: 6px; background: var(--bg-base); }
-::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+/* ── Tier badge pills ── */
+.badge-t1 {
+  background: rgba(200,0,42,0.10);
+  color: #C8002A;
+  border: 1px solid rgba(200,0,42,0.30);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center;
+}
+.badge-t2 {
+  background: rgba(212,96,10,0.10);
+  color: #D4600A;
+  border: 1px solid rgba(212,96,10,0.30);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center;
+}
+.badge-t3 {
+  background: rgba(176,132,0,0.10);
+  color: #B08400;
+  border: 1px solid rgba(176,132,0,0.30);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center;
+}
+.badge-t4 {
+  background: rgba(58,125,68,0.10);
+  color: #3A7D44;
+  border: 1px solid rgba(58,125,68,0.30);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center;
+}
+
+/* ── Data table ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table thead tr { background: var(--color-bg-elevated); border-bottom: 1px solid var(--color-border); }
+.data-table th {
+  text-align: left; padding: 10px 16px;
+  font-size: 11px; font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.data-table td { padding: 12px 16px; color: var(--color-text-primary); border-bottom: 1px solid var(--color-border); }
+.data-table tbody tr { transition: background 0.12s ease; }
+.data-table tbody tr:hover { background: rgba(232,240,250,0.6); }
+.dark .data-table tbody tr:hover { background: var(--color-bg-elevated); }
+
+/* ── Utility classes ── */
+.mono {
+  font-family: 'JetBrains Mono', 'Fira Mono', ui-monospace, monospace;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; background: var(--color-bg-base); }
+::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 3px; }
+::selection { background: rgba(0,87,184,0.20); }
+
+/* ── Sidebar nav (always dark regardless of theme) ── */
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.60);
+  transition: color 0.15s ease, background 0.15s ease;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+}
+.sidebar-nav-link:hover {
+  color: rgba(255,255,255,1);
+  background: rgba(255,255,255,0.07);
+}
+.sidebar-nav-link:focus-visible {
+  outline: 2px solid rgba(26,111,212,0.8);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-hover { transition: none; }
+  .card-hover:hover { transform: none; }
+}

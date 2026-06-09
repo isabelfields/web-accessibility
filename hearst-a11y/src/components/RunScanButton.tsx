@@ -81,7 +81,10 @@ export function RunScanButton({ siteId }: { siteId: string }) {
       <button
         onClick={handleRun}
         disabled={loading}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-50 transition-colors"
+        style={{ background: 'var(--color-hearst-blue)' }}
+        onMouseEnter={(e) => { if (!loading) (e.currentTarget as HTMLElement).style.background = 'var(--color-hearst-blue-lt)' }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--color-hearst-blue)' }}
       >
         {loading ? (
           <>

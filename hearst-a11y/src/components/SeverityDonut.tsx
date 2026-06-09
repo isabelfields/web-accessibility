@@ -1,66 +1,107 @@
 'use client'
 
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 
-const COLORS = {
-  critical: '#1e40af',
-  serious:  '#2563eb',
-  moderate: '#60a5fa',
-  minor:    '#bfdbfe',
+const TIER_COLORS = {
+  critical: '#C8002A',
+  serious:  '#D4600A',
+  moderate: '#B08400',
+  minor:    '#3A7D44',
+}
+
+const TIER_LABELS = {
+  critical: 'T1 Critical',
+  serious:  'T2 Serious',
+  moderate: 'T3 Moderate',
+  minor:    'T4 Minor',
 }
 
 interface Props {
   counts: { critical: number; serious: number; moderate: number; minor: number }
 }
 
+const tooltipStyle = {
+  background: '#fff',
+  border: '1px solid #DDE3EC',
+  borderRadius: '8px',
+  color: '#0D1B2A',
+  fontSize: 12,
+  boxShadow: '0 4px 12px rgba(10,22,40,0.10)',
+  fontFamily: 'Inter, sans-serif',
+}
+
 export function SeverityDonut({ counts }: Props) {
-  const data = [
-    { name: 'T1 Critical', value: counts.critical, color: COLORS.critical },
-    { name: 'T2 Serious',  value: counts.serious,  color: COLORS.serious },
-    { name: 'T3 Moderate', value: counts.moderate, color: COLORS.moderate },
-    { name: 'T4 Minor',    value: counts.minor,    color: COLORS.minor },
-  ].filter(d => d.value > 0)
+  const data = (Object.entries(counts) as [keyof typeof counts, number][])
+    .map(([key, value]) => ({
+      name: TIER_LABELS[key],
+      value,
+      color: TIER_COLORS[key],
+      key,
+    }))
+    .filter(d => d.value > 0)
 
   const total = data.reduce((s, d) => s + d.value, 0)
-  const tooltipStyle = {
-    background: 'var(--bg-card)',
-    border: '1px solid var(--border)',
-    borderRadius: '6px',
-    color: 'var(--text)',
-    fontSize: 12,
-    boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+
+  if (total === 0) {
+    return (
+      <div className="flex items-center justify-center h-40 text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
+        No data yet
+      </div>
+    )
   }
 
-  if (total === 0) return <div className="flex items-center justify-center h-40 text-sm text-[var(--text-muted)]">No data yet</div>
-
   return (
-    <ResponsiveContainer width="100%" height={200}>
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          innerRadius={52}
-          outerRadius={76}
-          paddingAngle={2}
-          dataKey="value"
-          strokeWidth={0}
-        >
-          {data.map((entry, i) => (
-            <Cell key={i} fill={entry.color} fillOpacity={0.9} />
-          ))}
-        </Pie>
-        <Tooltip
-          formatter={(val) => { const n = Number(val); return [`${n} (${Math.round(n/total*100)}%)`] }}
-          contentStyle={tooltipStyle}
-        />
-        <Legend
-          iconType="circle"
-          iconSize={6}
-          wrapperStyle={{ fontSize: 10 }}
-          formatter={(value) => <span style={{ color: 'var(--text-muted)' }}>{value}</span>}
-        />
-      </PieChart>
-    </ResponsiveContainer>
+    <div>
+      <div className="relative">
+        <ResponsiveContainer width="100%" height={180}>
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={55}
+              outerRadius={82}
+              paddingAngle={2}
+              dataKey="value"
+              strokeWidth={0}
+            >
+              {data.map((entry, i) => (
+                <Cell key={i} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(val: any, name: string) => {
+                const n = Number(val)
+                return [`${n} (${Math.round(n / total * 100)}%)`, name]
+              }}
+              contentStyle={tooltipStyle}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        {/* Center label */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <span className="mono font-bold text-[28px] leading-none" style={{ color: 'var(--color-text-primary)' }}>{total}</span>
+          <span className="text-[11px] font-semibold uppercase tracking-wider mt-1" style={{ color: 'var(--color-text-muted)' }}>total</span>
+        </div>
+      </div>
+
+      {/* Legend pills */}
+      <div className="flex flex-wrap gap-2 justify-center mt-2">
+        {data.map(d => (
+          <span
+            key={d.key}
+            className="inline-flex items-center gap-1.5 text-[12px] font-medium px-2.5 py-1 rounded-full"
+            style={{
+              background: `${d.color}18`,
+              color: d.color,
+              border: `1px solid ${d.color}40`,
+            }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: d.color }} aria-hidden="true" />
+            {d.name}
+          </span>
+        ))}
+      </div>
+    </div>
   )
 }

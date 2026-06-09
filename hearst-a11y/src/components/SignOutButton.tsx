@@ -6,7 +6,10 @@ export function SignOutButton() {
   return (
     <button
       onClick={() => signOut({ callbackUrl: '/login' })}
-      className="text-[11px] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors font-medium"
+      className="text-[12px] font-medium transition-colors"
+      style={{ color: 'rgba(255,255,255,0.45)' }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.85)' }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.45)' }}
     >
       Sign out
     </button>

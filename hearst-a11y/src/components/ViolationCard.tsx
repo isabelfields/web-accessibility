@@ -3,33 +3,58 @@
 import { useState } from 'react'
 import type { ViolationPattern } from '@/types'
 
-const IMPACT: Record<string, { label: string; border: string; pill: string; dot: string }> = {
-  critical: { label: 'Critical',  border: 'border-l-red-500',    pill: 'bg-red-500/20 text-red-400 ring-1 ring-inset ring-red-500/30',    dot: 'bg-red-500' },
-  serious:  { label: 'Serious',   border: 'border-l-red-400',    pill: 'bg-red-500/20 text-red-400 ring-1 ring-inset ring-red-500/30',    dot: 'bg-red-400' },
-  moderate: { label: 'Moderate',  border: 'border-l-amber-400',  pill: 'bg-amber-500/20 text-amber-400 ring-1 ring-inset ring-amber-500/30',  dot: 'bg-amber-400' },
-  minor:    { label: 'Minor',     border: 'border-l-blue-400',   pill: 'bg-blue-500/20 text-blue-400 ring-1 ring-inset ring-blue-500/30',    dot: 'bg-blue-400' },
+const IMPACT_CONFIG: Record<string, {
+  label: string
+  badgeClass: string
+  borderWidth: string
+  borderColor: string
+}> = {
+  critical: {
+    label: 'Critical',
+    badgeClass: 'badge-t1',
+    borderWidth: '4px',
+    borderColor: '#C8002A',
+  },
+  serious: {
+    label: 'Serious',
+    badgeClass: 'badge-t2',
+    borderWidth: '2px',
+    borderColor: '#D4600A',
+  },
+  moderate: {
+    label: 'Moderate',
+    badgeClass: 'badge-t3',
+    borderWidth: '1px',
+    borderColor: '#B08400',
+  },
+  minor: {
+    label: 'Minor',
+    badgeClass: 'badge-t4',
+    borderWidth: '1px',
+    borderColor: '#3A7D44',
+  },
 }
 
 const WCAG_RULES: Record<string, { name: string; wcag: string; what: string }> = {
-  'html-has-lang':           { name: 'Page Language',           wcag: 'WCAG 3.1.1 (A)',   what: "The page must declare its language so screen readers pronounce words correctly." },
-  'image-alt':               { name: 'Image Alt Text',           wcag: 'WCAG 1.1.1 (A)',   what: 'Images must have a text description so screen reader users know what the image shows.' },
-  'color-contrast':          { name: 'Color Contrast',           wcag: 'WCAG 1.4.3 (AA)',  what: 'Text must have a contrast ratio of at least 4.5:1 (normal text) or 3:1 (large text) against its background.' },
-  'color-contrast-enhanced': { name: 'Color Contrast (AAA)',     wcag: 'WCAG 1.4.6 (AAA)', what: 'Enhanced contrast: 7:1 for normal text, 4.5:1 for large text.' },
-  'button-name':             { name: 'Button Label',             wcag: 'WCAG 4.1.2 (A)',   what: 'Buttons must have an accessible name so screen reader users know what the button does.' },
-  'label':                   { name: 'Form Field Label',         wcag: 'WCAG 1.3.1 (A)',   what: 'Form inputs must have labels so screen reader users know what information to enter.' },
-  'link-name':               { name: 'Link Text',                wcag: 'WCAG 2.4.4 (A)',   what: 'Links must have descriptive text so screen reader users understand where the link goes.' },
-  'aria-required-attr':      { name: 'Missing ARIA Attribute',   wcag: 'WCAG 4.1.2 (A)',   what: 'An ARIA role is present but a required attribute is missing, breaking screen reader announcements.' },
-  'aria-valid-attr-value':   { name: 'Invalid ARIA Value',       wcag: 'WCAG 4.1.2 (A)',   what: 'An ARIA attribute has an invalid value, which can confuse assistive technology.' },
-  'aria-required-children':  { name: 'Missing ARIA Children',    wcag: 'WCAG 4.1.2 (A)',   what: 'Certain ARIA roles require specific child roles that are missing.' },
-  'document-title':          { name: 'Page Title',               wcag: 'WCAG 2.4.2 (A)',   what: 'Every page must have a descriptive title so users know which page they are on.' },
-  'frame-title':             { name: 'Frame / iFrame Label',     wcag: 'WCAG 2.4.1 (A)',   what: 'Frames and iframes must have a title so screen reader users understand their purpose.' },
-  'heading-order':           { name: 'Heading Structure',        wcag: 'WCAG 1.3.1 (A)',   what: 'Headings must follow a logical order (H1 → H2 → H3) so screen reader users can navigate structure.' },
-  'landmark-one-main':       { name: 'Main Landmark',            wcag: 'WCAG 1.3.1 (A)',   what: 'Every page should have exactly one main landmark element.' },
-  'region':                  { name: 'Page Regions',             wcag: 'WCAG 1.3.1 (A)',   what: 'All content should be contained within landmark regions (header, main, footer, nav).' },
-  'select-name':             { name: 'Dropdown Label',           wcag: 'WCAG 1.3.1 (A)',   what: 'Dropdown menus must have labels so screen reader users know what to select.' },
-  'tabindex':                { name: 'Tab Order',                wcag: 'WCAG 2.4.3 (A)',   what: 'tabindex values > 0 disrupt the natural keyboard navigation order.' },
-  'video-caption':           { name: 'Video Captions',           wcag: 'WCAG 1.2.2 (AA)',  what: 'Videos must have captions so deaf users can access the audio content.' },
-  'input-image-alt':         { name: 'Image Button Alt Text',    wcag: 'WCAG 1.1.1 (A)',   what: 'Image buttons must have alt text describing the button action.' },
+  'html-has-lang':           { name: 'Page Language',           wcag: 'WCAG 3.1.1 A',   what: "The page must declare its language so screen readers pronounce words correctly." },
+  'image-alt':               { name: 'Image Alt Text',           wcag: 'WCAG 1.1.1 A',   what: 'Images must have a text description so screen reader users know what the image shows.' },
+  'color-contrast':          { name: 'Color Contrast',           wcag: 'WCAG 1.4.3 AA',  what: 'Text must have a contrast ratio of at least 4.5:1 (normal text) or 3:1 (large text) against its background.' },
+  'color-contrast-enhanced': { name: 'Color Contrast (AAA)',     wcag: 'WCAG 1.4.6 AAA', what: 'Enhanced contrast: 7:1 for normal text, 4.5:1 for large text.' },
+  'button-name':             { name: 'Button Label',             wcag: 'WCAG 4.1.2 A',   what: 'Buttons must have an accessible name so screen reader users know what the button does.' },
+  'label':                   { name: 'Form Field Label',         wcag: 'WCAG 1.3.1 A',   what: 'Form inputs must have labels so screen reader users know what information to enter.' },
+  'link-name':               { name: 'Link Text',                wcag: 'WCAG 2.4.4 A',   what: 'Links must have descriptive text so screen reader users understand where the link goes.' },
+  'aria-required-attr':      { name: 'Missing ARIA Attribute',   wcag: 'WCAG 4.1.2 A',   what: 'An ARIA role is present but a required attribute is missing, breaking screen reader announcements.' },
+  'aria-valid-attr-value':   { name: 'Invalid ARIA Value',       wcag: 'WCAG 4.1.2 A',   what: 'An ARIA attribute has an invalid value, which can confuse assistive technology.' },
+  'aria-required-children':  { name: 'Missing ARIA Children',    wcag: 'WCAG 4.1.2 A',   what: 'Certain ARIA roles require specific child roles that are missing.' },
+  'document-title':          { name: 'Page Title',               wcag: 'WCAG 2.4.2 A',   what: 'Every page must have a descriptive title so users know which page they are on.' },
+  'frame-title':             { name: 'Frame / iFrame Label',     wcag: 'WCAG 2.4.1 A',   what: 'Frames and iframes must have a title so screen reader users understand their purpose.' },
+  'heading-order':           { name: 'Heading Structure',        wcag: 'WCAG 1.3.1 A',   what: 'Headings must follow a logical order (H1 → H2 → H3) so screen reader users can navigate structure.' },
+  'landmark-one-main':       { name: 'Main Landmark',            wcag: 'WCAG 1.3.1 A',   what: 'Every page should have exactly one main landmark element.' },
+  'region':                  { name: 'Page Regions',             wcag: 'WCAG 1.3.1 A',   what: 'All content should be contained within landmark regions (header, main, footer, nav).' },
+  'select-name':             { name: 'Dropdown Label',           wcag: 'WCAG 1.3.1 A',   what: 'Dropdown menus must have labels so screen reader users know what to select.' },
+  'tabindex':                { name: 'Tab Order',                wcag: 'WCAG 2.4.3 A',   what: 'tabindex values > 0 disrupt the natural keyboard navigation order.' },
+  'video-caption':           { name: 'Video Captions',           wcag: 'WCAG 1.2.2 AA',  what: 'Videos must have captions so deaf users can access the audio content.' },
+  'input-image-alt':         { name: 'Image Button Alt Text',    wcag: 'WCAG 1.1.1 A',   what: 'Image buttons must have alt text describing the button action.' },
 }
 
 function getRuleInfo(rule: string) {
@@ -40,7 +65,6 @@ function pagePath(url: string) {
   try { return new URL(url).pathname || '/' } catch { return url }
 }
 
-// Truncate HTML to a single readable line
 function truncateHtml(html: string, max = 120) {
   const single = html.replace(/\s+/g, ' ').trim()
   return single.length > max ? single.slice(0, max) + '…' : single
@@ -52,7 +76,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
   const [open, setOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
 
-  const impact = IMPACT[pattern.impact] ?? IMPACT.minor
+  const cfg = IMPACT_CONFIG[pattern.impact] ?? IMPACT_CONFIG.minor
   const ruleInfo = getRuleInfo(pattern.rule)
   const instanceCount = pattern.occurrences
   const pageCount = pattern.affectedPages?.length ?? 1
@@ -67,91 +91,142 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
   const hiddenCount = nodes.length - SHOW_LIMIT
 
   return (
-    <div className={`bg-[var(--bg-card)] border border-[var(--border)] border-l-[3px] ${impact.border} rounded-lg overflow-hidden`}>
-
-      {/* ── Collapsed header row ── */}
+    <div
+      className="overflow-hidden"
+      style={{
+        background: 'var(--color-bg-surface)',
+        border: '1px solid var(--color-border)',
+        borderLeft: `${cfg.borderWidth} solid ${cfg.borderColor}`,
+        borderRadius: 'var(--radius-md)',
+      }}
+    >
+      {/* Collapsed header */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full text-left px-5 py-3 flex items-center gap-3 hover:bg-[var(--bg-elevated)] transition-colors"
+        aria-expanded={open}
+        className="w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors"
+        style={{ background: 'transparent' }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-elevated)' }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
       >
-        <span className={`shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md ${impact.pill}`}>
-          {impact.label}
-        </span>
+        <span className={cfg.badgeClass}>{cfg.label}</span>
+
         <div className="flex-1 min-w-0">
-          <span className="font-semibold text-[var(--text)] text-sm">{ruleInfo.name}</span>
-          <span className="text-xs text-[var(--text-muted)] ml-2 bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded">{ruleInfo.wcag}</span>
-          <span className="text-xs text-[var(--text-muted)] mx-1.5">·</span>
-          <span className="text-xs text-[var(--text-muted)] truncate">{pattern.description}</span>
+          <span className="font-semibold text-[14px]" style={{ color: 'var(--color-text-primary)' }}>
+            {ruleInfo.name}
+          </span>
+          <span
+            className="mono text-[11px] ml-2 px-1.5 py-0.5 rounded"
+            style={{
+              color: 'var(--color-text-muted)',
+              background: 'var(--color-bg-elevated)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            {ruleInfo.wcag}
+          </span>
+          <span className="mx-1.5 text-[13px]" style={{ color: 'var(--color-border-strong)' }}>·</span>
+          <span className="text-[13px] truncate" style={{ color: 'var(--color-text-secondary)' }}>
+            {pattern.description}
+          </span>
         </div>
-        <div className="hidden sm:flex items-center gap-5 shrink-0 text-right">
-          <div>
-            <div className="text-sm font-semibold text-[var(--text)] tabular-nums">{instanceCount}</div>
-            <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">instance{instanceCount !== 1 ? 's' : ''}</div>
-          </div>
-          <div>
-            <div className="text-sm font-semibold text-[var(--text)] tabular-nums">{pageCount}</div>
-            <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">page{pageCount !== 1 ? 's' : ''}</div>
-          </div>
+
+        {/* Right: instance + page counts */}
+        <div className="hidden sm:flex items-center gap-1 shrink-0 text-[13px]" style={{ color: 'var(--color-text-secondary)' }}>
+          <span className="mono font-semibold" style={{ color: 'var(--color-text-primary)' }}>{instanceCount}</span>
+          <span>instance{instanceCount !== 1 ? 's' : ''}</span>
+          <span className="mx-1" style={{ color: 'var(--color-border-strong)' }}>·</span>
+          <span className="mono font-semibold" style={{ color: 'var(--color-text-primary)' }}>{pageCount}</span>
+          <span>page{pageCount !== 1 ? 's' : ''}</span>
         </div>
-        <svg className={`shrink-0 w-4 h-4 text-[var(--text-muted)] transition-transform ${open ? 'rotate-180' : ''}`}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+        <svg
+          className={`shrink-0 w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`}
+          style={{ color: 'var(--color-text-muted)' }}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
-      {/* ── Expanded body ── */}
+      {/* Expanded body */}
       {open && (
-        <div className="border-t border-[var(--border)]">
+        <div style={{ borderTop: '1px solid var(--color-border)' }}>
 
           {/* What it means */}
           <div className="px-5 pt-4 pb-3">
-            <p className="text-sm text-[var(--text-muted)] leading-relaxed">{ruleInfo.what ?? pattern.description}</p>
+            <p className="text-[14px] leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
+              {ruleInfo.what ?? pattern.description}
+            </p>
           </div>
 
-          {/* How to fix — prominent callout */}
+          {/* How to fix */}
           {pattern.fixSuggestion && (
-            <div className="mx-5 mb-4 bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-3 flex gap-3">
-              <svg className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div
+              className="mx-5 mb-4 rounded-lg px-4 py-3 flex gap-3"
+              style={{
+                background: 'rgba(0,87,184,0.06)',
+                border: '1px solid rgba(0,87,184,0.18)',
+              }}
+            >
+              <svg className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--color-hearst-blue)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <div className="text-xs font-semibold text-blue-400 mb-0.5 uppercase tracking-wide">How to fix</div>
-                <p className="text-sm text-[var(--text-muted)] leading-relaxed">{pattern.fixSuggestion}</p>
+                <div className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--color-hearst-blue)' }}>
+                  How to fix
+                </div>
+                <p className="text-[13px] leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
+                  {pattern.fixSuggestion}
+                </p>
               </div>
             </div>
           )}
 
-          {/* Failing elements — compact table */}
+          {/* Failing elements */}
           {nodes.length > 0 && (
-            <div className="border-t border-[var(--border)]">
+            <div style={{ borderTop: '1px solid var(--color-border)' }}>
               <div className="px-5 py-2.5 flex items-center justify-between">
-                <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+                <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
                   Failing elements · {nodes.length}
                 </span>
               </div>
-              <table className="w-full text-xs">
+              <table className="w-full text-[12px]">
                 <thead>
-                  <tr className="border-b border-[var(--border)]">
-                    <th className="text-left px-4 py-1.5 text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider w-8">#</th>
-                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider w-36">Page</th>
-                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Element</th>
+                  <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-bg-elevated)' }}>
+                    <th scope="col" className="text-left px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider w-8" style={{ color: 'var(--color-text-muted)' }}>#</th>
+                    <th scope="col" className="text-left px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider w-36" style={{ color: 'var(--color-text-muted)' }}>Page</th>
+                    <th scope="col" className="text-left px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Element</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--border)]">
+                <tbody>
                   {visibleNodes.map((node, i) => (
-                    <tr key={i} className="hover:bg-[var(--bg-elevated)]">
-                      <td className="px-4 py-2 text-[var(--text-muted)] font-mono">{i + 1}</td>
+                    <tr key={i} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                      <td className="px-4 py-2 mono" style={{ color: 'var(--color-text-muted)' }}>{i + 1}</td>
                       <td className="px-3 py-2">
                         {node.url ? (
-                          <a href={node.url} target="_blank" rel="noopener noreferrer"
-                            className="text-[#5b9bd6] hover:underline font-mono truncate block max-w-[140px]"
-                            title={node.url}>
+                          <a
+                            href={node.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mono hover:underline truncate block max-w-[140px]"
+                            style={{ color: 'var(--color-hearst-blue)' }}
+                            title={node.url}
+                          >
                             {pagePath(node.url)}
                           </a>
-                        ) : <span className="text-[var(--text-muted)]">—</span>}
+                        ) : <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
                       </td>
                       <td className="px-3 py-2">
-                        <code className="font-mono text-[var(--text-muted)] bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded text-[11px] break-all">
+                        <code
+                          className="mono text-[11px] px-1.5 py-0.5 rounded break-all"
+                          style={{
+                            color: 'var(--color-text-secondary)',
+                            background: 'var(--color-bg-elevated)',
+                            border: '1px solid var(--color-border)',
+                          }}
+                        >
                           {truncateHtml(node.html)}
                         </code>
                       </td>
@@ -162,7 +237,14 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
               {hiddenCount > 0 && !showAll && (
                 <button
                   onClick={() => setShowAll(true)}
-                  className="w-full text-center text-xs text-[var(--text-muted)] hover:text-[var(--text)] py-2 border-t border-[var(--border)] hover:bg-[var(--bg-elevated)] transition-colors"
+                  className="w-full text-center text-[13px] py-2.5 transition-colors"
+                  style={{
+                    color: 'var(--color-text-muted)',
+                    borderTop: '1px solid var(--color-border)',
+                    background: 'transparent',
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-elevated)' }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                 >
                   + {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
                 </button>
@@ -170,13 +252,15 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
             </div>
           )}
 
-          {/* Footer — WCAG guidance link */}
-          <div className="px-5 py-2.5 border-t border-[var(--border)] flex items-center justify-between">
-            <span className="text-[11px] font-mono text-[var(--text-muted)]">{pattern.rule}</span>
+          {/* Footer */}
+          <div className="px-5 py-2.5 flex items-center justify-between" style={{ borderTop: '1px solid var(--color-border)' }}>
+            <span className="mono text-[11px]" style={{ color: 'var(--color-text-muted)' }}>{pattern.rule}</span>
             <a
               href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}?application=axeAPI`}
-              target="_blank" rel="noopener noreferrer"
-              className="text-xs font-medium text-[#5b9bd6] hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[13px] font-medium hover:underline"
+              style={{ color: 'var(--color-hearst-blue)' }}
             >
               View WCAG guidance →
             </a>
