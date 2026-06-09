@@ -35,25 +35,6 @@ function formatDate(d: string | Date | null) {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-function relativeTime(d: string | Date | null) {
-  if (!d) return null
-  const ms = Date.now() - new Date(d).getTime()
-  const mins = Math.floor(ms / 60000)
-  if (mins < 60) return `${mins}m ago`
-  const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
-  const days = Math.floor(hrs / 24)
-  return `${days} day${days !== 1 ? 's' : ''} ago`
-}
-
-function TierBadge({ tier }: { tier: string | null }) {
-  if (!tier) return <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-  const map: Record<string, string> = { tier1: 't1', tier2: 't2', tier3: 't3', tier4: 't4' }
-  const cls = map[tier] ?? 't4'
-  const label = tier.replace('tier', 'T')
-  return <span className={`badge-${cls}`}>{label}</span>
-}
-
 export default async function SiteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const data = await getSiteData(id)
@@ -67,24 +48,6 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   const pageScores: Array<{ url: string; label?: string; score: number | null; violationCount: number | null; error?: string }> =
     latestScan?.page_scores ?? []
 
-  // Build per-page trend data from all completed scans (oldest first)
-  const pageTrendMap: Record<string, Array<{ date: string; violationCount: number | null }>> = {}
-  for (const scan of [...completedScans].reverse()) {
-    const scores: Array<{ url: string; violationCount: number | null }> = scan.page_scores ?? []
-    const date = new Date(scan.completed_at ?? scan.started_at).toISOString()
-    for (const ps of scores) {
-      if (!pageTrendMap[ps.url]) pageTrendMap[ps.url] = []
-      pageTrendMap[ps.url].push({ date, violationCount: ps.violationCount ?? null })
-    }
-  }
-
-  // Build site-level trend from completed scans (oldest → newest)
-  const siteTrend = [...completedScans].reverse().map((s: any) => ({
-    date: new Date(s.completed_at ?? s.started_at).toISOString(),
-    errors: s.raw_violation_count ?? 0,
-    score: s.score ?? null,
-  }))
-
   const patterns: ViolationPattern[] = latestScan?.patterns ?? []
   const byTier: Record<string, ViolationPattern[]> = { tier1: [], tier2: [], tier3: [], tier4: [] }
   for (const p of patterns) {
@@ -93,367 +56,228 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   }
   const worstTier = patternsToWorstTier(patterns)
 
-  const hasTiers = (['tier1', 'tier2', 'tier3', 'tier4'] as const).some(t => byTier[t].length > 0)
+  const TIER_HEX: Record<string, string> = { tier1: '#002D82', tier2: '#005AC8', tier3: '#007AFF', tier4: '#5AC8FA' }
+
+  // Build site-level trend from completed scans (oldest → newest)
+  const siteTrend = [...completedScans].reverse().map((s: any) => ({
+    date: new Date(s.completed_at ?? s.started_at).toISOString(),
+    errors: s.raw_violation_count ?? 0,
+    score: s.score ?? null,
+  }))
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--color-bg-base)' }}>
-      {/* Top bar */}
-      <div
-        className="px-8 py-4 flex items-center justify-between sticky top-0 z-10 backdrop-blur-sm"
-        style={{ background: 'rgba(255,255,255,0.92)', borderBottom: '1px solid var(--color-border)' }}
-      >
-        {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb">
-          <ol className="flex items-center gap-2 text-[14px]">
-            <li>
-              <Link href="/sites" className="font-medium hover:underline" style={{ color: 'var(--color-hearst-blue)' }}>
-                Sites
-              </Link>
-            </li>
-            <li aria-hidden="true" style={{ color: 'var(--color-border-strong)' }}>/</li>
-            <li className="font-bold" style={{ color: 'var(--color-text-primary)' }} aria-current="page">
-              {site.name}
-            </li>
-          </ol>
-        </nav>
-        <div className="flex items-center gap-2">
+    <div style={{ padding: '24px 32px', background: '#F5F5F7', minHeight: '100vh' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#86868B', marginBottom: '6px' }}>
+            <Link href="/sites" style={{ color: '#007AFF', textDecoration: 'none' }}>Sites</Link>
+            <span style={{ color: '#D0D0D0' }}>/</span>
+            <span style={{ color: '#1D1D1F', fontWeight: 500 }}>{site.name}</span>
+          </div>
+          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#1D1D1F', margin: 0 }}>{site.name}</h1>
+          {latestScan && (
+            <p style={{ fontSize: '13px', color: '#86868B', marginTop: '4px' }}>
+              Last scanned {formatDate(latestScan.started_at)}
+            </p>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <EditSiteButton site={{ id: site.id, name: site.name, division: site.division, pages }} />
           <RunScanButton siteId={site.id} />
         </div>
       </div>
 
-      <div className="px-8 py-7">
-        {/* Page header */}
-        <div className="mb-7">
-          <h1 className="text-[28px] font-bold leading-tight" style={{ color: 'var(--color-text-primary)' }}>{site.name}</h1>
-          {latestScan && (
-            <p className="text-[13px] mt-1" style={{ color: 'var(--color-text-muted)' }}>
-              Last scanned{' '}
-              <span title={formatDate(latestScan.started_at)}>
-                {relativeTime(latestScan.started_at)}
-              </span>
-            </p>
+      {/* Summary cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '28px' }}>
+        <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderLeft: worstTier ? `3px solid ${TIER_HEX[worstTier]}` : undefined }}>
+          <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868B', marginBottom: '8px' }}>Priority</div>
+          {worstTier ? (
+            <>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: TIER_HEX[worstTier] }}>{TIER_LABEL[worstTier]}</div>
+              <div style={{ fontSize: '11px', color: '#86868B', marginTop: '4px' }}>highest tier found</div>
+            </>
+          ) : (
+            <div style={{ fontSize: '16px', fontWeight: 600, color: '#34C759' }}>{latestScan ? 'No issues' : 'No scans yet'}</div>
           )}
         </div>
 
-        {/* Summary stat cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-7">
-          <div className="card p-5">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.07em] mb-3" style={{ color: 'var(--color-text-muted)' }}>Priority</div>
-            {worstTier ? (
-              <>
-                <TierBadge tier={worstTier} />
-                <div className="text-[12px] mt-2" style={{ color: 'var(--color-text-muted)' }}>highest tier found</div>
-              </>
-            ) : (
-              <div className="text-[15px] font-semibold mt-1" style={{ color: 'var(--color-tier4)' }}>
-                {latestScan ? 'No issues' : 'No scans yet'}
-              </div>
-            )}
-          </div>
-
-          <div className="card p-5" style={latestScan?.raw_violation_count > 0 ? { borderLeft: '4px solid var(--color-tier1)' } : undefined}>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.07em] mb-3" style={{ color: 'var(--color-text-muted)' }}>WCAG Errors</div>
-            <div className="mono font-bold text-[36px] leading-none tabular-nums" style={{ color: 'var(--color-text-primary)' }}>
-              {latestScan?.raw_violation_count ?? '—'}
-            </div>
-            <div className="text-[12px] mt-2" style={{ color: 'var(--color-text-muted)' }}>
-              {latestScan?.unique_pattern_count ?? 0} issue types
-            </div>
-          </div>
-
-          <div className="card p-5">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.07em] mb-3" style={{ color: 'var(--color-text-muted)' }}>Pages Scanned</div>
-            <div className="mono font-bold text-[36px] leading-none tabular-nums" style={{ color: 'var(--color-text-primary)' }}>
-              {latestScan?.pages_scanned ?? '—'}
-            </div>
-            <div className="text-[12px] mt-2" style={{ color: 'var(--color-text-muted)' }}>{pages.length} configured</div>
-          </div>
-
-          <div className="card p-5">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.07em] mb-3" style={{ color: 'var(--color-text-muted)' }}>Total Scans</div>
-            <div className="mono font-bold text-[36px] leading-none tabular-nums" style={{ color: 'var(--color-text-primary)' }}>
-              {scans.length}
-            </div>
-            <div className="text-[12px] mt-2" style={{ color: 'var(--color-text-muted)' }}>{completedScans.length} completed</div>
-          </div>
+        <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', padding: '20px' }}>
+          <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868B', marginBottom: '8px' }}>WCAG Errors</div>
+          <div style={{ fontSize: '32px', fontWeight: 700, color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace', letterSpacing: '-0.03em' }}>{latestScan?.raw_violation_count ?? '—'}</div>
+          <div style={{ fontSize: '11px', color: '#86868B', marginTop: '4px' }}>{latestScan?.unique_pattern_count ?? 0} issue types</div>
         </div>
 
-        <div className="space-y-8">
+        <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', padding: '20px' }}>
+          <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868B', marginBottom: '8px' }}>Pages Scanned</div>
+          <div style={{ fontSize: '32px', fontWeight: 700, color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace', letterSpacing: '-0.03em' }}>{latestScan?.pages_scanned ?? '—'}</div>
+          <div style={{ fontSize: '11px', color: '#86868B', marginTop: '4px' }}>{pages.length} configured</div>
+        </div>
 
-          {/* Site trend chart */}
-          {completedScans.length > 0 && (
-            <section aria-labelledby="trend-heading">
-              <h2 id="trend-heading" className="text-[15px] font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                Trends
-              </h2>
-              <div className="card p-5">
-                <SiteTrendChart data={siteTrend} />
-              </div>
-            </section>
-          )}
+        <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', padding: '20px' }}>
+          <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868B', marginBottom: '8px' }}>Total Scans</div>
+          <div style={{ fontSize: '32px', fontWeight: 700, color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace', letterSpacing: '-0.03em' }}>{scans.length}</div>
+          <div style={{ fontSize: '11px', color: '#86868B', marginTop: '4px' }}>{completedScans.length} completed</div>
+        </div>
+      </div>
 
-          {/* Per-page breakdown */}
-          {pageScores.length > 0 && (
-            <section aria-labelledby="page-breakdown-heading">
-              <div className="flex items-center justify-between mb-4">
-                <h2 id="page-breakdown-heading" className="text-[15px] font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                  Page Breakdown
-                </h2>
-                <span className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
-                  {pageScores.length} page{pageScores.length !== 1 ? 's' : ''} · click row to see violations
-                </span>
-              </div>
-              <div className="card overflow-hidden">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Page</th>
-                      <th scope="col">URL</th>
-                      <th scope="col" style={{ textAlign: 'center' }}>Tier</th>
-                      <th scope="col" style={{ textAlign: 'right' }}>WCAG Errors</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[...pageScores]
-                      .sort((a, b) => (b.violationCount ?? 0) - (a.violationCount ?? 0))
-                      .map((ps, i) => {
-                        const pagePatterns = patterns.filter(p =>
-                          p.affectedPages?.includes(ps.url) || p.nodes?.some(n => n.url === ps.url)
-                        )
-                        const pageTier = patternsToWorstTier(pagePatterns)
-                        return (
-                          <PageViolationsModal key={i} pageScore={ps} patterns={patterns} pageTrend={pageTrendMap[ps.url]}>
-                            <tr className={ps.score != null ? 'cursor-pointer' : ''}>
-                              <td className="font-semibold">{ps.label ?? '—'}</td>
-                              <td>
-                                <span
-                                  className="mono text-[12px] truncate block max-w-sm"
-                                  style={{ color: 'var(--color-hearst-blue)' }}
-                                  title={ps.url}
-                                >
-                                  {ps.url}
-                                </span>
-                                {ps.error && (
-                                  <div className="text-[12px] mt-0.5" style={{ color: 'var(--color-tier1)' }}>
-                                    ⚠ {ps.error.slice(0, 80)}
-                                  </div>
-                                )}
-                              </td>
-                              <td style={{ textAlign: 'center' }}>
-                                <TierBadge tier={pageTier} />
-                              </td>
-                              <td style={{ textAlign: 'right' }}>
-                                <span className="mono font-semibold text-[14px]" style={{ color: 'var(--color-text-primary)' }}>
-                                  {ps.violationCount ?? (ps.score == null ? (
-                                    <span style={{ color: 'var(--color-tier1)', fontSize: 12 }}>Failed</span>
-                                  ) : '—')}
-                                </span>
-                              </td>
-                            </tr>
-                          </PageViolationsModal>
-                        )
-                      })}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
 
-          {/* WCAG Violations */}
-          <section aria-labelledby="violations-heading">
-            <div className="flex items-start justify-between mb-4">
-              <h2 id="violations-heading" className="text-[15px] font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                WCAG Errors
-              </h2>
-              {/* Jump nav */}
-              {hasTiers && (
-                <nav aria-label="Jump to tier" className="flex items-center gap-1">
-                  <span className="text-[12px] mr-2" style={{ color: 'var(--color-text-muted)' }}>Jump to:</span>
-                  {(['tier1', 'tier2', 'tier3', 'tier4'] as const).map(tier => {
-                    if (byTier[tier].length === 0) return null
-                    const label = tier.replace('tier', 'T')
-                    return (
-                      <a
-                        key={tier}
-                        href={`#${tier}`}
-                        className={`badge-${tier.replace('tier', 't')} hover:opacity-80 transition-opacity`}
-                        style={{ textDecoration: 'none' }}
-                      >
-                        {label}
-                      </a>
-                    )
-                  })}
-                </nav>
-              )}
+        {/* Trends */}
+        {completedScans.length > 0 && (
+          <div>
+            <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1D1D1F', marginBottom: '16px' }}>Trends</h2>
+            <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', padding: '20px' }}>
+              <SiteTrendChart data={siteTrend} />
             </div>
+          </div>
+        )}
 
-            {patterns.length === 0 ? (
-              <div
-                className="rounded-lg p-10 text-center text-[14px]"
-                style={{ border: '1px dashed var(--color-border-strong)', color: 'var(--color-text-muted)' }}
-              >
-                {latestScan ? 'No violations found. Great job!' : 'Run a scan to see violations.'}
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {(['tier1', 'tier2', 'tier3', 'tier4'] as const).map(tier => {
-                  const group = byTier[tier]
-                  if (group.length === 0) return null
-                  const tierLabel = tier.replace('tier', 'T')
-                  return (
-                    <div key={tier} id={tier}>
-                      <div className="flex items-center gap-2.5 mb-3">
-                        <span className={`badge-${tier.replace('tier', 't')}`}>{tierLabel}</span>
-                        <span className="text-[13px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                          {group.length} issue type{group.length !== 1 ? 's' : ''}
-                        </span>
-                      </div>
-                      <div className="space-y-2">
-                        {group.map(p => (
-                          <ViolationCard key={p.fingerprint} pattern={p} />
-                        ))}
-                      </div>
+        {/* Violations */}
+        <div>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1D1D1F', marginBottom: '16px' }}>WCAG Errors</h2>
+          {patterns.length === 0 ? (
+            <div style={{ background: '#FFFFFF', borderRadius: '14px', border: '1px dashed #E0E0E0', padding: '40px', textAlign: 'center', color: '#86868B', fontSize: '14px' }}>
+              {latestScan ? 'No violations found. Great job!' : 'Run a scan to see violations.'}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {(['tier1', 'tier2', 'tier3', 'tier4'] as const).map(tier => {
+                const group = byTier[tier]
+                if (group.length === 0) return null
+                const hex = TIER_HEX[tier]
+                return (
+                  <div key={tier}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', padding: '0 4px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: hex, flexShrink: 0, display: 'inline-block' }} />
+                      <h3 style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: hex, margin: 0 }}>{TIER_LABEL[tier]}</h3>
+                      <span style={{ fontSize: '12px', color: '#86868B', fontWeight: 500 }}>{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                     </div>
-                  )
-                })}
-              </div>
-            )}
-          </section>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {group.map(p => (
+                        <ViolationCard key={p.fingerprint} pattern={p} />
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
 
-          {/* Scan History */}
-          <section aria-labelledby="scan-history-heading">
-            <h2 id="scan-history-heading" className="text-[15px] font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-              Scan History
-            </h2>
-            <div className="card overflow-hidden">
-              <table className="data-table">
-                <thead>
+        {/* Scan History */}
+        <div>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1D1D1F', marginBottom: '16px' }}>Scan History</h2>
+          <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ background: '#F5F5F7', borderBottom: '1px solid #E0E0E0' }}>
+                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Started</th>
+                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Status</th>
+                  <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Pages</th>
+                  <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Issues</th>
+                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Triggered By</th>
+                  <th style={{ padding: '10px 16px' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {scans.length === 0 ? (
                   <tr>
-                    <th scope="col">Started</th>
-                    <th scope="col">Status</th>
-                    <th scope="col" style={{ textAlign: 'right' }}>Pages</th>
-                    <th scope="col" style={{ textAlign: 'right' }}>Issues</th>
-                    <th scope="col">Triggered By</th>
-                    <th scope="col" className="w-20"></th>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: '#86868B', fontSize: '14px' }}>No scans yet.</td>
+                  </tr>
+                ) : (
+                  scans.map((scan: any) => (
+                    <tr key={scan.id} className="group" style={{ borderBottom: '1px solid #F0F0F0', position: 'relative', cursor: 'pointer', transition: 'background 0.12s' }}>
+                      <td style={{ padding: '13px 16px', color: '#1D1D1F' }}>
+                        <Link href={`/scans/${scan.id}`} style={{ position: 'absolute', inset: 0 }} aria-label={`View scan from ${formatDate(scan.started_at)}`} />
+                        {formatDate(scan.started_at)}
+                      </td>
+                      <td style={{ padding: '13px 16px' }}>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', padding: '2px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 500,
+                          ...(scan.status === 'complete' ? { background: 'rgba(52,199,89,0.12)', color: '#1A7F37' } :
+                             scan.status === 'running'  ? { background: 'rgba(0,122,255,0.10)', color: '#007AFF' } :
+                             scan.status === 'failed'   ? { background: 'rgba(255,59,48,0.10)', color: '#D70015' } :
+                             { background: '#F5F5F7', color: '#86868B' })
+                        }}>
+                          {scan.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '13px 16px', textAlign: 'right', color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace' }}>{scan.pages_scanned ?? 0}</td>
+                      <td style={{ padding: '13px 16px', textAlign: 'right', color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace' }}>{scan.raw_violation_count ?? 0}</td>
+                      <td style={{ padding: '13px 16px', color: '#3A3A3C', textTransform: 'capitalize' }}>{scan.triggered_by}</td>
+                      <td style={{ padding: '13px 16px', textAlign: 'right', position: 'relative', zIndex: 10 }}>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                          {(scan.status === 'running' || scan.status === 'queued') && (
+                            <CancelScanButton jobId={scan.id} />
+                          )}
+                          {scan.status !== 'running' && scan.status !== 'queued' && (
+                            <DeleteScanButton jobId={scan.id} />
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Pages */}
+        <div>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1D1D1F', marginBottom: '16px' }}>Configured Pages</h2>
+          {pages.length === 0 ? (
+            <div style={{ color: '#86868B', fontStyle: 'italic', fontSize: '14px' }}>No pages configured.</div>
+          ) : (
+            <div style={{ background: '#FFFFFF', borderRadius: '14px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ background: '#F5F5F7', borderBottom: '1px solid #E0E0E0' }}>
+                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Label</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>URL</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Template Type</th>
+                    <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>WCAG Errors</th>
+                    <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: '10px', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {scans.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="text-center py-10" style={{ color: 'var(--color-text-muted)' }}>No scans yet.</td>
-                    </tr>
-                  ) : (
-                    scans.map((scan: any) => (
-                      <tr key={scan.id} className="group cursor-pointer relative">
-                        <td>
-                          <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan from ${formatDate(scan.started_at)}`} />
-                          <span className="text-[13px]" style={{ color: 'var(--color-text-primary)' }}>
-                            {formatDate(scan.started_at)}
+                  {pages.map((page, i) => {
+                    const ps = pageScores.find(s => s.url === page.url)
+                    return (
+                      <tr key={i} style={{ borderBottom: '1px solid #F0F0F0', transition: 'background 0.12s' }}>
+                        <td style={{ padding: '13px 16px', fontWeight: 500, color: '#1D1D1F' }}>{page.label}</td>
+                        <td style={{ padding: '13px 16px' }}>
+                          <PageViolationsModal
+                            pageScore={ps ?? { url: page.url, label: page.label, score: null as any, violationCount: null as any }}
+                            patterns={patterns}
+                          />
+                        </td>
+                        <td style={{ padding: '13px 16px' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 500, background: '#F5F5F7', color: '#3A3A3C', textTransform: 'capitalize' }}>
+                            {page.templateType}
                           </span>
                         </td>
-                        <td><ScanStatusBadge status={scan.status} /></td>
-                        <td style={{ textAlign: 'right' }}>
-                          <span className="mono font-medium">{scan.pages_scanned ?? 0}</span>
+                        <td style={{ padding: '13px 16px', textAlign: 'right', color: '#1D1D1F', fontFamily: '"JetBrains Mono", monospace' }}>
+                          {ps ? (ps.violationCount ?? '—') : '—'}
                         </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <span className="mono font-semibold">{scan.raw_violation_count ?? 0}</span>
-                        </td>
-                        <td className="capitalize text-[13px]" style={{ color: 'var(--color-text-secondary)' }}>
-                          {scan.triggered_by}
-                        </td>
-                        <td style={{ textAlign: 'right', position: 'relative', zIndex: 10 }} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className="flex items-center justify-end gap-1">
-                            {(scan.status === 'running' || scan.status === 'queued') && (
-                              <CancelScanButton jobId={scan.id} />
-                            )}
-                            {scan.status !== 'running' && scan.status !== 'queued' && (
-                              <DeleteScanButton jobId={scan.id} />
-                            )}
-                          </div>
+                        <td style={{ padding: '13px 16px', textAlign: 'right' }}>
+                          {!ps
+                            ? <span style={{ fontSize: '12px', color: '#86868B' }}>—</span>
+                            : ps.score == null
+                              ? <span style={{ fontSize: '12px', fontWeight: 500, background: 'rgba(255,59,48,0.10)', color: '#D70015', padding: '2px 8px', borderRadius: '6px' }}>Failed</span>
+                              : <span style={{ fontSize: '12px', color: '#34C759', fontWeight: 500 }}>Scanned</span>
+                          }
                         </td>
                       </tr>
-                    ))
-                  )}
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
-          </section>
-
-          {/* Configured Pages */}
-          {pages.length > 0 && (
-            <section aria-labelledby="configured-pages-heading">
-              <h2 id="configured-pages-heading" className="text-[15px] font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                Configured Pages
-              </h2>
-              <div className="card overflow-hidden">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Label</th>
-                      <th scope="col">URL</th>
-                      <th scope="col">Template</th>
-                      <th scope="col" style={{ textAlign: 'right' }}>WCAG Errors</th>
-                      <th scope="col" style={{ textAlign: 'right' }}>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pages.map((page, i) => {
-                      const ps = pageScores.find(s => s.url === page.url)
-                      return (
-                        <tr key={i}>
-                          <td className="font-semibold">{page.label}</td>
-                          <td>
-                            <PageViolationsModal
-                              pageScore={ps ?? { url: page.url, label: page.label, score: null as any, violationCount: null as any }}
-                              patterns={patterns}
-                            />
-                          </td>
-                          <td>
-                            <span
-                              className="inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium capitalize"
-                              style={{ background: 'var(--color-bg-elevated)', color: 'var(--color-text-secondary)' }}
-                            >
-                              {page.templateType}
-                            </span>
-                          </td>
-                          <td style={{ textAlign: 'right' }}>
-                            <span className="mono font-semibold">{ps ? (ps.violationCount ?? '—') : '—'}</span>
-                          </td>
-                          <td style={{ textAlign: 'right' }}>
-                            {!ps
-                              ? <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>—</span>
-                              : ps.score == null
-                                ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-semibold" style={{ background: 'rgba(200,0,42,0.10)', color: '#C8002A' }}>Failed</span>
-                                : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-semibold" style={{ background: 'rgba(58,125,68,0.10)', color: '#3A7D44' }}>Scanned</span>
-                            }
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </section>
           )}
         </div>
       </div>
     </div>
-  )
-}
-
-function ScanStatusBadge({ status }: { status: string }) {
-  const s: Record<string, { bg: string; color: string }> = {
-    complete: { bg: 'rgba(58,125,68,0.10)',  color: '#3A7D44' },
-    running:  { bg: 'rgba(0,87,184,0.10)',   color: '#0057B8' },
-    failed:   { bg: 'rgba(200,0,42,0.10)',   color: '#C8002A' },
-    queued:   { bg: 'rgba(176,132,0,0.10)',  color: '#B08400' },
-  }
-  const style = s[status] ?? { bg: 'var(--color-bg-elevated)', color: 'var(--color-text-muted)' }
-  return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-semibold"
-      style={{ background: style.bg, color: style.color }}>
-      {status}
-    </span>
   )
 }
