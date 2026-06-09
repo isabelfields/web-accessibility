@@ -49,10 +49,7 @@ export function SiteCard({ site }: SiteCardProps) {
   return (
     <Link
       href={`/sites/${site.id}`}
-      className="block card p-4 transition-all duration-150 group"
-      style={{ '--hover-shadow': 'var(--shadow-card-hover)' } as React.CSSProperties}
-      onMouseEnter={e => (e.currentTarget.style.boxShadow = 'var(--shadow-card-hover)')}
-      onMouseLeave={e => (e.currentTarget.style.boxShadow = 'var(--shadow-card)')}
+      className="block card card-hover p-4 transition-all duration-150 group"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0">

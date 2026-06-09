@@ -51,7 +51,10 @@
   border-radius: 0.75rem;
   box-shadow: var(--shadow-card);
 }
-.card:hover { box-shadow: var(--shadow-card-hover); }
+.card-hover:hover {
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--border-strong);
+}
 
 ::selection { background: rgba(59,126,200,0.35); color: #fff; }
 ::-webkit-scrollbar { width: 6px; background: var(--bg-base); }
