@@ -23,7 +23,7 @@ export function EditSiteButton({ site }: { site: Site }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[#2a2a3a] text-sm text-white/80 hover:bg-[#1e1e2a] hover:text-white transition-colors"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
