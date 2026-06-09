@@ -22,7 +22,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="bg-[var(--bg-base)] text-[var(--text)] antialiased">
         <div className="flex min-h-screen">
           {/* Sidebar */}
-          <aside className="w-56 flex flex-col fixed inset-y-0 left-0 z-10 bg-[var(--bg-sidebar)] border-r border-[var(--border)]">
+          <aside className="w-56 flex flex-col fixed inset-y-0 left-0 z-10 bg-[var(--bg-sidebar)] border-r border-[var(--border)] shadow-[1px_0_0_0_var(--border)]">
             {/* Logo */}
             <div className="px-5 pt-5 pb-4 border-b border-[var(--border)]">
               <img src="/hearst-logo.svg" alt="Hearst" className="h-6 w-auto brightness-0 dark:invert opacity-90" />
