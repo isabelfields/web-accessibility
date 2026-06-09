@@ -61,8 +61,8 @@ export default function SitesPage() {
     <div className="px-8 py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-white">Sites</h1>
-          <p className="text-white/90 text-sm mt-0.5">Manage your monitored web properties</p>
+          <h1 className="text-xl font-semibold tracking-tight text-[var(--text)]">Sites</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-0.5">Manage your monitored web properties</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
@@ -86,9 +86,9 @@ export default function SitesPage() {
         <div className="flex items-center gap-4 mb-5">
           {activeDivisions.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-white/90 uppercase tracking-wider">Division</span>
+              <span className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Division</span>
               <select value={divisionFilter} onChange={e => setDivisionFilter(e.target.value)}
-                className="text-sm border border-[#252a38] rounded-lg px-3 py-1.5 bg-[#1e2230] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                className="text-sm border border-[var(--border)] rounded-lg px-3 py-1.5 bg-[var(--bg-card)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                 <option value="">All</option>
                 {activeDivisions.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
@@ -96,9 +96,9 @@ export default function SitesPage() {
           )}
           {activeRegions.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-white/90 uppercase tracking-wider">Region</span>
+              <span className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Region</span>
               <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)}
-                className="text-sm border border-[#252a38] rounded-lg px-3 py-1.5 bg-[#1e2230] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                className="text-sm border border-[var(--border)] rounded-lg px-3 py-1.5 bg-[var(--bg-card)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                 <option value="">All</option>
                 {activeRegions.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
@@ -108,11 +108,11 @@ export default function SitesPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-20 text-white/90">Loading...</div>
+        <div className="flex justify-center py-20 text-[var(--text-muted)]">Loading...</div>
       ) : sites.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[#252a38] p-16 text-center">
-          <div className="text-white/90 text-lg mb-3">No sites configured yet</div>
-          <p className="text-white/90 text-sm mb-6">Add your first site to start monitoring accessibility.</p>
+        <div className="rounded-xl border border-dashed border-[var(--border)] p-16 text-center">
+          <div className="text-[var(--text-muted)] text-lg mb-3">No sites configured yet</div>
+          <p className="text-[var(--text-muted)] text-sm mb-6">Add your first site to start monitoring accessibility.</p>
           <button
             onClick={() => setShowForm(true)}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-500 text-white text-sm font-medium hover:bg-blue-600"
@@ -121,57 +121,57 @@ export default function SitesPage() {
           </button>
         </div>
       ) : (
-        <div className="rounded-xl bg-[#141720] border border-[#252a38] overflow-hidden">
+        <div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border)] overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#1e2230] border-b border-[#252a38]">
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Site</th>
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Division</th>
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Brand</th>
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Pages</th>
-                <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">WCAG Errors</th>
-                <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Last Scan</th>
-                <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Added</th>
+              <tr className="bg-[var(--bg-elevated)] border-b border-[var(--border)]">
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Site</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Division</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Brand</th>
+                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Pages</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">WCAG Errors</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Last Scan</th>
+                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Added</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#252a38]">
+            <tbody className="divide-y divide-[var(--border)]">
               {filtered.map(site => (
-                <tr key={site.id} className="hover:bg-[#1e2230] transition-colors">
+                <tr key={site.id} className="hover:bg-[var(--bg-elevated)] transition-colors">
                   <td className="px-4 py-3">
-                    <Link href={`/sites/${site.id}`} className="font-medium text-blue-600 dark:text-[#5b9bd6] hover:text-blue-800 dark:hover:text-blue-300">
+                    <Link href={`/sites/${site.id}`} className="font-medium text-[#5b9bd6] hover:text-blue-400">
                       {site.name}
                     </Link>
                   </td>
                   <td className="px-4 py-3">
                     {site.division
-                      ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#252a38] text-white/90">{site.division}</span>
-                      : <span className="text-white/90">—</span>
+                      ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--bg-elevated)] text-[var(--text-muted)]">{site.division}</span>
+                      : <span className="text-[var(--text-muted)]">—</span>
                     }
                   </td>
                   <td className="px-4 py-3">
                     {site.brand
-                      ? <span className="text-white text-sm">{site.brand}</span>
-                      : <span className="text-white/90">—</span>
+                      ? <span className="text-[var(--text)] text-sm">{site.brand}</span>
+                      : <span className="text-[var(--text-muted)]">—</span>
                     }
                   </td>
-                  <td className="px-4 py-3 text-white/90">
+                  <td className="px-4 py-3 text-[var(--text-muted)]">
                     {site.pages?.length ?? 0} page{(site.pages?.length ?? 0) !== 1 ? 's' : ''}
                   </td>
-                  <td className="px-4 py-3 text-right text-white tabular-nums">
-                    {site.latestScan ? site.latestScan.raw_violation_count : <span className="text-white/90">—</span>}
+                  <td className="px-4 py-3 text-right text-[var(--text)] tabular-nums">
+                    {site.latestScan ? site.latestScan.raw_violation_count : <span className="text-[var(--text-muted)]">—</span>}
                   </td>
-                  <td className="px-4 py-3 text-right text-white/90">
+                  <td className="px-4 py-3 text-right text-[var(--text-muted)]">
                     {site.latestScan ? formatDate(site.latestScan.started_at) : '—'}
                   </td>
-                  <td className="px-4 py-3 text-right text-white/90">
+                  <td className="px-4 py-3 text-right text-[var(--text-muted)]">
                     {formatDate(site.created_at)}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">
                       <button
                         onClick={() => setEditingSite(site)}
-                        className="text-blue-600 dark:text-[#5b9bd6] hover:text-blue-800 dark:hover:text-blue-300 text-xs font-medium"
+                        className="text-[#5b9bd6] hover:text-blue-400 text-xs font-medium"
                       >
                         Edit
                       </button>

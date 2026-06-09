@@ -93,39 +93,39 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   }
 
   return (
-    <div className="px-8 py-6 bg-[#0d0f12] min-h-screen">
+    <div className="px-8 py-6 bg-[var(--bg-base)] min-h-screen">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-white/90 mb-6">
-        <Link href="/" className="hover:text-white">Dashboard</Link>
-        <span className="text-[#252a38]">/</span>
+      <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] mb-6">
+        <Link href="/" className="hover:text-[var(--text)]">Dashboard</Link>
+        <span className="text-[var(--border-strong)]">/</span>
         {site && (
           <>
-            <Link href={`/sites/${site.id}`} className="hover:text-white">{site.name}</Link>
-            <span className="text-[#252a38]">/</span>
+            <Link href={`/sites/${site.id}`} className="hover:text-[var(--text)]">{site.name}</Link>
+            <span className="text-[var(--border-strong)]">/</span>
           </>
         )}
-        <span className="text-white font-medium">Scan {formatDate(scan.started_at)}</span>
+        <span className="text-[var(--text)] font-medium">Scan {formatDate(scan.started_at)}</span>
       </div>
 
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white">
+          <h1 className="text-2xl font-bold text-[var(--text)]">
             {site?.name ?? scan.root_url}
           </h1>
-          <p className="text-sm text-white/90 mt-1">{scan.root_url}</p>
+          <p className="text-sm text-[var(--text-muted)] mt-1">{scan.root_url}</p>
           <div className="flex items-center gap-3 mt-2">
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
               scan.status === 'complete' ? 'bg-emerald-500/20 text-emerald-400' :
               scan.status === 'running' ? 'bg-blue-500/20 text-blue-400' :
               scan.status === 'failed' ? 'bg-red-500/20 text-red-400' :
-              'bg-[#252a38] text-white/90'
+              'bg-[var(--bg-elevated)] text-[var(--text-muted)]'
             }`}>
               {scan.status}
             </span>
-            <span className="text-sm text-white/90">{formatDate(scan.started_at)}</span>
+            <span className="text-sm text-[var(--text-muted)]">{formatDate(scan.started_at)}</span>
             {scan.triggered_by && (
-              <span className="text-sm text-white/90 capitalize">· {scan.triggered_by}</span>
+              <span className="text-sm text-[var(--text-muted)] capitalize">· {scan.triggered_by}</span>
             )}
           </div>
         </div>
@@ -136,7 +136,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
       </div>
 
       {scan.status !== 'complete' ? (
-        <div className="bg-[#141720] border border-dashed border-[#252a38] rounded-xl p-12 text-center text-white/90">
+        <div className="bg-[var(--bg-card)] border border-dashed border-[var(--border)] rounded-xl p-12 text-center text-[var(--text-muted)]">
           {scan.status === 'failed' ? `Scan failed: ${scan.error ?? 'Unknown error'}` :
            scan.status === 'running' ? 'Scan is still running…' :
            scan.status === 'cancelled' ? 'Scan was cancelled.' : scan.status}
@@ -146,12 +146,12 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           {/* Summary Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
             {/* Priority tier */}
-            <div className="rounded-lg bg-[#141720] border border-[#252a38] p-6 flex flex-col items-center justify-center">
-              <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-3">Priority</div>
+            <div className="rounded-lg bg-[var(--bg-card)] border border-[var(--border)] p-6 flex flex-col items-center justify-center">
+              <div className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">Priority</div>
               {worstTier ? (
                 <>
                   <div className={`text-2xl font-bold ${TIER_COLOR[worstTier].text}`}>{TIER_LABEL[worstTier]}</div>
-                  <div className="text-xs text-white/90 mt-1">highest tier found</div>
+                  <div className="text-xs text-[var(--text-muted)] mt-1">highest tier found</div>
                 </>
               ) : (
                 <div className="text-lg font-semibold text-emerald-400">No issues</div>
@@ -159,37 +159,37 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             </div>
 
             {/* Violations summary */}
-            <div className="rounded-lg bg-[#141720] border border-[#252a38] p-6 flex flex-col justify-between">
-              <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-3">WCAG Errors</div>
-              <div className="text-4xl font-bold text-white tabular-nums leading-none">{totalViolations}</div>
-              <div className="mt-3 space-y-1.5 text-xs text-white/90">
-                <div className="flex justify-between"><span>Issue types</span><span className="font-semibold text-white">{scan.unique_pattern_count ?? 0}</span></div>
-                <div className="flex justify-between"><span>Pages scanned</span><span className="font-semibold text-white">{scan.pages_scanned ?? 0}</span></div>
+            <div className="rounded-lg bg-[var(--bg-card)] border border-[var(--border)] p-6 flex flex-col justify-between">
+              <div className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">WCAG Errors</div>
+              <div className="text-4xl font-bold text-[var(--text)] tabular-nums leading-none">{totalViolations}</div>
+              <div className="mt-3 space-y-1.5 text-xs text-[var(--text-muted)]">
+                <div className="flex justify-between"><span>Issue types</span><span className="font-semibold text-[var(--text)]">{scan.unique_pattern_count ?? 0}</span></div>
+                <div className="flex justify-between"><span>Pages scanned</span><span className="font-semibold text-[var(--text)]">{scan.pages_scanned ?? 0}</span></div>
               </div>
             </div>
 
             {/* WCAG A / AA / AAA */}
-            <div className="rounded-lg bg-[#141720] border border-[#252a38] p-6">
-              <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-4">By WCAG Level</div>
+            <div className="rounded-lg bg-[var(--bg-card)] border border-[var(--border)] p-6">
+              <div className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-4">By WCAG Level</div>
               <div className="flex items-end gap-5">
                 <div>
-                  <div className="text-2xl font-bold text-white tabular-nums">{wcagLevels.A}</div>
-                  <div className="text-[11px] font-semibold text-white/90 mt-0.5">Level A</div>
+                  <div className="text-2xl font-bold text-[var(--text)] tabular-nums">{wcagLevels.A}</div>
+                  <div className="text-[11px] font-semibold text-[var(--text-muted)] mt-0.5">Level A</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-white tabular-nums">{wcagLevels.AA}</div>
-                  <div className="text-[11px] font-semibold text-white/90 mt-0.5">Level AA</div>
+                  <div className="text-2xl font-bold text-[var(--text)] tabular-nums">{wcagLevels.AA}</div>
+                  <div className="text-[11px] font-semibold text-[var(--text-muted)] mt-0.5">Level AA</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-white tabular-nums">{wcagLevels.AAA}</div>
-                  <div className="text-[11px] font-semibold text-white/90 mt-0.5">Level AAA</div>
+                  <div className="text-2xl font-bold text-[var(--text)] tabular-nums">{wcagLevels.AAA}</div>
+                  <div className="text-[11px] font-semibold text-[var(--text-muted)] mt-0.5">Level AAA</div>
                 </div>
               </div>
             </div>
 
             {/* Tier breakdown bar */}
-            <div className="rounded-lg bg-[#141720] border border-[#252a38] p-6">
-              <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-4">By Tier</div>
+            <div className="rounded-lg bg-[var(--bg-card)] border border-[var(--border)] p-6">
+              <div className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-4">By Tier</div>
               <SeverityBar counts={severityCounts} height="h-3" />
             </div>
           </div>
@@ -198,18 +198,18 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           {pageScores.length > 0 && (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-white">Page Breakdown</h2>
-                <span className="text-sm text-white/60">{pageScores.length} page{pageScores.length !== 1 ? 's' : ''} · click row to see violations</span>
+                <h2 className="text-lg font-semibold text-[var(--text)]">Page Breakdown</h2>
+                <span className="text-sm text-[var(--text-muted)]">{pageScores.length} page{pageScores.length !== 1 ? 's' : ''} · click row to see violations</span>
               </div>
-              <div className="rounded-lg bg-[#141720] border border-[#252a38] overflow-hidden">
+              <div className="rounded-lg bg-[var(--bg-card)] border border-[var(--border)] overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-[#1e2230] border-b border-[#252a38]">
-                      <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Page</th>
-                      <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">URL</th>
-                      <th className="text-center px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Tier</th>
-                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">WCAG Errors</th>
-                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Status</th>
+                    <tr className="bg-[var(--bg-elevated)] border-b border-[var(--border)]">
+                      <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Page</th>
+                      <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">URL</th>
+                      <th className="text-center px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Tier</th>
+                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">WCAG Errors</th>
+                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -224,8 +224,8 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                         const tierLabel = pageTier ? TIER_LABEL[pageTier].replace('Tier ', 'T') : null
                         return (
                           <PageViolationsModal key={i} pageScore={ps} patterns={patterns}>
-                            <tr className={`border-t border-[#252a38] transition-colors ${ps.score != null ? 'hover:bg-[#1e2230] cursor-pointer' : ''}`}>
-                              <td className="px-4 py-3 font-medium text-white">{ps.label ?? '—'}</td>
+                            <tr className={`border-t border-[var(--border)] transition-colors ${ps.score != null ? 'hover:bg-[var(--bg-elevated)] cursor-pointer' : ''}`}>
+                              <td className="px-4 py-3 font-medium text-[var(--text)]">{ps.label ?? '—'}</td>
                               <td className="px-4 py-3">
                                 <span className="text-[#5b9bd6] truncate block max-w-sm">{ps.url}</span>
                                 {ps.error && (
@@ -237,10 +237,10 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                               <td className="px-4 py-3 text-center">
                                 {tierLabel && tierStyle
                                   ? <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${tierStyle.text} ${tierStyle.bg}`}>{tierLabel}</span>
-                                  : <span className="text-white/30">—</span>
+                                  : <span className="text-[var(--text-subtle)]">—</span>
                                 }
                               </td>
-                              <td className="px-4 py-3 text-right text-white tabular-nums">{ps.violationCount ?? '—'}</td>
+                              <td className="px-4 py-3 text-right text-[var(--text)] tabular-nums">{ps.violationCount ?? '—'}</td>
                               <td className="px-4 py-3 text-right">
                                 {ps.score == null
                                   ? <span className="text-xs font-normal bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md">Failed</span>
@@ -259,11 +259,11 @@ export default async function ScanDetailPage({ params }: RouteContext) {
 
           {/* Violations */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">WCAG Errors Found</h2>
-            <span className="text-sm text-white/90">{patterns.length} issue type{patterns.length !== 1 ? 's' : ''} · {totalViolations} total</span>
+            <h2 className="text-lg font-semibold text-[var(--text)]">WCAG Errors Found</h2>
+            <span className="text-sm text-[var(--text-muted)]">{patterns.length} issue type{patterns.length !== 1 ? 's' : ''} · {totalViolations} total</span>
           </div>
           {patterns.length === 0 ? (
-            <div className="bg-[#141720] rounded-xl border border-dashed border-[#252a38] p-12 text-center text-white/90">
+            <div className="bg-[var(--bg-card)] rounded-xl border border-dashed border-[var(--border)] p-12 text-center text-[var(--text-muted)]">
               No WCAG errors found — great job!
             </div>
           ) : (
@@ -277,7 +277,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                     <div className="flex items-center gap-2.5 mb-2.5 px-1">
                       <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
                       <h3 className={`text-xs font-semibold uppercase tracking-wider ${c.text}`}>{TIER_LABEL[tier]}</h3>
-                      <span className="text-xs text-white/90 font-medium">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
+                      <span className="text-xs text-[var(--text-muted)] font-medium">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                     </div>
                     <div className="space-y-1.5">
                       {group.map(p => (

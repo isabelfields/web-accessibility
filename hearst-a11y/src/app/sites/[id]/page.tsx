@@ -56,18 +56,18 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   const worstTier = patternsToWorstTier(patterns)
 
   return (
-    <div className="px-8 py-6 bg-[#0d0f12] min-h-screen">
+    <div className="px-8 py-6 bg-[var(--bg-base)] min-h-screen">
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <div className="flex items-center gap-2 text-sm text-white/90 mb-2">
-            <Link href="/sites" className="hover:text-white">Sites</Link>
-            <span className="text-[#252a38]">/</span>
-            <span className="text-white font-medium">{site.name}</span>
+          <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] mb-2">
+            <Link href="/sites" className="hover:text-[var(--text)]">Sites</Link>
+            <span className="text-[var(--border-strong)]">/</span>
+            <span className="text-[var(--text)] font-medium">{site.name}</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">{site.name}</h1>
+          <h1 className="text-2xl font-bold text-[var(--text)]">{site.name}</h1>
           {latestScan && (
-            <p className="text-sm text-white/90 mt-1">
+            <p className="text-sm text-[var(--text-muted)] mt-1">
               Last scanned {formatDate(latestScan.started_at)}
             </p>
           )}
@@ -80,34 +80,34 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="rounded-lg bg-[#141720] border border-[#252a38] p-5 flex flex-col items-center justify-center">
-          <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-2">Priority</div>
+        <div className="rounded-lg bg-[var(--bg-card)] border border-[var(--border)] p-5 flex flex-col items-center justify-center">
+          <div className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Priority</div>
           {worstTier ? (
             <>
               <div className={`text-2xl font-bold ${TIER_COLOR[worstTier].text}`}>{TIER_LABEL[worstTier]}</div>
-              <div className="text-xs text-white/90 mt-1">highest tier found</div>
+              <div className="text-xs text-[var(--text-muted)] mt-1">highest tier found</div>
             </>
           ) : (
             <div className="text-lg font-semibold text-emerald-400">{latestScan ? 'No issues' : 'No scans yet'}</div>
           )}
         </div>
 
-        <div className="rounded-lg bg-[#141720] border border-[#252a38] p-5">
-          <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-2">WCAG Errors</div>
-          <div className="text-3xl font-bold text-white tabular-nums">{latestScan?.raw_violation_count ?? '—'}</div>
-          <div className="text-xs text-white/90 mt-1">{latestScan?.unique_pattern_count ?? 0} issue types</div>
+        <div className="rounded-lg bg-[var(--bg-card)] border border-[var(--border)] p-5">
+          <div className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">WCAG Errors</div>
+          <div className="text-3xl font-bold text-[var(--text)] tabular-nums">{latestScan?.raw_violation_count ?? '—'}</div>
+          <div className="text-xs text-[var(--text-muted)] mt-1">{latestScan?.unique_pattern_count ?? 0} issue types</div>
         </div>
 
-        <div className="rounded-lg bg-[#141720] border border-[#252a38] p-5">
-          <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-2">Pages Scanned</div>
-          <div className="text-3xl font-bold text-white tabular-nums">{latestScan?.pages_scanned ?? '—'}</div>
-          <div className="text-xs text-white/90 mt-1">{pages.length} configured</div>
+        <div className="rounded-lg bg-[var(--bg-card)] border border-[var(--border)] p-5">
+          <div className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Pages Scanned</div>
+          <div className="text-3xl font-bold text-[var(--text)] tabular-nums">{latestScan?.pages_scanned ?? '—'}</div>
+          <div className="text-xs text-[var(--text-muted)] mt-1">{pages.length} configured</div>
         </div>
 
-        <div className="rounded-lg bg-[#141720] border border-[#252a38] p-5">
-          <div className="text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-2">Total Scans</div>
-          <div className="text-3xl font-bold text-white tabular-nums">{scans.length}</div>
-          <div className="text-xs text-white/90 mt-1">{completedScans.length} completed</div>
+        <div className="rounded-lg bg-[var(--bg-card)] border border-[var(--border)] p-5">
+          <div className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Total Scans</div>
+          <div className="text-3xl font-bold text-[var(--text)] tabular-nums">{scans.length}</div>
+          <div className="text-xs text-[var(--text-muted)] mt-1">{completedScans.length} completed</div>
         </div>
       </div>
 
@@ -116,17 +116,17 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         {pageScores.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-white">Page Breakdown</h2>
-              <span className="text-sm text-white/60">{pageScores.length} page{pageScores.length !== 1 ? 's' : ''} · click row to see violations</span>
+              <h2 className="text-lg font-semibold text-[var(--text)]">Page Breakdown</h2>
+              <span className="text-sm text-[var(--text-muted)]">{pageScores.length} page{pageScores.length !== 1 ? 's' : ''} · click row to see violations</span>
             </div>
-            <div className="rounded-lg bg-[#141720] border border-[#252a38] overflow-hidden">
+            <div className="rounded-lg bg-[var(--bg-card)] border border-[var(--border)] overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#1e2230] border-b border-[#252a38]">
-                    <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Page</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">URL</th>
-                    <th className="text-center px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Tier</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">WCAG Errors</th>
+                  <tr className="bg-[var(--bg-elevated)] border-b border-[var(--border)]">
+                    <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Page</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">URL</th>
+                    <th className="text-center px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Tier</th>
+                    <th className="text-right px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">WCAG Errors</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -141,8 +141,8 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                       const tierLabel = pageTier ? TIER_LABEL[pageTier].replace('Tier ', 'T') : null
                       return (
                         <PageViolationsModal key={i} pageScore={ps} patterns={patterns}>
-                          <tr className={`border-t border-[#252a38] transition-colors ${ps.score != null ? 'hover:bg-[#1e2230] cursor-pointer' : ''}`}>
-                            <td className="px-4 py-3 font-medium text-white">{ps.label ?? '—'}</td>
+                          <tr className={`border-t border-[var(--border)] transition-colors ${ps.score != null ? 'hover:bg-[var(--bg-elevated)] cursor-pointer' : ''}`}>
+                            <td className="px-4 py-3 font-medium text-[var(--text)]">{ps.label ?? '—'}</td>
                             <td className="px-4 py-3">
                               <span className="text-[#5b9bd6] truncate block max-w-sm">{ps.url}</span>
                               {ps.error && (
@@ -152,10 +152,10 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                             <td className="px-4 py-3 text-center">
                               {tierLabel && tierStyle
                                 ? <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${tierStyle.text} ${tierStyle.bg}`}>{tierLabel}</span>
-                                : <span className="text-white/30">—</span>
+                                : <span className="text-[var(--text-subtle)]">—</span>
                               }
                             </td>
-                            <td className="px-4 py-3 text-right text-white tabular-nums">
+                            <td className="px-4 py-3 text-right text-[var(--text)] tabular-nums">
                               {ps.violationCount ?? (ps.score == null ? <span className="text-xs text-red-400">Failed</span> : '—')}
                             </td>
                           </tr>
@@ -170,9 +170,9 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
         {/* Violations */}
         <div>
-          <h2 className="text-lg font-semibold text-white mb-4">WCAG Errors</h2>
+          <h2 className="text-lg font-semibold text-[var(--text)] mb-4">WCAG Errors</h2>
           {patterns.length === 0 ? (
-            <div className="bg-[#141720] rounded-xl border border-dashed border-[#252a38] p-10 text-center text-white/90">
+            <div className="bg-[var(--bg-card)] rounded-xl border border-dashed border-[var(--border)] p-10 text-center text-[var(--text-muted)]">
               {latestScan ? 'No violations found. Great job!' : 'Run a scan to see violations.'}
             </div>
           ) : (
@@ -186,7 +186,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                     <div className="flex items-center gap-2.5 mb-2.5 px-1">
                       <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
                       <h3 className={`text-xs font-semibold uppercase tracking-wider ${c.text}`}>{TIER_LABEL[tier]}</h3>
-                      <span className="text-xs text-white/90 font-medium">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
+                      <span className="text-xs text-[var(--text-muted)] font-medium">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
                     </div>
                     <div className="space-y-1.5">
                       {group.map(p => (
@@ -202,28 +202,28 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
         {/* Scan History */}
         <div>
-          <h2 className="text-lg font-semibold text-white mb-4">Scan History</h2>
-          <div className="rounded-lg bg-[#141720] border border-[#252a38] overflow-hidden">
+          <h2 className="text-lg font-semibold text-[var(--text)] mb-4">Scan History</h2>
+          <div className="rounded-lg bg-[var(--bg-card)] border border-[var(--border)] overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-[#1e2230] border-b border-[#252a38]">
+              <thead className="bg-[var(--bg-elevated)] border-b border-[var(--border)]">
                 <tr>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Started</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Status</th>
-                  <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Pages</th>
-                  <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Issues</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Triggered By</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Started</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
+                  <th className="text-right px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Pages</th>
+                  <th className="text-right px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Issues</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Triggered By</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#252a38]">
+              <tbody className="divide-y divide-[var(--border)]">
                 {scans.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-8 text-white/90">No scans yet.</td>
+                    <td colSpan={6} className="text-center py-8 text-[var(--text-muted)]">No scans yet.</td>
                   </tr>
                 ) : (
                   scans.map((scan: any) => (
-                    <tr key={scan.id} className="hover:bg-[#1e2230] group relative cursor-pointer transition-colors">
-                      <td className="px-4 py-3 text-white">
+                    <tr key={scan.id} className="hover:bg-[var(--bg-elevated)] group relative cursor-pointer transition-colors">
+                      <td className="px-4 py-3 text-[var(--text)]">
                         <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan from ${formatDate(scan.started_at)}`} />
                         {formatDate(scan.started_at)}
                       </td>
@@ -232,14 +232,14 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                           scan.status === 'complete' ? 'bg-emerald-500/20 text-emerald-400' :
                           scan.status === 'running' ? 'bg-blue-500/20 text-blue-400' :
                           scan.status === 'failed' ? 'bg-red-500/20 text-red-400' :
-                          'bg-[#252a38] text-white/90'
+                          'bg-[var(--bg-elevated)] text-[var(--text-muted)]'
                         }`}>
                           {scan.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right text-white">{scan.pages_scanned ?? 0}</td>
-                      <td className="px-4 py-3 text-right text-white">{scan.raw_violation_count ?? 0}</td>
-                      <td className="px-4 py-3 text-white/90 capitalize">{scan.triggered_by}</td>
+                      <td className="px-4 py-3 text-right text-[var(--text)]">{scan.pages_scanned ?? 0}</td>
+                      <td className="px-4 py-3 text-right text-[var(--text)]">{scan.raw_violation_count ?? 0}</td>
+                      <td className="px-4 py-3 text-[var(--text-muted)] capitalize">{scan.triggered_by}</td>
                       <td className="px-4 py-3 text-right relative z-10">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           {(scan.status === 'running' || scan.status === 'queued') && (
@@ -260,27 +260,27 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
         {/* Pages */}
         <div>
-          <h2 className="text-lg font-semibold text-white mb-4">Configured Pages</h2>
+          <h2 className="text-lg font-semibold text-[var(--text)] mb-4">Configured Pages</h2>
           {pages.length === 0 ? (
-            <div className="text-white/90 italic text-sm">No pages configured.</div>
+            <div className="text-[var(--text-muted)] italic text-sm">No pages configured.</div>
           ) : (
-            <div className="rounded-lg bg-[#141720] border border-[#252a38] overflow-hidden">
+            <div className="rounded-lg bg-[var(--bg-card)] border border-[var(--border)] overflow-hidden">
               <table className="w-full text-sm">
-                <thead className="bg-[#1e2230] border-b border-[#252a38]">
+                <thead className="bg-[var(--bg-elevated)] border-b border-[var(--border)]">
                   <tr>
-                    <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Label</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">URL</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Template Type</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">WCAG Errors</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Status</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Label</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">URL</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Template Type</th>
+                    <th className="text-right px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">WCAG Errors</th>
+                    <th className="text-right px-4 py-3 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#252a38]">
+                <tbody className="divide-y divide-[var(--border)]">
                   {pages.map((page, i) => {
                     const ps = pageScores.find(s => s.url === page.url)
                     return (
-                      <tr key={i} className="hover:bg-[#1e2230] transition-colors">
-                        <td className="px-4 py-3 font-medium text-white">{page.label}</td>
+                      <tr key={i} className="hover:bg-[var(--bg-elevated)] transition-colors">
+                        <td className="px-4 py-3 font-medium text-[var(--text)]">{page.label}</td>
                         <td className="px-4 py-3">
                           <PageViolationsModal
                             pageScore={ps ?? { url: page.url, label: page.label, score: null as any, violationCount: null as any }}
@@ -288,19 +288,19 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                           />
                         </td>
                         <td className="px-4 py-3">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#252a38] text-white/90 capitalize">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--bg-elevated)] text-[var(--text-muted)] capitalize">
                             {page.templateType}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right text-white">
+                        <td className="px-4 py-3 text-right text-[var(--text)]">
                           {ps ? (ps.violationCount ?? '—') : '—'}
                         </td>
                         <td className="px-4 py-3 text-right">
                           {!ps
-                            ? <span className="text-xs text-white/90">—</span>
+                            ? <span className="text-xs text-[var(--text-muted)]">—</span>
                             : ps.score == null
                               ? <span className="text-xs font-normal bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md">Failed</span>
-                              : <span className="text-xs text-white/90">Scanned</span>
+                              : <span className="text-xs text-[var(--text-muted)]">Scanned</span>
                           }
                         </td>
                       </tr>

@@ -250,44 +250,44 @@ export default async function DashboardPage({
 
       {/* Recent scans */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[11px] font-medium text-white/70 uppercase tracking-widest">Recent Scans</h2>
-        <span className="text-xs text-white/70">Last 5</span>
+        <h2 className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-widest">Recent Scans</h2>
+        <span className="text-xs text-[var(--text-muted)]">Last 5</span>
       </div>
-      <div className="bg-[#13131c] rounded-lg border border-[#2a2a3a] overflow-hidden">
+      <div className="bg-[var(--bg-card)] rounded-lg border border-[var(--border)] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[#1a1a26] border-b border-[#2a2a3a]">
-              <th className="text-left px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Site</th>
+            <tr className="bg-[var(--bg-header)] border-b border-[var(--border)]">
+              <th className="text-left px-4 py-3 text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Site</th>
               {showDivisionCol && (
-                <th className="text-left px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Division</th>
+                <th className="text-left px-4 py-3 text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Division</th>
               )}
-              <th className="text-left px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Status</th>
-              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Pages</th>
-              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">WCAG Errors</th>
-              <th className="text-right px-4 py-3 text-[11px] font-medium text-white/70 uppercase tracking-wider">Started</th>
+              <th className="text-left px-4 py-3 text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Status</th>
+              <th className="text-right px-4 py-3 text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Pages</th>
+              <th className="text-right px-4 py-3 text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider">WCAG Errors</th>
+              <th className="text-right px-4 py-3 text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Started</th>
               <th className="px-2 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {scans.length === 0 ? (
               <tr>
-                <td colSpan={showDivisionCol ? 7 : 6} className="text-center py-8 text-white/70">
+                <td colSpan={showDivisionCol ? 7 : 6} className="text-center py-8 text-[var(--text-muted)]">
                   No scans yet.
                 </td>
               </tr>
             ) : (
               scans.map((scan: any) => (
-                <tr key={scan.id} className="border-t border-[#1a1a22] hover:bg-[#14141c] transition-colors group cursor-pointer relative">
+                <tr key={scan.id} className="border-t border-[var(--border)] hover:bg-[var(--bg-elevated)] transition-colors group cursor-pointer relative">
                   <td className="px-4 py-3">
                     <Link href={`/scans/${scan.id}`} className="absolute inset-0" aria-label={`View scan for ${scan.site_name ?? scan.root_url}`} />
-                    <div className="font-medium text-white text-sm">{scan.site_name ?? scan.root_url}</div>
-                    {scan.site_name && <div className="text-xs text-white/70 truncate max-w-xs mt-0.5">{scan.root_url}</div>}
+                    <div className="font-medium text-[var(--text)] text-sm">{scan.site_name ?? scan.root_url}</div>
+                    {scan.site_name && <div className="text-xs text-[var(--text-muted)] truncate max-w-xs mt-0.5">{scan.root_url}</div>}
                   </td>
                   {showDivisionCol && (
                     <td className="px-4 py-3 text-xs">
                       {scan.division
-                        ? <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#1e1e2a] text-white/80">{scan.division}</span>
-                        : <span className="text-white/70">—</span>
+                        ? <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--bg-elevated)] text-[var(--text-muted)]">{scan.division}</span>
+                        : <span className="text-[var(--text-muted)]">—</span>
                       }
                     </td>
                   )}
@@ -296,14 +296,14 @@ export default async function DashboardPage({
                       scan.status === 'complete' ? 'bg-emerald-500/10 text-emerald-400' :
                       scan.status === 'running' ? 'bg-blue-500/10 text-blue-400' :
                       scan.status === 'failed' ? 'bg-red-500/10 text-red-400' :
-                      'bg-[#1e1e2a] text-white/80'
+                      'bg-[var(--bg-elevated)] text-[var(--text-muted)]'
                     }`}>
                       {scan.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right text-white tabular-nums">{scan.pages_scanned ?? 0}</td>
-                  <td className="px-4 py-3 text-right text-white tabular-nums">{scan.raw_violation_count ?? '—'}</td>
-                  <td className="px-4 py-3 text-right text-white/70 text-xs tabular-nums">{formatDate(scan.started_at)}</td>
+                  <td className="px-4 py-3 text-right text-[var(--text)] tabular-nums">{scan.pages_scanned ?? 0}</td>
+                  <td className="px-4 py-3 text-right text-[var(--text)] tabular-nums">{scan.raw_violation_count ?? '—'}</td>
+                  <td className="px-4 py-3 text-right text-[var(--text-muted)] text-xs tabular-nums">{formatDate(scan.started_at)}</td>
                   <td className="px-2 py-3 text-right relative z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <DeleteScanButton jobId={scan.id} />
                   </td>
