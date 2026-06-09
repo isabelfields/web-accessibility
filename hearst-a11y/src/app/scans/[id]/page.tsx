@@ -197,40 +197,60 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           {/* Per-page issues */}
           {pageScores.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-lg font-semibold text-white mb-4">Page Issues</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-white">Page Breakdown</h2>
+                <span className="text-sm text-white/60">{pageScores.length} page{pageScores.length !== 1 ? 's' : ''} · click row to see violations</span>
+              </div>
               <div className="rounded-lg bg-[#141720] border border-[#252a38] overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-[#1e2230] border-b border-[#252a38]">
                       <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Page</th>
                       <th className="text-left px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">URL</th>
+                      <th className="text-center px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Tier</th>
                       <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">WCAG Errors</th>
                       <th className="text-right px-4 py-3 text-[11px] font-semibold text-white/90 uppercase tracking-wider">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {pageScores.map((ps, i) => (
-                      <PageViolationsModal key={i} pageScore={ps} patterns={patterns}>
-                        <tr className={`border-t border-[#252a38] transition-colors ${ps.score != null ? 'hover:bg-[#1e2230] cursor-pointer' : ''}`}>
-                          <td className="px-4 py-3 font-medium text-white">{ps.label ?? '—'}</td>
-                          <td className="px-4 py-3">
-                            <span className="text-[#5b9bd6] truncate block max-w-sm">{ps.url}</span>
-                            {ps.error && (
-                              <div className="text-xs text-red-400 mt-0.5 truncate max-w-sm" title={ps.error}>
-                                ⚠ {ps.error.length > 80 ? ps.error.slice(0, 80) + '…' : ps.error}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-right text-white">{ps.violationCount ?? '—'}</td>
-                          <td className="px-4 py-3 text-right">
-                            {ps.score == null
-                              ? <span className="text-xs font-normal bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md">Failed</span>
-                              : <span className="text-xs text-white/90">Scanned</span>
-                            }
-                          </td>
-                        </tr>
-                      </PageViolationsModal>
-                    ))}
+                    {[...pageScores]
+                      .sort((a, b) => (b.violationCount ?? 0) - (a.violationCount ?? 0))
+                      .map((ps, i) => {
+                        const pagePatterns = patterns.filter(p =>
+                          p.affectedPages?.includes(ps.url) || p.nodes?.some(n => n.url === ps.url)
+                        )
+                        const pageTier = patternsToWorstTier(pagePatterns)
+                        const tierStyle = pageTier ? TIER_COLOR[pageTier] : null
+                        const tierLabel = pageTier ? TIER_LABEL[pageTier].replace('Tier ', 'T') : null
+                        return (
+                          <PageViolationsModal key={i} pageScore={ps} patterns={patterns}>
+                            <tr className={`border-t border-[#252a38] transition-colors ${ps.score != null ? 'hover:bg-[#1e2230] cursor-pointer' : ''}`}>
+                              <td className="px-4 py-3 font-medium text-white">{ps.label ?? '—'}</td>
+                              <td className="px-4 py-3">
+                                <span className="text-[#5b9bd6] truncate block max-w-sm">{ps.url}</span>
+                                {ps.error && (
+                                  <div className="text-xs text-red-400 mt-0.5 truncate max-w-sm" title={ps.error}>
+                                    ⚠ {ps.error.length > 80 ? ps.error.slice(0, 80) + '…' : ps.error}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                {tierLabel && tierStyle
+                                  ? <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${tierStyle.text} ${tierStyle.bg}`}>{tierLabel}</span>
+                                  : <span className="text-white/30">—</span>
+                                }
+                              </td>
+                              <td className="px-4 py-3 text-right text-white tabular-nums">{ps.violationCount ?? '—'}</td>
+                              <td className="px-4 py-3 text-right">
+                                {ps.score == null
+                                  ? <span className="text-xs font-normal bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md">Failed</span>
+                                  : <span className="text-xs text-emerald-400">Scanned</span>
+                                }
+                              </td>
+                            </tr>
+                          </PageViolationsModal>
+                        )
+                      })}
                   </tbody>
                 </table>
               </div>
