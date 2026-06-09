@@ -65,15 +65,31 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               )}
             </nav>
 
-            <div className="px-5 py-4 border-t border-[#1e1e2a] space-y-2">
-              {session?.user?.email && (
-                <div className="text-xs text-white/50 truncate" title={session.user.email}>
-                  {session.user.email}
-                  {isAdmin && <span className="ml-1 text-blue-400 font-medium">· admin</span>}
-                </div>
-              )}
+            <div className="px-4 py-4 border-t border-[#1e1e2a]">
+              {session?.user?.email && (() => {
+                const email = session.user.email!
+                const name = (session.user as any)?.name || email
+                const initials = name.split(/[\s.@]+/).filter(Boolean).slice(0, 2).map((p: string) => p[0].toUpperCase()).join('')
+                return (
+                  <div className="flex items-center gap-3 mb-3">
+                    <div style={{
+                      width: '32px', height: '32px', borderRadius: '50%',
+                      background: '#007AFF', color: '#FFFFFF',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '12px', fontWeight: 700, flexShrink: 0, letterSpacing: '0.02em',
+                    }}>
+                      {initials}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div className="text-xs font-medium text-white/90 truncate" title={email}>
+                        {name.includes('@') ? email.split('@')[0] : name}
+                      </div>
+                      {isAdmin && <div className="text-[10px] text-blue-400 font-medium">admin</div>}
+                    </div>
+                  </div>
+                )
+              })()}
               <SignOutButton />
-              <div className="text-[10px] text-white/50">© Hearst Communications</div>
             </div>
           </aside>
 

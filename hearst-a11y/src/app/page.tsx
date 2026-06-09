@@ -165,7 +165,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <StatCard label="Sites" value={stats.siteCount} sub={`${stats.totalPages} pages monitored`} />
           <StatCard label="Tier 1 Critical" value={severityCounts.critical} sub="across all sites"
             accentColor={TIER_COLORS.t1} heroSize={52} />
-          <StatCard label="WCAG Errors" value={stats.totalErrors} sub="latest scans" />
+          <StatCard label="WCAG Errors" value={stats.totalErrors} sub="latest scans" accentColor="#007AFF" />
           <StatCard label="Resolved" value={stats.errorsResolved} sub="vs previous scan"
             accentColor={stats.errorsResolved > 0 ? '#34C759' : undefined} />
         </div>
