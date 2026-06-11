@@ -18,19 +18,31 @@ export function DivisionFilter({ activeDivisions }: { activeDivisions: string[] 
   const options = HEARST_DIVISIONS.filter(d => activeDivisions.includes(d))
 
   return (
-    <div className="flex items-center gap-2">
-      <label htmlFor="division-filter" className="text-[11px] font-medium text-white/70 uppercase tracking-wider">Division</label>
+    <div className="relative">
       <select
-        id="division-filter"
         value={current}
         onChange={e => select(e.target.value)}
-        className="text-sm border border-[#1e1e2a] rounded-md px-3 py-1.5 bg-[#11111a] text-white focus:outline-none focus:border-[#3a3a52] cursor-pointer"
+        style={{
+          appearance: 'none',
+          background: '#1D1D1F',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 8,
+          padding: '8px 36px 8px 14px',
+          fontSize: 13,
+          fontWeight: 600,
+          cursor: 'pointer',
+          outline: 'none',
+        }}
       >
         <option value="">All divisions</option>
         {options.map(div => (
           <option key={div} value={div}>{div}</option>
         ))}
       </select>
+      <svg style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="14" height="14" fill="none" stroke="#fff" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+      </svg>
     </div>
   )
 }
