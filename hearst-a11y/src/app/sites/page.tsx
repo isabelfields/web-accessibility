@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { AddSiteForm } from '@/components/AddSiteForm'
 import { EditSiteForm } from '@/components/EditSiteForm'
 import type { SitePage } from '@/types'
-import { HEARST_DIVISIONS } from '@/types'
 
 interface Site {
   id: string
@@ -25,6 +24,17 @@ interface Site {
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+const selectStyle: React.CSSProperties = {
+  fontSize: 13,
+  border: '1px solid #E5E5EA',
+  borderRadius: 8,
+  padding: '6px 12px',
+  background: '#fff',
+  color: '#1D1D1F',
+  outline: 'none',
+  cursor: 'pointer',
 }
 
 export default function SitesPage() {
@@ -58,47 +68,43 @@ export default function SitesPage() {
     .filter(s => !regionFilter || s.region === regionFilter)
 
   return (
-    <div className="px-8 py-6">
-      <div className="flex items-center justify-between mb-6">
+    <div style={{ minHeight: '100vh', background: '#F5F5F7', padding: '24px 32px' }}>
+      {showForm && <AddSiteForm onClose={() => { setShowForm(false); load() }} />}
+      {editingSite && <EditSiteForm site={editingSite} onClose={() => { setEditingSite(null); load() }} />}
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-white">Sites</h1>
-          <p className="text-white/90 text-sm mt-0.5">Manage your monitored web properties</p>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>Sites</h1>
+          <p style={{ fontSize: 13, color: '#86868B', margin: '4px 0 0' }}>Manage your monitored web properties</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-500 text-[#1D1D1F] text-sm font-medium hover:bg-blue-600 transition-colors"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 10, background: '#007AFF', color: '#fff', fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' }}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
           </svg>
           Add Site
         </button>
       </div>
 
-      {showForm && (
-        <AddSiteForm onClose={() => { setShowForm(false); load() }} />
-      )}
-      {editingSite && (
-        <EditSiteForm site={editingSite} onClose={() => { setEditingSite(null); load() }} />
-      )}
-
+      {/* Filters */}
       {(activeDivisions.length > 0 || activeRegions.length > 0) && (
-        <div className="flex items-center gap-4 mb-5">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 16 }}>
           {activeDivisions.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Division</span>
-              <select value={divisionFilter} onChange={e => setDivisionFilter(e.target.value)}
-                className="text-sm border border-[#E5E5EA] rounded-lg px-3 py-1.5 bg-[#F5F5F7] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Division</span>
+              <select value={divisionFilter} onChange={e => setDivisionFilter(e.target.value)} style={selectStyle}>
                 <option value="">All</option>
                 {activeDivisions.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
           )}
           {activeRegions.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Region</span>
-              <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)}
-                className="text-sm border border-[#E5E5EA] rounded-lg px-3 py-1.5 bg-[#F5F5F7] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Region</span>
+              <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)} style={selectStyle}>
                 <option value="">All</option>
                 {activeRegions.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
@@ -108,77 +114,68 @@ export default function SitesPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-20 text-[#3A3A3C]">Loading...</div>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0', color: '#86868B', fontSize: 14 }}>Loading…</div>
       ) : sites.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[#E5E5EA] p-16 text-center">
-          <div className="text-white/90 text-lg mb-3">No sites configured yet</div>
-          <p className="text-white/90 text-sm mb-6">Add your first site to start monitoring accessibility.</p>
+        <div style={{ borderRadius: 12, border: '1.5px dashed #D1D1D6', padding: '64px 32px', textAlign: 'center', background: '#fff' }}>
+          <div style={{ fontSize: 16, color: '#1D1D1F', fontWeight: 600, marginBottom: 8 }}>No sites configured yet</div>
+          <p style={{ fontSize: 13, color: '#86868B', marginBottom: 20 }}>Add your first site to start monitoring accessibility.</p>
           <button
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-500 text-[#1D1D1F] text-sm font-medium hover:bg-blue-600"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 10, background: '#007AFF', color: '#fff', fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer' }}
           >
             + Add Site
           </button>
         </div>
       ) : (
-        <div className="rounded-xl bg-white border border-[#E5E5EA] overflow-hidden">
-          <table className="w-full text-sm">
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
             <thead>
-              <tr className="bg-[#F5F5F7] border-b border-[#E5E5EA]">
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Site</th>
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Division</th>
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Brand</th>
-                <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Pages</th>
-                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">WCAG Errors</th>
-                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Last Scan</th>
-                <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Added</th>
-                <th className="px-4 py-3"></th>
+              <tr style={{ background: '#F9F9FB', borderBottom: '1px solid #E5E5EA' }}>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Site</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Division</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Brand</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pages</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>WCAG Errors</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Last Scan</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Added</th>
+                <th style={{ padding: '10px 16px' }} />
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F0F0F0]">
-              {filtered.map(site => (
-                <tr key={site.id} className="hover:bg-[#F5F5F7] transition-colors">
-                  <td className="px-4 py-3">
-                    <Link href={`/sites/${site.id}`} className="font-medium text-[#5b9bd6] hover:text-blue-300">
+            <tbody>
+              {filtered.map((site, i) => (
+                <tr key={site.id} style={{ borderTop: i > 0 ? '1px solid #F0F0F0' : undefined }}
+                  className="hover:bg-[#F5F5F7] transition-colors">
+                  <td style={{ padding: '13px 16px' }}>
+                    <Link href={`/sites/${site.id}`} style={{ fontWeight: 600, color: '#007AFF', textDecoration: 'none' }}>
                       {site.name}
                     </Link>
                   </td>
-                  <td className="px-4 py-3">
+                  <td style={{ padding: '13px 16px' }}>
                     {site.division
-                      ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#252a38] text-[#3A3A3C]">{site.division}</span>
-                      : <span className="text-white/90">—</span>
-                    }
+                      ? <span style={{ display: 'inline-flex', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: '#EFF6FF', color: '#1D4ED8' }}>{site.division}</span>
+                      : <span style={{ color: '#86868B' }}>—</span>}
                   </td>
-                  <td className="px-4 py-3">
-                    {site.brand
-                      ? <span className="text-white text-sm">{site.brand}</span>
-                      : <span className="text-white/90">—</span>
-                    }
+                  <td style={{ padding: '13px 16px', color: '#3A3A3C' }}>
+                    {site.brand ?? <span style={{ color: '#86868B' }}>—</span>}
                   </td>
-                  <td className="px-4 py-3 text-[#3A3A3C]">
+                  <td style={{ padding: '13px 16px', color: '#3A3A3C' }}>
                     {site.pages?.length ?? 0} page{(site.pages?.length ?? 0) !== 1 ? 's' : ''}
                   </td>
-                  <td className="px-4 py-3 text-right text-[#1D1D1F] tabular-nums">
-                    {site.latestScan ? site.latestScan.raw_violation_count : <span className="text-white/90">—</span>}
+                  <td style={{ padding: '13px 16px', textAlign: 'right', fontWeight: 600, color: '#1D1D1F', fontVariantNumeric: 'tabular-nums' }}>
+                    {site.latestScan ? site.latestScan.raw_violation_count : <span style={{ color: '#86868B', fontWeight: 400 }}>—</span>}
                   </td>
-                  <td className="px-4 py-3 text-right text-[#3A3A3C]">
+                  <td style={{ padding: '13px 16px', textAlign: 'right', color: '#86868B' }}>
                     {site.latestScan ? formatDate(site.latestScan.started_at) : '—'}
                   </td>
-                  <td className="px-4 py-3 text-right text-[#3A3A3C]">
+                  <td style={{ padding: '13px 16px', textAlign: 'right', color: '#86868B' }}>
                     {formatDate(site.created_at)}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      <button
-                        onClick={() => setEditingSite(site)}
-                        className="text-[#5b9bd6] hover:text-blue-300 text-xs font-medium"
-                      >
+                  <td style={{ padding: '13px 16px', textAlign: 'right' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>
+                      <button onClick={() => setEditingSite(site)} style={{ fontSize: 12, fontWeight: 600, color: '#007AFF', background: 'none', border: 'none', cursor: 'pointer' }}>
                         Edit
                       </button>
-                      <button
-                        onClick={() => deleteSite(site.id, site.name)}
-                        className="text-red-400 hover:text-red-600 text-xs"
-                      >
+                      <button onClick={() => deleteSite(site.id, site.name)} style={{ fontSize: 12, fontWeight: 600, color: '#FF3B30', background: 'none', border: 'none', cursor: 'pointer' }}>
                         Delete
                       </button>
                     </div>
