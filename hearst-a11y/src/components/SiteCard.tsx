@@ -28,11 +28,11 @@ function worstTier(patterns: { impact: string }[] = []): string | null {
   return null
 }
 
-const TIER_STYLE: Record<string, { text: string; bg: string }> = {
-  T1: { text: 'text-red-400',    bg: 'bg-red-500/15' },
-  T2: { text: 'text-orange-400', bg: 'bg-orange-500/15' },
-  T3: { text: 'text-amber-400',  bg: 'bg-amber-500/15' },
-  T4: { text: 'text-blue-400',   bg: 'bg-blue-500/15' },
+const TIER_STYLE: Record<string, React.CSSProperties> = {
+  T1: { background: '#002D82', color: '#fff' },
+  T2: { background: '#005AC8', color: '#fff' },
+  T3: { background: '#007AFF', color: '#fff' },
+  T4: { background: '#5AC8FA', color: '#fff' },
 }
 
 export function SiteCard({ site }: SiteCardProps) {
@@ -43,35 +43,52 @@ export function SiteCard({ site }: SiteCardProps) {
   return (
     <Link
       href={`/sites/${site.id}`}
-      className="block bg-[#13131c] border border-[#2a2a3a] rounded-lg p-4 hover:bg-[#181826] hover:border-[#36364a] transition-all group"
+      style={{
+        display: 'block',
+        background: '#fff',
+        border: '1px solid #E5E5EA',
+        borderRadius: 12,
+        padding: '18px 20px',
+        textDecoration: 'none',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        transition: 'box-shadow 0.15s, border-color 0.15s',
+      }}
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'
+        ;(e.currentTarget as HTMLElement).style.borderColor = '#C7C7CC'
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'
+        ;(e.currentTarget as HTMLElement).style.borderColor = '#E5E5EA'
+      }}
     >
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="min-w-0">
-          <div className="font-semibold text-white text-sm leading-tight truncate">{site.name}</div>
-          <div className="text-xs text-white/60 mt-0.5">
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontWeight: 700, color: '#1D1D1F', fontSize: 15, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{site.name}</div>
+          <div style={{ fontSize: 12, color: '#86868B', marginTop: 3 }}>
             {pageCount} page{pageCount !== 1 ? 's' : ''}
             {site.division ? ` · ${site.division}` : ''}
           </div>
         </div>
         {tier && (
-          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${TIER_STYLE[tier].text} ${TIER_STYLE[tier].bg}`}>
+          <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, flexShrink: 0, ...TIER_STYLE[tier] }}>
             {tier}
           </span>
         )}
       </div>
 
       {latestScan ? (
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-white font-medium">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13 }}>
+          <span style={{ fontWeight: 700, color: '#1D1D1F' }}>
             {latestScan.raw_violation_count} error{latestScan.raw_violation_count !== 1 ? 's' : ''}
           </span>
-          <span className="text-white/60">
+          <span style={{ color: '#86868B' }}>
             {latestScan.unique_pattern_count} type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
           </span>
-          <span className="text-white/40 group-hover:text-white/80 transition-colors" aria-hidden="true">→</span>
+          <span style={{ color: '#C7C7CC', fontSize: 16 }}>→</span>
         </div>
       ) : (
-        <div className="text-xs text-white/50 italic">No scans yet</div>
+        <div style={{ fontSize: 12, color: '#86868B', fontStyle: 'italic' }}>No scans yet</div>
       )}
     </Link>
   )
