@@ -224,14 +224,32 @@ export default async function DashboardPage({
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #007AFF', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Components with Issues</div>
             <div style={{ fontSize: 40, fontWeight: 800, color: '#007AFF', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalErrors}</div>
-            <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>failing elements on page</div>
+            <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8, marginBottom: 10 }}>failing elements on page</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid #F0F0F5', paddingTop: 10 }}>
+              {([['Tier 1', severityCounts.critical, '#1e3a8a'], ['Tier 2', severityCounts.serious, '#2563eb'], ['Tier 3', severityCounts.moderate, '#60a5fa'], ['Tier 4', severityCounts.minor, '#bfdbfe']] as const).map(([label, count, color]) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, color: '#6B6B6B', flex: 1 }}>{label}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#1D1D1F' }}>{count.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Rule Violations */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #60a5fa', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Rule Violations</div>
             <div style={{ fontSize: 40, fontWeight: 800, color: '#2563eb', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalViolations}</div>
-            <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>WCAG rules broken across all sites</div>
+            <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8, marginBottom: 10 }}>WCAG rules broken across all sites</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid #F0F0F5', paddingTop: 10 }}>
+              {([['Tier 1', severityCounts.critical, '#1e3a8a'], ['Tier 2', severityCounts.serious, '#2563eb'], ['Tier 3', severityCounts.moderate, '#60a5fa'], ['Tier 4', severityCounts.minor, '#bfdbfe']] as const).map(([label, count, color]) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, color: '#6B6B6B', flex: 1 }}>{label}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#1D1D1F' }}>{count.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Resolved */}
