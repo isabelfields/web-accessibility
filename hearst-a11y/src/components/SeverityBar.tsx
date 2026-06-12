@@ -19,7 +19,7 @@ export function SeverityBar({ counts, showLegend = true, height = 'h-3' }: Sever
 
   return (
     <div>
-      <div className={`flex w-full rounded-full overflow-hidden ${height} bg-[#252a38]`}>
+      <div className={`flex w-full rounded-full overflow-hidden ${height} bg-[#E5E5EA]`}>
         {SEGMENTS.map(({ key, color }) => {
           const pct = (counts[key] / total) * 100
           if (pct === 0) return null
@@ -41,8 +41,8 @@ export function SeverityBar({ counts, showLegend = true, height = 'h-3' }: Sever
             return (
               <div key={key} className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: hex }} />
-                <span className="text-xs text-white/90">{label}</span>
-                <span className="text-xs font-semibold text-white">{count}</span>
+                <span className="text-xs text-[#3A3A3C]">{label}</span>
+                <span className="text-xs font-semibold text-[#1D1D1F]">{count}</span>
               </div>
             )
           })}

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Web accessibility audit dashboard for Hearst properties',
 }
 
-const navLink = "flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium text-white/80 hover:bg-white/8 hover:text-white transition-colors"
+const navLink = "flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium text-[#3A3A3C] hover:bg-[#F5F5F7] hover:text-[#1D1D1F] transition-colors"
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions)
@@ -18,14 +18,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en">
-      <body className="bg-[#0c0c10] text-white antialiased">
+      <body className="bg-[#F5F5F7] text-[#1D1D1F] antialiased">
         <div className="flex min-h-screen">
-          {/* Sidebar — dark */}
-          <aside className="w-56 flex flex-col fixed inset-y-0 left-0 z-10 bg-[#08080c] border-r border-[#1e1e2a]">
+          {/* Sidebar */}
+          <aside className="w-56 flex flex-col fixed inset-y-0 left-0 z-10 bg-white border-r border-[#E5E5EA]">
             {/* Logo */}
-            <div className="px-5 pt-5 pb-4 border-b border-[#1e1e2a]">
-              <img src="/hearst-logo.svg" alt="Hearst" className="h-6 w-auto brightness-0 invert opacity-90" />
-              <div className="text-[10px] text-white/50 font-semibold tracking-[0.15em] uppercase mt-1.5">
+            <div className="px-5 pt-5 pb-4 border-b border-[#E5E5EA]">
+              <img src="/hearst-logo.svg" alt="Hearst" className="h-6 w-auto" />
+              <div className="text-[10px] text-[#86868B] font-semibold tracking-[0.15em] uppercase mt-1.5">
                 Accessibility Monitor
               </div>
             </div>
@@ -53,7 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {isAdmin && (
                 <>
                   <div className="pt-4 pb-1 px-3">
-                    <span className="text-[10px] font-semibold text-white/50 uppercase tracking-widest">Admin</span>
+                    <span className="text-[10px] font-semibold text-[#86868B] uppercase tracking-widest">Admin</span>
                   </div>
                   <Link href="/admin/users" className={navLink}>
                     <svg className="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,19 +71,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               )}
             </nav>
 
-            <div className="px-5 py-4 border-t border-[#1e1e2a] space-y-2">
+            <div className="px-5 py-4 border-t border-[#E5E5EA] space-y-2">
               {session?.user?.email && (
-                <div className="text-xs text-white/50 truncate" title={session.user.email}>
+                <div className="text-xs text-[#86868B] truncate" title={session.user.email}>
                   {session.user.email}
-                  {isAdmin && <span className="ml-1 text-blue-400 font-medium">· admin</span>}
+                  {isAdmin && <span className="ml-1 text-blue-600 font-medium">· admin</span>}
                 </div>
               )}
               <SignOutButton />
-              <div className="text-[10px] text-white/50">© Hearst Communications</div>
+              <div className="text-[10px] text-[#86868B]">© Hearst Communications</div>
             </div>
           </aside>
 
-          <main className="flex-1 ml-56 min-h-screen bg-[#0c0c10]">
+          <main className="flex-1 ml-56 min-h-screen bg-[#F5F5F7]">
             {children}
           </main>
         </div>

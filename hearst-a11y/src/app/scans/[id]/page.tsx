@@ -119,7 +119,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               scan.status === 'complete' ? 'bg-emerald-500/20 text-emerald-400' :
               scan.status === 'running' ? 'bg-blue-500/20 text-blue-400' :
               scan.status === 'failed' ? 'bg-red-500/20 text-red-400' :
-              'bg-[#252a38] text-[#3A3A3C]'
+              'bg-[#F5F5F7] text-[#86868B]'
             }`}>
               {scan.status}
             </span>
