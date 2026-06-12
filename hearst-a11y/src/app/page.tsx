@@ -1,12 +1,14 @@
 import { sql } from '@/lib/db'
 import Link from 'next/link'
 import { Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import { SiteCard } from '@/components/SiteCard'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { DivisionFilter } from '@/components/DivisionFilter'
-import { SeverityDonut } from '@/components/SeverityDonut'
-import { ScoreTrendChart } from '@/components/ScoreTrendChart'
-import { TopViolationsChart } from '@/components/TopViolationsChart'
+
+const SeverityDonut = dynamic(() => import('@/components/SeverityDonut').then(m => m.SeverityDonut), { ssr: false })
+const ScoreTrendChart = dynamic(() => import('@/components/ScoreTrendChart').then(m => m.ScoreTrendChart), { ssr: false })
+const TopViolationsChart = dynamic(() => import('@/components/TopViolationsChart').then(m => m.TopViolationsChart), { ssr: false })
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/auth'
 
