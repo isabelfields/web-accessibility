@@ -1,10 +1,10 @@
 export type Tier = 'tier1' | 'tier2' | 'tier3' | 'tier4'
 
 export const TIER_LABEL: Record<Tier, string> = {
-  tier1: 'T1 Critical',
-  tier2: 'T2 Serious',
-  tier3: 'T3 Moderate',
-  tier4: 'T4 Minor',
+  tier1: 'Tier 1',
+  tier2: 'Tier 2',
+  tier3: 'Tier 3',
+  tier4: 'Tier 4',
 }
 
 export const TIER_COLOR: Record<Tier, { text: string; bg: string; border: string; dot: string; hex: string; swimlane: string }> = {
