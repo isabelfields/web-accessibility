@@ -1,14 +1,10 @@
 import { sql } from '@/lib/db'
 import Link from 'next/link'
 import { Suspense } from 'react'
-import nextDynamic from 'next/dynamic'
 import { SiteCard } from '@/components/SiteCard'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { DivisionFilter } from '@/components/DivisionFilter'
-
-const SeverityDonut = nextDynamic(() => import('@/components/SeverityDonut').then(m => m.SeverityDonut), { ssr: false })
-const ScoreTrendChart = nextDynamic(() => import('@/components/ScoreTrendChart').then(m => m.ScoreTrendChart), { ssr: false })
-const TopViolationsChart = nextDynamic(() => import('@/components/TopViolationsChart').then(m => m.TopViolationsChart), { ssr: false })
+import { ChartsSection } from '@/components/ChartsSection'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/auth'
 
@@ -239,24 +235,8 @@ export default async function DashboardPage({
           </div>
         </div>
 
-        {/* Charts row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 20 }}>
-          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>Issue Trend Over Time</div>
-            <ScoreTrendChart trends={scoreTrends} />
-          </div>
-          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Issues by Tier</div>
-            <div style={{ fontSize: 11, color: '#86868B', marginBottom: 12 }}>Total element-level failures by severity</div>
-            <SeverityDonut counts={severityCounts} />
-          </div>
-        </div>
-
-        {/* Top WCAG Errors */}
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>Top WCAG Errors Across All Sites</div>
-          <TopViolationsChart violations={topViolations} />
-        </div>
+        {/* Charts row + Top WCAG Errors */}
+        <ChartsSection severityCounts={severityCounts} topViolations={topViolations} scoreTrends={scoreTrends} />
 
         {/* Site cards */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
