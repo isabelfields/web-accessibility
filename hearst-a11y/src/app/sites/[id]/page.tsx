@@ -188,21 +188,23 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      {/* Donut chart */}
-      {totalViolations > 0 && (
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Issues by Tier</div>
-          <div style={{ fontSize: 11, color: '#6B6B6B', marginBottom: 12 }}>Total failing elements grouped by tier</div>
-          <SeverityDonut counts={severityCounts} />
-        </div>
-      )}
-
-      {/* Issue trend chart */}
-      {trendPoints.length >= 2 && (
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: 28 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Issue Count Over Time</div>
-          <div style={{ fontSize: 11, color: '#6B6B6B', marginBottom: 12 }}>Failing elements across scans</div>
-          <SiteTrendChart points={trendPoints} />
+      {/* Donut + Trend charts row */}
+      {(totalViolations > 0 || trendPoints.length >= 2) && (
+        <div style={{ display: 'grid', gridTemplateColumns: totalViolations > 0 && trendPoints.length >= 2 ? '1fr 1fr' : '1fr', gap: 16, marginBottom: 28 }}>
+          {totalViolations > 0 && (
+            <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Issues by Tier</div>
+              <div style={{ fontSize: 11, color: '#6B6B6B', marginBottom: 12 }}>Total failing elements grouped by tier</div>
+              <SeverityDonut counts={severityCounts} />
+            </div>
+          )}
+          {trendPoints.length >= 2 && (
+            <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Issue Count Over Time</div>
+              <div style={{ fontSize: 11, color: '#6B6B6B', marginBottom: 12 }}>Failing elements across scans</div>
+              <SiteTrendChart points={trendPoints} />
+            </div>
+          )}
         </div>
       )}
 
