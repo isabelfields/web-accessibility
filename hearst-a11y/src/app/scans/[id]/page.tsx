@@ -1,7 +1,7 @@
 import { sql } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ViolationCard } from '@/components/ViolationCard'
+import { TierSection } from '@/components/TierSection'
 import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { SeverityBar } from '@/components/SeverityBar'
@@ -247,24 +247,19 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               No WCAG errors found — great job!
             </div>
           ) : (
-            <div className="space-y-5">
+            <div>
               {(['tier1', 'tier2', 'tier3', 'tier4'] as const).map(tier => {
                 const group = byTier[tier]
                 if (group.length === 0) return null
                 const c = TIER_COLOR[tier]
                 return (
-                  <div key={tier}>
-                    <div className="flex items-center gap-2.5 mb-2.5 px-1">
-                      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
-                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${c.text}`}>{TIER_LABEL[tier]}</h3>
-                      <span className="text-xs text-[#3A3A3C] font-medium">{group.length} issue type{group.length !== 1 ? 's' : ''}</span>
-                    </div>
-                    <div className="space-y-1.5">
-                      {group.map(p => (
-                        <ViolationCard key={p.fingerprint} pattern={p} />
-                      ))}
-                    </div>
-                  </div>
+                  <TierSection
+                    key={tier}
+                    tier={tier}
+                    label={TIER_LABEL[tier]}
+                    color={{ text: c.text, dot: c.dot, hex: c.hex }}
+                    patterns={group}
+                  />
                 )
               })}
             </div>
