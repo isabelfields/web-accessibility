@@ -116,7 +116,7 @@ async function getData(division?: string, allowedDivisions?: string[]) {
     sites,
     scans,
     activeDivisions,
-    stats: { totalPages, totalErrors, errorsResolved, siteCount: sites.length },
+    stats: { totalPages, totalErrors, errorsResolved, siteCount: sites.length, totalViolations: severityCounts.critical + severityCounts.serious + severityCounts.moderate + severityCounts.minor },
     severityCounts,
     topViolations,
     scoreTrends,
@@ -204,7 +204,7 @@ export default async function DashboardPage({
         )}
 
         {/* Stat cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 20 }}>
 
           {/* Sites */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
@@ -220,11 +220,18 @@ export default async function DashboardPage({
             <div style={{ fontSize: 12, color: '#86868B', marginTop: 8 }}>across all sites</div>
           </div>
 
-          {/* WCAG Errors — blue left accent */}
+          {/* Components with Issues */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #007AFF', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>WCAG Errors</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Components with Issues</div>
             <div style={{ fontSize: 40, fontWeight: 800, color: '#007AFF', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalErrors}</div>
-            <div style={{ fontSize: 12, color: '#86868B', marginTop: 8 }}>latest scans</div>
+            <div style={{ fontSize: 12, color: '#86868B', marginTop: 8 }}>failing elements on page</div>
+          </div>
+
+          {/* Rule Violations */}
+          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #60a5fa', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Rule Violations</div>
+            <div style={{ fontSize: 40, fontWeight: 800, color: '#60a5fa', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalViolations}</div>
+            <div style={{ fontSize: 12, color: '#86868B', marginTop: 8 }}>WCAG rules broken (1 element can break many)</div>
           </div>
 
           {/* Resolved */}
