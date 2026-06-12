@@ -90,7 +90,7 @@ export function AddSiteForm({ onClose }: { onClose: () => void }) {
                 onChange={e => setName(e.target.value)}
                 required
                 placeholder="e.g. Elle.com"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -98,7 +98,7 @@ export function AddSiteForm({ onClose }: { onClose: () => void }) {
               <select
                 value={division}
                 onChange={e => { setDivision(e.target.value as HearstDivision | ''); setBrand('') }}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select division…</option>
                 {HEARST_DIVISIONS.map(d => (
@@ -111,7 +111,7 @@ export function AddSiteForm({ onClose }: { onClose: () => void }) {
               <select
                 value={brand}
                 onChange={e => setBrand(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select brand…</option>
                 {(division ? HEARST_BRANDS[division as HearstDivision] ?? [] : []).map(b => (
@@ -124,7 +124,7 @@ export function AddSiteForm({ onClose }: { onClose: () => void }) {
               <select
                 value={region}
                 onChange={e => setRegion(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select region…</option>
                 {HEARST_REGIONS.map(r => (
