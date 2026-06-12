@@ -1,9 +1,9 @@
 'use client'
 
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 
 const COLORS = {
-  critical: '#1e40af',
+  critical: '#1e3a8a',
   serious:  '#2563eb',
   moderate: '#60a5fa',
   minor:    '#bfdbfe',
@@ -15,50 +15,61 @@ interface Props {
 
 export function SeverityDonut({ counts }: Props) {
   const data = [
-    { name: 'T1 Critical', value: counts.critical, color: COLORS.critical },
-    { name: 'T2 Serious',  value: counts.serious,  color: COLORS.serious },
-    { name: 'T3 Moderate', value: counts.moderate, color: COLORS.moderate },
-    { name: 'T4 Minor',    value: counts.minor,    color: COLORS.minor },
+    { name: 'Critical', value: counts.critical, color: COLORS.critical },
+    { name: 'Serious',  value: counts.serious,  color: COLORS.serious },
+    { name: 'Moderate', value: counts.moderate, color: COLORS.moderate },
+    { name: 'Minor',    value: counts.minor,    color: COLORS.minor },
   ].filter(d => d.value > 0)
 
   const total = data.reduce((s, d) => s + d.value, 0)
-  if (total === 0) return <div className="flex items-center justify-center h-40 text-sm text-white/90">No data yet</div>
+  if (total === 0) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, fontSize: 13, color: '#86868B' }}>No data yet</div>
 
   return (
-    <ResponsiveContainer width="100%" height={200}>
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          innerRadius={52}
-          outerRadius={76}
-          paddingAngle={2}
-          dataKey="value"
-          strokeWidth={0}
-        >
-          {data.map((entry, i) => (
-            <Cell key={i} fill={entry.color} fillOpacity={0.9} />
-          ))}
-        </Pie>
-        <Tooltip
-          formatter={(val) => { const n = Number(val); return [`${n} (${Math.round(n/total*100)}%)`] }}
-          contentStyle={{
-            fontSize: 12,
-            borderRadius: 6,
-            border: '1px solid #1e1e2a',
-            background: '#11111a',
-            color: '#e8e8f0',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-          }}
-        />
-        <Legend
-          iconType="circle"
-          iconSize={6}
-          wrapperStyle={{ fontSize: 10 }}
-          formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.9)' }}>{value}</span>}
-        />
-      </PieChart>
-    </ResponsiveContainer>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+      <ResponsiveContainer width={160} height={160}>
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={48}
+            outerRadius={72}
+            paddingAngle={2}
+            dataKey="value"
+            strokeWidth={0}
+          >
+            {data.map((entry, i) => (
+              <Cell key={i} fill={entry.color} />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={(val) => { const n = Number(val); return [`${n} (${Math.round(n/total*100)}%)`] }}
+            contentStyle={{
+              fontSize: 12,
+              borderRadius: 8,
+              border: '1px solid #E5E5EA',
+              background: '#fff',
+              color: '#1C1C1E',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+            }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+        {data.map((d) => (
+          <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: d.color, flexShrink: 0 }} />
+            <div style={{ fontSize: 12, color: '#374151', flex: 1 }}>{d.name}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#1C1C1E' }}>{d.value.toLocaleString()}</div>
+            <div style={{ fontSize: 11, color: '#86868B', width: 36, textAlign: 'right' }}>{Math.round(d.value / total * 100)}%</div>
+          </div>
+        ))}
+        <div style={{ borderTop: '1px solid #E5E5EA', marginTop: 2, paddingTop: 6, display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: 11, color: '#86868B' }}>Total</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#1C1C1E' }}>{total.toLocaleString()}</div>
+        </div>
+      </div>
+    </div>
   )
 }
