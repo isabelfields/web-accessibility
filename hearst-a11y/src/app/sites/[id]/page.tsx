@@ -5,6 +5,7 @@ import { RunScanButton } from '@/components/RunScanButton'
 import { CancelScanButton } from '@/components/CancelScanButton'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { TierSection } from '@/components/TierSection'
+import { SiteTrendChart } from '@/components/SiteTrendChart'
 import { EditSiteButton } from '@/components/EditSiteButton'
 import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { patternsToWorstTier, TIER_LABEL, impactToTier } from '@/lib/tiers'
@@ -80,6 +81,15 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
   // Tiers present (for jump nav)
   const presentTiers = (['tier1', 'tier2', 'tier3', 'tier4'] as const).filter(t => byTier[t].length > 0)
+
+  // Trend data for chart (oldest → newest)
+  const trendPoints = completedScans
+    .slice(0, 10)
+    .reverse()
+    .map((s: any) => ({
+      date: new Date(s.started_at).toISOString().split('T')[0],
+      count: s.raw_violation_count ?? 0,
+    }))
 
   return (
     <div style={{ minHeight: '100vh', background: '#F5F5F7', padding: '24px 32px' }}>
@@ -159,6 +169,15 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>{completedScans.length} completed</div>
         </div>
       </div>
+
+      {/* Issue trend chart */}
+      {trendPoints.length >= 2 && (
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: 28 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Issue Count Over Time</div>
+          <div style={{ fontSize: 11, color: '#6B6B6B', marginBottom: 12 }}>Failing elements across scans</div>
+          <SiteTrendChart points={trendPoints} />
+        </div>
+      )}
 
       {/* WCAG Errors — swimlane layout */}
       <div style={{ marginBottom: 28 }}>
