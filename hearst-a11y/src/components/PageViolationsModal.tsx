@@ -96,7 +96,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
                           ...p,
                           nodes: pageNodes.length > 0 ? pageNodes : p.nodes ?? [],
                           affectedPages: [pageScore.url],
-                          occurrences: pageNodes.length || p.occurrences,
+                          occurrences: pageNodes.length > 0 ? pageNodes.length : p.occurrences,
                         }
                       })}
                     />

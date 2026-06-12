@@ -50,7 +50,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
   const tierLabel = TIER_LABEL[tier]
   const ruleInfo = getRuleInfo(pattern.rule)
   const instanceCount = pattern.occurrences
-  const pageCount = pattern.affectedPages?.length ?? 1
+  const pageCount = pattern.affectedPages?.length ?? 0
 
   const nodes = pattern.nodes?.length > 0
     ? pattern.nodes
