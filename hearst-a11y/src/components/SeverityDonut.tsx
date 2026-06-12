@@ -15,10 +15,10 @@ interface Props {
 
 export function SeverityDonut({ counts }: Props) {
   const data = [
-    { name: 'Critical', value: counts.critical, color: COLORS.critical },
-    { name: 'Serious',  value: counts.serious,  color: COLORS.serious },
-    { name: 'Moderate', value: counts.moderate, color: COLORS.moderate },
-    { name: 'Minor',    value: counts.minor,    color: COLORS.minor },
+    { name: 'Tier 1', value: counts.critical, color: COLORS.critical },
+    { name: 'Tier 2', value: counts.serious,  color: COLORS.serious },
+    { name: 'Tier 3', value: counts.moderate, color: COLORS.moderate },
+    { name: 'Tier 4', value: counts.minor,    color: COLORS.minor },
   ].filter(d => d.value > 0)
 
   const total = data.reduce((s, d) => s + d.value, 0)

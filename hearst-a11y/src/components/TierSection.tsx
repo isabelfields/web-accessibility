@@ -23,21 +23,22 @@ export function TierSection({ tier, label, color, patterns, defaultOpen = true }
           width: '100%',
           display: 'flex',
           alignItems: 'center',
-          gap: 10,
-          padding: '10px 16px',
-          borderRadius: open ? '10px 10px 0 0' : 10,
-          background: color.hex,
+          gap: 8,
+          padding: '6px 0',
+          background: 'none',
           border: 'none',
           cursor: 'pointer',
           textAlign: 'left',
+          marginBottom: 8,
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#fff', letterSpacing: '0.04em' }}>{label}</span>
-        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>
-          · {patterns.length} issue type{patterns.length !== 1 ? 's' : ''}
+        <span style={{ width: 10, height: 10, borderRadius: '50%', background: color.hex, flexShrink: 0 }} />
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#1D1D1F', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{label}</span>
+        <span style={{ fontSize: 12, color: '#6B6B6B' }}>
+          {patterns.length} issue type{patterns.length !== 1 ? 's' : ''}
         </span>
         <svg
-          style={{ marginLeft: 'auto', width: 16, height: 16, color: '#fff', transition: 'transform 0.15s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}
+          style={{ marginLeft: 'auto', width: 14, height: 14, color: '#6B6B6B', transition: 'transform 0.15s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}
           fill="none" stroke="currentColor" viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -45,11 +46,9 @@ export function TierSection({ tier, label, color, patterns, defaultOpen = true }
       </button>
 
       {open && (
-        <div style={{ border: '1px solid #E5E5EA', borderTop: 'none', borderRadius: '0 0 10px 10px', overflow: 'hidden' }}>
-          {patterns.map((p, i) => (
-            <div key={p.fingerprint} style={{ borderTop: i > 0 ? '1px solid #F0F0F5' : undefined }}>
-              <ViolationCard pattern={p} />
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {patterns.map((p) => (
+            <ViolationCard key={p.fingerprint} pattern={p} />
           ))}
         </div>
       )}
