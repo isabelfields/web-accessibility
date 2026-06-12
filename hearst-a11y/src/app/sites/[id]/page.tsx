@@ -8,7 +8,8 @@ import { TierSection } from '@/components/TierSection'
 import { SiteTrendChart } from '@/components/SiteTrendChart'
 import { EditSiteButton } from '@/components/EditSiteButton'
 import { PageViolationsModal } from '@/components/PageViolationsModal'
-import { patternsToWorstTier, TIER_LABEL, impactToTier } from '@/lib/tiers'
+import { patternsToWorstTier, TIER_LABEL, impactToTier, TIER_COLOR } from '@/lib/tiers'
+import { SeverityDonut } from '@/components/SeverityDonut'
 import type { ViolationPattern, SitePage } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -74,6 +75,14 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   }
   const worstTier = patternsToWorstTier(patterns)
 
+  // Severity counts from patterns
+  const severityCounts = { critical: 0, serious: 0, moderate: 0, minor: 0 }
+  for (const p of patterns) {
+    const impact = p.impact as keyof typeof severityCounts
+    if (impact in severityCounts) severityCounts[impact] += p.occurrences
+  }
+  const totalViolations = severityCounts.critical + severityCounts.serious + severityCounts.moderate + severityCounts.minor
+
   // WCAG error trend vs previous scan
   const currentErrors = latestScan?.raw_violation_count ?? null
   const prevErrors = prevScan?.raw_violation_count ?? null
@@ -116,7 +125,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 20 }}>
 
         {/* Priority — navy left accent */}
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #002D82', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
@@ -136,11 +145,11 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           )}
         </div>
 
-        {/* WCAG Errors with trend badge */}
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>WCAG Errors</div>
+        {/* Components with Issues */}
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #007AFF', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Components with Issues</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ fontSize: 28, fontWeight: 800, color: '#1D1D1F', letterSpacing: '-0.02em', lineHeight: 1 }}>{currentErrors ?? '—'}</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: '#007AFF', letterSpacing: '-0.02em', lineHeight: 1 }}>{currentErrors ?? '—'}</div>
             {errorDelta !== null && errorDelta !== 0 && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 8px',
@@ -152,7 +161,23 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
               </span>
             )}
           </div>
-          <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>vs previous scan</div>
+          <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>failing elements on page</div>
+        </div>
+
+        {/* Rule Violations */}
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #60a5fa', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Rule Violations</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: '#2563eb', letterSpacing: '-0.02em', lineHeight: 1 }}>{totalViolations}</div>
+          <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8, marginBottom: 10 }}>WCAG rules broken</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid #F0F0F5', paddingTop: 10 }}>
+            {([['Tier 1', severityCounts.critical, '#1e3a8a'], ['Tier 2', severityCounts.serious, '#2563eb'], ['Tier 3', severityCounts.moderate, '#60a5fa'], ['Tier 4', severityCounts.minor, '#bfdbfe']] as const).map(([label, count, color]) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                <span style={{ fontSize: 11, color: '#6B6B6B', flex: 1 }}>{label}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: '#1D1D1F' }}>{count.toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Pages Scanned */}
@@ -169,6 +194,15 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>{completedScans.length} completed</div>
         </div>
       </div>
+
+      {/* Donut chart */}
+      {totalViolations > 0 && (
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Issues by Tier</div>
+          <div style={{ fontSize: 11, color: '#6B6B6B', marginBottom: 12 }}>Total failing elements grouped by tier</div>
+          <SeverityDonut counts={severityCounts} />
+        </div>
+      )}
 
       {/* Issue trend chart */}
       {trendPoints.length >= 2 && (
