@@ -230,7 +230,7 @@ export default async function DashboardPage({
           {/* Rule Violations */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #60a5fa', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Rule Violations</div>
-            <div style={{ fontSize: 40, fontWeight: 800, color: '#60a5fa', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalViolations}</div>
+            <div style={{ fontSize: 40, fontWeight: 800, color: '#2563eb', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalViolations}</div>
             <div style={{ fontSize: 12, color: '#86868B', marginTop: 8 }}>WCAG rules broken across all sites</div>
           </div>
 
