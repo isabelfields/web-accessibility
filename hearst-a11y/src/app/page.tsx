@@ -21,7 +21,8 @@ async function getData(division?: string, allowedDivisions?: string[]) {
       return Promise.all(
         sites.map(async (site) => {
           const [latest] = await sql`
-            SELECT status, started_at, unique_pattern_count, raw_violation_count, patterns
+            SELECT status, started_at, unique_pattern_count, raw_violation_count,
+                   COALESCE(patterns, '[]'::jsonb) as patterns
             FROM scan_jobs
             WHERE site_id = ${site.id} AND status = 'complete'
             ORDER BY started_at DESC LIMIT 1
@@ -150,8 +151,14 @@ export default async function DashboardPage({
     ? allowedDivisions[0]
     : division
 
-  const { sites, scans, activeDivisions, stats, severityCounts, topViolations, scoreTrends, criticalSiteCount } =
-    await getData(effectiveDivision, allowedDivisions)
+  let dashData
+  try {
+    dashData = await getData(effectiveDivision, allowedDivisions)
+  } catch (err) {
+    console.error('[dashboard] getData failed:', err)
+    throw err
+  }
+  const { sites, scans, activeDivisions, stats, severityCounts, topViolations, scoreTrends, criticalSiteCount } = dashData
 
   const visibleDivisions = isAdmin
     ? activeDivisions
