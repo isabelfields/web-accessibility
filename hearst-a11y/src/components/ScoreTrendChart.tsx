@@ -14,11 +14,11 @@ interface Props {
   trends: SiteTrend[]
 }
 
-const LINE_COLORS = ['#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#bfdbfe']
+const LINE_COLORS = ['#2563eb', '#16a34a', '#dc2626', '#d97706', '#7c3aed', '#0891b2']
 
 export function ScoreTrendChart({ trends }: Props) {
   if (trends.length === 0 || trends.every(t => t.scores.length < 2)) {
-    return <div className="flex items-center justify-center h-40 text-sm text-white/90">Run more scans to see trends</div>
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, fontSize: 13, color: '#86868B' }}>Run more scans to see trends</div>
   }
 
   const allDates = [...new Set(
@@ -34,51 +34,55 @@ export function ScoreTrendChart({ trends }: Props) {
     return row
   })
 
+  const allScores = trends.flatMap(t => t.scores.map(s => s.score))
+  const minScore = Math.max(0, Math.floor(Math.min(...allScores) / 10) * 10 - 10)
+  const maxScore = Math.min(100, Math.ceil(Math.max(...allScores) / 10) * 10 + 5)
+
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <LineChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="2 4" stroke="#1e1e2a" vertical={false} />
+      <LineChart data={data} margin={{ top: 4, right: 16, left: -10, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#E5E5EA" vertical={false} />
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.85)' }}
+          tick={{ fontSize: 11, fill: '#6B7280' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         />
         <YAxis
-          domain={[0, 100]}
-          tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.85)' }}
+          domain={[minScore, maxScore]}
+          tick={{ fontSize: 11, fill: '#6B7280' }}
           tickLine={false}
           axisLine={false}
+          tickFormatter={(v) => `${v}`}
         />
         <Tooltip
           contentStyle={{
             fontSize: 12,
-            borderRadius: 6,
-            border: '1px solid #1e1e2a',
-            background: '#11111a',
-            color: '#e8e8f0',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+            borderRadius: 8,
+            border: '1px solid #E5E5EA',
+            background: '#fff',
+            color: '#1C1C1E',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
           }}
+          labelStyle={{ color: '#6B7280', marginBottom: 4 }}
           labelFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         />
-        {trends.length > 1 && (
-          <Legend
-            iconType="circle"
-            iconSize={6}
-            wrapperStyle={{ fontSize: 10 }}
-            formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.9)' }}>{value}</span>}
-          />
-        )}
+        <Legend
+          iconType="circle"
+          iconSize={8}
+          wrapperStyle={{ fontSize: 11, color: '#6B7280', paddingTop: 8 }}
+          formatter={(value) => <span style={{ color: '#374151' }}>{value}</span>}
+        />
         {trends.map((site, i) => (
           <Line
             key={site.name}
             type="monotone"
             dataKey={site.name}
             stroke={LINE_COLORS[i % LINE_COLORS.length]}
-            strokeWidth={1.5}
-            dot={false}
-            activeDot={{ r: 3, strokeWidth: 0 }}
+            strokeWidth={2}
+            dot={{ r: 3, strokeWidth: 0, fill: LINE_COLORS[i % LINE_COLORS.length] }}
+            activeDot={{ r: 5, strokeWidth: 0 }}
             connectNulls
           />
         ))}
