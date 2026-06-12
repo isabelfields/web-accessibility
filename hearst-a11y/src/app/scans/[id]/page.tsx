@@ -180,10 +180,6 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                   <div className="text-2xl font-bold text-[#1D1D1F] tabular-nums">{wcagLevels.AA}</div>
                   <div className="text-[11px] font-semibold text-[#3A3A3C] mt-0.5">Level AA</div>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-[#1D1D1F] tabular-nums">{wcagLevels.AAA}</div>
-                  <div className="text-[11px] font-semibold text-[#3A3A3C] mt-0.5">Level AAA</div>
-                </div>
               </div>
             </div>
 
