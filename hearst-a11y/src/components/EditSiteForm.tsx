@@ -84,7 +84,7 @@ export function EditSiteForm({ site, onClose }: { site: Site; onClose: () => voi
               <label className="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
               <input
                 type="text" value={name} onChange={e => setName(e.target.value)} required
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -92,7 +92,7 @@ export function EditSiteForm({ site, onClose }: { site: Site; onClose: () => voi
               <select
                 value={division}
                 onChange={e => { setDivision(e.target.value as HearstDivision | ''); setBrand('') }}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select division…</option>
                 {HEARST_DIVISIONS.map(d => <option key={d} value={d}>{d}</option>)}
@@ -103,7 +103,7 @@ export function EditSiteForm({ site, onClose }: { site: Site; onClose: () => voi
               <select
                 value={brand}
                 onChange={e => setBrand(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select brand…</option>
                 {(division ? HEARST_BRANDS[division as HearstDivision] ?? [] : []).map(b => (
@@ -116,7 +116,7 @@ export function EditSiteForm({ site, onClose }: { site: Site; onClose: () => voi
               <select
                 value={region}
                 onChange={e => setRegion(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select region…</option>
                 {HEARST_REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
@@ -136,12 +136,12 @@ export function EditSiteForm({ site, onClose }: { site: Site; onClose: () => voi
                     <input type="text" placeholder="https://example.com/page" value={page.url}
                       onChange={e => updatePage(i, 'url', e.target.value)}
                       onBlur={e => updatePage(i, 'url', normalizeUrl(e.target.value))}
-                      required className="col-span-3 sm:col-span-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      required className="col-span-3 sm:col-span-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     <input type="text" placeholder="Label" value={page.label}
                       onChange={e => updatePage(i, 'label', e.target.value)}
-                      required className="col-span-3 sm:col-span-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      required className="col-span-3 sm:col-span-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     <select value={page.templateType} onChange={e => updatePage(i, 'templateType', e.target.value)}
-                      className="col-span-3 sm:col-span-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      className="col-span-3 sm:col-span-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                       <option value="homepage">Homepage</option>
                       <option value="article">Article</option>
                       <option value="commerce">Commerce / Product</option>
