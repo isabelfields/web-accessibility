@@ -143,6 +143,7 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ division?: string }>
 }) {
+  try {
   const [{ division }, session] = await Promise.all([searchParams, getServerSession(authOptions)])
   const isAdmin = (session?.user as any)?.role === 'admin'
   const allowedDivisions = isAdmin ? [] : ((session?.user as any)?.allowedDivisions ?? [])
@@ -333,4 +334,11 @@ export default async function DashboardPage({
       </div>
     </div>
   )
+  } catch (err: any) {
+    return (
+      <div style={{ padding: 40, fontFamily: 'monospace', fontSize: 13, color: '#DC2626', background: '#FEF2F2', minHeight: '100vh', whiteSpace: 'pre-wrap' }}>
+        <strong>Page render error:</strong>{'\n'}{err?.stack ?? err?.message ?? String(err)}
+      </div>
+    )
+  }
 }
