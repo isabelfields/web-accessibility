@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { RunScanButton } from '@/components/RunScanButton'
 import { CancelScanButton } from '@/components/CancelScanButton'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
-import { ViolationCard } from '@/components/ViolationCard'
+import { TierSection } from '@/components/TierSection'
 import { EditSiteButton } from '@/components/EditSiteButton'
 import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { patternsToWorstTier, TIER_LABEL, impactToTier } from '@/lib/tiers'
@@ -114,7 +114,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           {worstTier ? (
             <>
               <div style={{ fontSize: 28, fontWeight: 800, color: TIER_SWIMLANE[worstTier], letterSpacing: '-0.02em', lineHeight: 1 }}>
-                {TIER_LABEL[worstTier].replace(' Critical', ' 1').replace(' Serious', ' 2').replace(' Moderate', ' 3').replace(' Minor', ' 4').replace('T', 'Tier ')}
+                {TIER_LABEL[worstTier]}
               </div>
               <div style={{ fontSize: 12, color: '#86868B', marginTop: 8 }}>highest tier found</div>
             </>
@@ -186,25 +186,18 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
             {latestScan ? 'No violations found. Great job!' : 'Run a scan to see violations.'}
           </div>
         ) : (
-          <div style={{ borderRadius: 12, border: '1px solid #E5E5EA', overflow: 'hidden', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div>
             {(['tier1', 'tier2', 'tier3', 'tier4'] as const).map(tier => {
               const group = byTier[tier]
               if (group.length === 0) return null
-              const swimColor = TIER_SWIMLANE[tier]
-              const shortLabel = TIER_JUMP_LABEL[tier]
               return (
                 <div key={tier} id={tier}>
-                  {/* Swimlane header */}
-                  <div style={{ background: swimColor, padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{shortLabel}</span>
-                    <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>· {group.length} issue type{group.length !== 1 ? 's' : ''}</span>
-                  </div>
-                  {/* Violation rows */}
-                  {group.map((p, i) => (
-                    <div key={p.fingerprint} style={{ borderTop: i > 0 ? '1px solid #F0F0F0' : undefined }}>
-                      <ViolationCard pattern={p} />
-                    </div>
-                  ))}
+                  <TierSection
+                    tier={tier}
+                    label={TIER_LABEL[tier]}
+                    color={{ text: '', dot: '', hex: TIER_SWIMLANE[tier] }}
+                    patterns={group}
+                  />
                 </div>
               )
             })}
