@@ -95,25 +95,25 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   return (
     <div className="px-8 py-6 bg-[#F5F5F7] min-h-screen">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[#3A3A3C] mb-6">
-        <Link href="/" className="hover:text-white">Dashboard</Link>
-        <span className="text-[#252a38]">/</span>
+      <div className="flex items-center gap-2 text-sm text-[#86868B] mb-6">
+        <Link href="/" className="hover:text-[#1D1D1F]">Dashboard</Link>
+        <span className="text-[#C7C7CC]">/</span>
         {site && (
           <>
-            <Link href={`/sites/${site.id}`} className="hover:text-white">{site.name}</Link>
-            <span className="text-[#252a38]">/</span>
+            <Link href={`/sites/${site.id}`} className="hover:text-[#1D1D1F]">{site.name}</Link>
+            <span className="text-[#C7C7CC]">/</span>
           </>
         )}
-        <span className="text-white font-medium">Scan {formatDate(scan.started_at)}</span>
+        <span className="text-[#1D1D1F] font-medium">Scan {formatDate(scan.started_at)}</span>
       </div>
 
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white">
+          <h1 className="text-2xl font-bold text-[#1D1D1F]">
             {site?.name ?? scan.root_url}
           </h1>
-          <p className="text-sm text-[#3A3A3C] mt-1">{scan.root_url}</p>
+          <p className="text-sm text-[#86868B] mt-1">{scan.root_url}</p>
           <div className="flex items-center gap-3 mt-2">
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
               scan.status === 'complete' ? 'bg-emerald-500/20 text-emerald-400' :
@@ -163,8 +163,8 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               <div className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider mb-3">WCAG Errors</div>
               <div className="text-4xl font-bold text-[#1D1D1F] tabular-nums leading-none">{totalViolations}</div>
               <div className="mt-3 space-y-1.5 text-xs text-[#3A3A3C]">
-                <div className="flex justify-between"><span>Issue types</span><span className="font-semibold text-white">{scan.unique_pattern_count ?? 0}</span></div>
-                <div className="flex justify-between"><span>Pages scanned</span><span className="font-semibold text-white">{scan.pages_scanned ?? 0}</span></div>
+                <div className="flex justify-between"><span>Issue types</span><span className="font-semibold text-[#1D1D1F]">{scan.unique_pattern_count ?? 0}</span></div>
+                <div className="flex justify-between"><span>Pages scanned</span><span className="font-semibold text-[#1D1D1F]">{scan.pages_scanned ?? 0}</span></div>
               </div>
             </div>
 
@@ -197,7 +197,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           {/* Per-page issues */}
           {pageScores.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-lg font-semibold text-white mb-4">Page Issues</h2>
+              <h2 className="text-lg font-semibold text-[#1D1D1F] mb-4">Page Issues</h2>
               <div className="rounded-lg bg-white border border-[#E5E5EA] overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
@@ -212,7 +212,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                     {pageScores.map((ps, i) => (
                       <PageViolationsModal key={i} pageScore={ps} patterns={patterns}>
                         <tr className={`border-t border-[#E5E5EA] transition-colors ${ps.score != null ? 'hover:bg-[#F5F5F7] cursor-pointer' : ''}`}>
-                          <td className="px-4 py-3 font-medium text-white">{ps.label ?? '—'}</td>
+                          <td className="px-4 py-3 font-medium text-[#1D1D1F]">{ps.label ?? '—'}</td>
                           <td className="px-4 py-3">
                             <span className="text-[#5b9bd6] truncate block max-w-sm">{ps.url}</span>
                             {ps.error && (
@@ -221,7 +221,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                               </div>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-right text-white">{ps.violationCount ?? '—'}</td>
+                          <td className="px-4 py-3 text-right text-[#1D1D1F]">{ps.violationCount ?? '—'}</td>
                           <td className="px-4 py-3 text-right">
                             {ps.score == null
                               ? <span className="text-xs font-normal bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md">Failed</span>
@@ -239,7 +239,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
 
           {/* Violations */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">WCAG Errors Found</h2>
+            <h2 className="text-lg font-semibold text-[#1D1D1F]">WCAG Errors Found</h2>
             <span className="text-sm text-[#3A3A3C]">{patterns.length} issue type{patterns.length !== 1 ? 's' : ''} · {totalViolations} total</span>
           </div>
           {patterns.length === 0 ? (
