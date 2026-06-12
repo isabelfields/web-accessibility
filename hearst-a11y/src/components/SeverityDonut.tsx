@@ -3,10 +3,10 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 
 const COLORS = {
-  critical: '#dc2626',
-  serious:  '#f97316',
-  moderate: '#eab308',
-  minor:    '#9ca3af',
+  critical: '#1e3a8a',
+  serious:  '#2563eb',
+  moderate: '#60a5fa',
+  minor:    '#bfdbfe',
 }
 
 interface Props {
