@@ -31,7 +31,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
     : (
       <button
         onClick={() => hasData && setOpen(true)}
-        className={`text-left hover:underline truncate max-w-xs block ${hasData ? 'text-[#007AFF] cursor-pointer' : 'text-[#86868B] cursor-default'}`}
+        className={`text-left hover:underline truncate max-w-xs block ${hasData ? 'text-[#007AFF] cursor-pointer' : 'text-[#6B6B6B] cursor-default'}`}
         title={pageScore.url}
         disabled={!hasData}
       >
@@ -61,16 +61,16 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
                   {pageScore.url}
                 </a>
                 <div className="flex items-center gap-3 mt-1">
-                  <span className="text-sm text-[#86868B]">
+                  <span className="text-sm text-[#6B6B6B]">
                     {pagePatterns.length} issue type{pagePatterns.length !== 1 ? 's' : ''}
                   </span>
                   {pageScore.violationCount != null && (
-                    <span className="text-sm text-[#86868B]">· {pageScore.violationCount} total violations</span>
+                    <span className="text-sm text-[#6B6B6B]">· {pageScore.violationCount} total violations</span>
                   )}
                 </div>
               </div>
               <button onClick={() => setOpen(false)}
-                className="text-[#86868B] hover:text-[#1D1D1F] text-2xl leading-none ml-4 flex-shrink-0">
+                className="text-[#6B6B6B] hover:text-[#1D1D1F] text-2xl leading-none ml-4 flex-shrink-0">
                 &times;
               </button>
             </div>
@@ -78,7 +78,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
             {/* Body */}
             <div className="overflow-y-auto px-6 py-5">
               {pagePatterns.length === 0 ? (
-                <div className="text-center py-10 text-[#86868B] text-sm">No violations found on this page.</div>
+                <div className="text-center py-10 text-[#6B6B6B] text-sm">No violations found on this page.</div>
               ) : (
                 (['tier1', 'tier2', 'tier3', 'tier4'] as const).map(tier => {
                   const group = byTier[tier]

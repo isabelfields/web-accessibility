@@ -25,7 +25,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {/* Logo */}
             <div className="px-5 pt-5 pb-4 border-b border-[#E5E5EA]">
               <img src="/hearst-logo.svg" alt="Hearst" className="h-6 w-auto" />
-              <div className="text-[10px] text-[#86868B] font-semibold tracking-[0.15em] uppercase mt-1.5">
+              <div className="text-[10px] text-[#6B6B6B] font-semibold tracking-[0.15em] uppercase mt-1.5">
                 Accessibility Monitor
               </div>
             </div>
@@ -53,7 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {isAdmin && (
                 <>
                   <div className="pt-4 pb-1 px-3">
-                    <span className="text-[10px] font-semibold text-[#86868B] uppercase tracking-widest">Admin</span>
+                    <span className="text-[10px] font-semibold text-[#6B6B6B] uppercase tracking-widest">Admin</span>
                   </div>
                   <Link href="/admin/users" className={navLink}>
                     <svg className="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,13 +73,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
             <div className="px-5 py-4 border-t border-[#E5E5EA] space-y-2">
               {session?.user?.email && (
-                <div className="text-xs text-[#86868B] truncate" title={session.user.email}>
+                <div className="text-xs text-[#6B6B6B] truncate" title={session.user.email}>
                   {session.user.email}
                   {isAdmin && <span className="ml-1 text-blue-600 font-medium">· admin</span>}
                 </div>
               )}
               <SignOutButton />
-              <div className="text-[10px] text-[#86868B]">© Hearst Communications</div>
+              <div className="text-[10px] text-[#6B6B6B]">© Hearst Communications</div>
             </div>
           </aside>
 

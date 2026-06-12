@@ -22,7 +22,7 @@ export function SeverityDonut({ counts }: Props) {
   ].filter(d => d.value > 0)
 
   const total = data.reduce((s, d) => s + d.value, 0)
-  if (total === 0) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, fontSize: 13, color: '#86868B' }}>No data yet</div>
+  if (total === 0) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, fontSize: 13, color: '#6B6B6B' }}>No data yet</div>
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
@@ -62,11 +62,11 @@ export function SeverityDonut({ counts }: Props) {
             <div style={{ width: 10, height: 10, borderRadius: '50%', background: d.color, flexShrink: 0 }} />
             <div style={{ fontSize: 12, color: '#374151', flex: 1 }}>{d.name}</div>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#1C1C1E' }}>{d.value.toLocaleString()}</div>
-            <div style={{ fontSize: 11, color: '#86868B', width: 36, textAlign: 'right' }}>{Math.round(d.value / total * 100)}%</div>
+            <div style={{ fontSize: 11, color: '#6B6B6B', width: 36, textAlign: 'right' }}>{Math.round(d.value / total * 100)}%</div>
           </div>
         ))}
         <div style={{ borderTop: '1px solid #E5E5EA', marginTop: 2, paddingTop: 6, display: 'flex', justifyContent: 'space-between' }}>
-          <div style={{ fontSize: 11, color: '#86868B' }}>Total</div>
+          <div style={{ fontSize: 11, color: '#6B6B6B' }}>Total</div>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#1C1C1E' }}>{total.toLocaleString()}</div>
         </div>
       </div>

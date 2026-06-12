@@ -48,7 +48,7 @@ export default function CostsPage() {
   }, [])
 
   if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0', color: '#86868B', fontSize: 14 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0', color: '#6B6B6B', fontSize: 14 }}>
       Loading…
     </div>
   )
@@ -60,32 +60,32 @@ export default function CostsPage() {
     <div style={{ padding: '24px 32px', background: '#F5F5F7', minHeight: '100vh' }}>
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>Usage & Cost</h1>
-        <p style={{ fontSize: 13, color: '#86868B', marginTop: 4, marginBottom: 0 }}>Claude API usage across all scans</p>
+        <p style={{ fontSize: 13, color: '#6B6B6B', marginTop: 4, marginBottom: 0 }}>Claude API usage across all scans</p>
       </div>
 
       {/* Top stat cards */}
       <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
         <div style={statStyle}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Total spend</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Total spend</div>
           <div style={{ fontSize: 28, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em' }}>{fmt$(Number(totals.total_cost))}</div>
-          <div style={{ fontSize: 12, color: '#86868B', marginTop: 2 }}>all time</div>
+          <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 2 }}>all time</div>
         </div>
         <div style={statStyle}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Claude calls</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Claude calls</div>
           <div style={{ fontSize: 28, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em' }}>{Number(totals.total_calls).toLocaleString()}</div>
-          <div style={{ fontSize: 12, color: '#86868B', marginTop: 2 }}>all time</div>
+          <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 2 }}>all time</div>
         </div>
         <div style={statStyle}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Scans completed</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Scans completed</div>
           <div style={{ fontSize: 28, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em' }}>{Number(totals.total_scans).toLocaleString()}</div>
-          <div style={{ fontSize: 12, color: '#86868B', marginTop: 2 }}>all time</div>
+          <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 2 }}>all time</div>
         </div>
         <div style={statStyle}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Avg cost / scan</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Avg cost / scan</div>
           <div style={{ fontSize: 28, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em' }}>
             {totals.total_scans > 0 ? fmt$(Number(totals.total_cost) / Number(totals.total_scans)) : '—'}
           </div>
-          <div style={{ fontSize: 12, color: '#86868B', marginTop: 2 }}>per completed scan</div>
+          <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 2 }}>per completed scan</div>
         </div>
       </div>
 
@@ -96,8 +96,8 @@ export default function CostsPage() {
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={monthly.map(m => ({ ...m, month: fmtMonth(m.month), cost: Number(m.cost) }))} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="2 4" stroke="#F0F0F0" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#86868B' }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#86868B' }} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#6B6B6B' }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: '#6B6B6B' }} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
               <Tooltip
                 contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #E5E5EA', background: '#fff', color: '#1D1D1F', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}
                 formatter={(v: any) => [`$${Number(v).toFixed(4)}`, 'Cost']}
@@ -120,7 +120,7 @@ export default function CostsPage() {
                 padding: '12px 16px',
                 fontSize: 13,
                 fontWeight: 600,
-                color: tab === t ? '#007AFF' : '#86868B',
+                color: tab === t ? '#007AFF' : '#6B6B6B',
                 background: 'none',
                 border: 'none',
                 borderBottom: `2px solid ${tab === t ? '#007AFF' : 'transparent'}`,
@@ -137,29 +137,29 @@ export default function CostsPage() {
         <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #F5F5F7' }}>
-              <th style={{ textAlign: 'left', padding: '10px 20px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <th style={{ textAlign: 'left', padding: '10px 20px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 {tab === 'site' ? 'Site' : 'Division'}
               </th>
               {tab === 'site' && (
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Division</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Division</th>
               )}
-              <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Spend</th>
-              <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Calls</th>
-              <th style={{ textAlign: 'right', padding: '10px 20px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Scans</th>
+              <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Spend</th>
+              <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Calls</th>
+              <th style={{ textAlign: 'right', padding: '10px 20px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Scans</th>
             </tr>
           </thead>
           <tbody>
             {(tab === 'division' ? byDivision : bySite).map((row: any, i: number, arr: any[]) => (
               <tr key={i} style={{ borderBottom: i < arr.length - 1 ? '1px solid #F5F5F7' : 'none' }}>
                 <td style={{ padding: '11px 20px', fontWeight: 500, color: '#1D1D1F' }}>
-                  {tab === 'site' ? (row.site_name ?? <span style={{ color: '#86868B' }}>Unknown</span>) : row.division}
+                  {tab === 'site' ? (row.site_name ?? <span style={{ color: '#6B6B6B' }}>Unknown</span>) : row.division}
                 </td>
                 {tab === 'site' && (
-                  <td style={{ padding: '11px 16px', color: '#86868B', fontSize: 12 }}>{row.division ?? '—'}</td>
+                  <td style={{ padding: '11px 16px', color: '#6B6B6B', fontSize: 12 }}>{row.division ?? '—'}</td>
                 )}
                 <td style={{ padding: '11px 16px', textAlign: 'right', fontWeight: 600, color: '#1D1D1F' }}>{fmt$(Number(row.cost))}</td>
-                <td style={{ padding: '11px 16px', textAlign: 'right', color: '#86868B' }}>{Number(row.calls).toLocaleString()}</td>
-                <td style={{ padding: '11px 20px', textAlign: 'right', color: '#86868B' }}>{Number(row.scans).toLocaleString()}</td>
+                <td style={{ padding: '11px 16px', textAlign: 'right', color: '#6B6B6B' }}>{Number(row.calls).toLocaleString()}</td>
+                <td style={{ padding: '11px 20px', textAlign: 'right', color: '#6B6B6B' }}>{Number(row.scans).toLocaleString()}</td>
               </tr>
             ))}
           </tbody>

@@ -75,21 +75,21 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
         </span>
         <div className="flex-1 min-w-0">
           <span className="font-semibold text-[#1D1D1F] text-sm">{ruleInfo.name}</span>
-          <span className="text-xs text-[#6B7280] ml-2 bg-[#F5F5F7] px-1.5 py-0.5 rounded">{ruleInfo.wcag}</span>
-          <span className="text-xs text-[#6B7280] mx-1.5">·</span>
-          <span className="text-xs text-[#6B7280] truncate">{pattern.description}</span>
+          <span className="text-xs text-[#6B6B6B] ml-2 bg-[#F5F5F7] px-1.5 py-0.5 rounded">{ruleInfo.wcag}</span>
+          <span className="text-xs text-[#6B6B6B] mx-1.5">·</span>
+          <span className="text-xs text-[#6B6B6B] truncate">{pattern.description}</span>
         </div>
         <div className="hidden sm:flex items-center gap-5 shrink-0 text-right">
           <div>
             <div className="text-sm font-semibold text-[#1D1D1F] tabular-nums">{instanceCount}</div>
-            <div className="text-[10px] text-[#86868B] uppercase tracking-wide">instance{instanceCount !== 1 ? 's' : ''}</div>
+            <div className="text-[10px] text-[#6B6B6B] uppercase tracking-wide">instance{instanceCount !== 1 ? 's' : ''}</div>
           </div>
           <div>
             <div className="text-sm font-semibold text-[#1D1D1F] tabular-nums">{pageCount}</div>
-            <div className="text-[10px] text-[#86868B] uppercase tracking-wide">page{pageCount !== 1 ? 's' : ''}</div>
+            <div className="text-[10px] text-[#6B6B6B] uppercase tracking-wide">page{pageCount !== 1 ? 's' : ''}</div>
           </div>
         </div>
-        <svg className={`shrink-0 w-4 h-4 text-[#86868B] transition-transform ${open ? 'rotate-180' : ''}`}
+        <svg className={`shrink-0 w-4 h-4 text-[#6B6B6B] transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -121,22 +121,22 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
           {nodes.length > 0 && (
             <div className="border-t border-[#E5E5EA]">
               <div className="px-5 py-2.5 flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#86868B] uppercase tracking-wider">
+                <span className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider">
                   Failing elements · {nodes.length}
                 </span>
               </div>
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-[#E5E5EA] bg-[#F5F5F7]">
-                    <th className="text-left px-4 py-1.5 text-[10px] font-semibold text-[#86868B] uppercase tracking-wider w-8">#</th>
-                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-[#86868B] uppercase tracking-wider w-36">Page</th>
-                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-[#86868B] uppercase tracking-wider">Element</th>
+                    <th className="text-left px-4 py-1.5 text-[10px] font-semibold text-[#6B6B6B] uppercase tracking-wider w-8">#</th>
+                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-[#6B6B6B] uppercase tracking-wider w-36">Page</th>
+                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-[#6B6B6B] uppercase tracking-wider">Element</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F5F5F7]">
                   {visibleNodes.map((node, i) => (
                     <tr key={i} className="hover:bg-[#F5F5F7]">
-                      <td className="px-4 py-2 text-[#86868B] font-mono">{i + 1}</td>
+                      <td className="px-4 py-2 text-[#6B6B6B] font-mono">{i + 1}</td>
                       <td className="px-3 py-2">
                         {node.url ? (
                           <a href={node.url} target="_blank" rel="noopener noreferrer"
@@ -144,7 +144,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
                             title={node.url}>
                             {pagePath(node.url)}
                           </a>
-                        ) : <span className="text-[#86868B]">—</span>}
+                        ) : <span className="text-[#6B6B6B]">—</span>}
                       </td>
                       <td className="px-3 py-2">
                         <code className="font-mono text-[#3A3A3C] bg-[#F5F5F7] px-1.5 py-0.5 rounded text-[11px] break-all">
@@ -158,7 +158,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
               {hiddenCount > 0 && !showAll && (
                 <button
                   onClick={() => setShowAll(true)}
-                  className="w-full text-center text-xs text-[#6B7280] hover:text-[#1D1D1F] py-2 border-t border-[#E5E5EA] hover:bg-[#F5F5F7] transition-colors"
+                  className="w-full text-center text-xs text-[#6B6B6B] hover:text-[#1D1D1F] py-2 border-t border-[#E5E5EA] hover:bg-[#F5F5F7] transition-colors"
                 >
                   + {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
                 </button>
@@ -168,7 +168,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
 
           {/* Footer */}
           <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex items-center justify-between bg-[#F5F5F7]">
-            <span className="text-[11px] font-mono text-[#86868B]">{pattern.rule}</span>
+            <span className="text-[11px] font-mono text-[#6B6B6B]">{pattern.rule}</span>
             <a
               href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}?application=axeAPI`}
               target="_blank" rel="noopener noreferrer"
