@@ -49,7 +49,7 @@ const STATUS_STYLE: Record<string, React.CSSProperties> = {
   complete: { background: '#ECFDF5', color: '#059669' },
   running:  { background: '#EFF6FF', color: '#2563EB' },
   failed:   { background: '#FEF2F2', color: '#DC2626' },
-  queued:   { background: '#F3F4F6', color: '#6B7280' },
+  queued:   { background: '#F3F4F6', color: '#6B6B6B' },
 }
 
 export default async function SiteDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -89,12 +89,12 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, marginBottom: 8 }}>
             <Link href="/sites" style={{ color: '#007AFF', fontWeight: 500 }}>Sites</Link>
-            <span style={{ color: '#86868B' }}>/</span>
-            <span style={{ color: '#86868B' }}>{site.name}</span>
+            <span style={{ color: '#6B6B6B' }}>/</span>
+            <span style={{ color: '#6B6B6B' }}>{site.name}</span>
           </div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: '#1D1D1F', margin: 0, letterSpacing: '-0.02em' }}>{site.name}</h1>
           {latestScan && (
-            <p style={{ fontSize: 13, color: '#86868B', marginTop: 4 }}>
+            <p style={{ fontSize: 13, color: '#6B6B6B', marginTop: 4 }}>
               Last scanned {formatDate(latestScan.started_at)}
             </p>
           )}
@@ -110,25 +110,25 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
         {/* Priority — navy left accent */}
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #002D82', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Priority</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Priority</div>
           {worstTier ? (
             <>
               <div style={{ fontSize: 28, fontWeight: 800, color: TIER_SWIMLANE[worstTier], letterSpacing: '-0.02em', lineHeight: 1 }}>
                 {TIER_LABEL[worstTier]}
               </div>
-              <div style={{ fontSize: 12, color: '#86868B', marginTop: 8 }}>highest tier found</div>
+              <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>highest tier found</div>
             </>
           ) : (
             <>
               <div style={{ fontSize: 22, fontWeight: 700, color: '#059669', lineHeight: 1 }}>{latestScan ? 'No issues' : 'No scans'}</div>
-              <div style={{ fontSize: 12, color: '#86868B', marginTop: 8 }}>{latestScan ? 'All clear' : 'Run a scan'}</div>
+              <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>{latestScan ? 'All clear' : 'Run a scan'}</div>
             </>
           )}
         </div>
 
         {/* WCAG Errors with trend badge */}
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>WCAG Errors</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>WCAG Errors</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ fontSize: 28, fontWeight: 800, color: '#1D1D1F', letterSpacing: '-0.02em', lineHeight: 1 }}>{currentErrors ?? '—'}</div>
             {errorDelta !== null && errorDelta !== 0 && (
@@ -142,21 +142,21 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
               </span>
             )}
           </div>
-          <div style={{ fontSize: 12, color: '#86868B', marginTop: 8 }}>vs previous scan</div>
+          <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>vs previous scan</div>
         </div>
 
         {/* Pages Scanned */}
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Pages Scanned</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Pages Scanned</div>
           <div style={{ fontSize: 28, fontWeight: 800, color: '#1D1D1F', letterSpacing: '-0.02em', lineHeight: 1 }}>{latestScan?.pages_scanned ?? '—'}</div>
-          <div style={{ fontSize: 12, color: '#86868B', marginTop: 8 }}>{pages.length} configured</div>
+          <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>{pages.length} configured</div>
         </div>
 
         {/* Total Scans */}
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Total Scans</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Total Scans</div>
           <div style={{ fontSize: 28, fontWeight: 800, color: '#1D1D1F', letterSpacing: '-0.02em', lineHeight: 1 }}>{scans.length}</div>
-          <div style={{ fontSize: 12, color: '#86868B', marginTop: 8 }}>{completedScans.length} completed</div>
+          <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>{completedScans.length} completed</div>
         </div>
       </div>
 
@@ -166,7 +166,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           <h2 style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', margin: 0 }}>WCAG Errors</h2>
           {presentTiers.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 12, color: '#86868B', marginRight: 4 }}>Jump to</span>
+              <span style={{ fontSize: 12, color: '#6B6B6B', marginRight: 4 }}>Jump to</span>
               {presentTiers.map(tier => (
                 <a key={tier} href={`#${tier}`} style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -182,7 +182,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         {patterns.length === 0 ? (
-          <div style={{ borderRadius: 12, border: '1.5px dashed #D1D1D6', padding: '48px', textAlign: 'center', color: '#86868B', background: '#fff' }}>
+          <div style={{ borderRadius: 12, border: '1.5px dashed #D1D1D6', padding: '48px', textAlign: 'center', color: '#6B6B6B', background: '#fff' }}>
             {latestScan ? 'No violations found. Great job!' : 'Run a scan to see violations.'}
           </div>
         ) : (
@@ -212,17 +212,17 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#F9F9FB', borderBottom: '1px solid #E5E5EA' }}>
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Started</th>
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</th>
-                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pages</th>
-                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Issues</th>
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Triggered By</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Started</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pages</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Issues</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Triggered By</th>
                 <th style={{ padding: '10px 16px' }} />
               </tr>
             </thead>
             <tbody>
               {scans.length === 0 ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: '#86868B' }}>No scans yet.</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: '#6B6B6B' }}>No scans yet.</td></tr>
               ) : scans.map((scan: any) => (
                 <tr key={scan.id} style={{ borderTop: '1px solid #F0F0F0', cursor: 'pointer', position: 'relative' }}
                   className="group hover:bg-[#F5F5F7] transition-colors">
@@ -237,7 +237,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F' }}>{scan.pages_scanned ?? 0}</td>
                   <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F' }}>{scan.raw_violation_count ?? 0}</td>
-                  <td style={{ padding: '12px 16px', color: '#86868B', textTransform: 'capitalize' }}>{scan.triggered_by}</td>
+                  <td style={{ padding: '12px 16px', color: '#6B6B6B', textTransform: 'capitalize' }}>{scan.triggered_by}</td>
                   <td style={{ padding: '12px 16px', textAlign: 'right', position: 'relative', zIndex: 1 }}>
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
                       {(scan.status === 'running' || scan.status === 'queued') && <CancelScanButton jobId={scan.id} />}
@@ -259,11 +259,11 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
             <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#F9F9FB', borderBottom: '1px solid #E5E5EA' }}>
-                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Label</th>
-                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>URL</th>
-                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Type</th>
-                  <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>WCAG Errors</th>
-                  <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</th>
+                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Label</th>
+                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>URL</th>
+                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Type</th>
+                  <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>WCAG Errors</th>
+                  <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -285,9 +285,9 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                       </td>
                       <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F' }}>{ps ? (ps.violationCount ?? '—') : '—'}</td>
                       <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                        {!ps ? <span style={{ color: '#86868B' }}>—</span>
+                        {!ps ? <span style={{ color: '#6B6B6B' }}>—</span>
                           : ps.score == null ? <span style={{ fontSize: 11, fontWeight: 600, background: '#FEF2F2', color: '#DC2626', padding: '2px 10px', borderRadius: 20 }}>Failed</span>
-                          : <span style={{ fontSize: 11, color: '#86868B' }}>Scanned</span>}
+                          : <span style={{ fontSize: 11, color: '#6B6B6B' }}>Scanned</span>}
                       </td>
                     </tr>
                   )

@@ -95,13 +95,13 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   return (
     <div className="px-8 py-6 bg-[#F5F5F7] min-h-screen">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[#86868B] mb-6">
+      <div className="flex items-center gap-2 text-sm text-[#6B6B6B] mb-6">
         <Link href="/" className="hover:text-[#1D1D1F]">Dashboard</Link>
-        <span className="text-[#C7C7CC]">/</span>
+        <span className="text-[#A1A1A6]">/</span>
         {site && (
           <>
             <Link href={`/sites/${site.id}`} className="hover:text-[#1D1D1F]">{site.name}</Link>
-            <span className="text-[#C7C7CC]">/</span>
+            <span className="text-[#A1A1A6]">/</span>
           </>
         )}
         <span className="text-[#1D1D1F] font-medium">Scan {formatDate(scan.started_at)}</span>
@@ -113,13 +113,13 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           <h1 className="text-2xl font-bold text-[#1D1D1F]">
             {site?.name ?? scan.root_url}
           </h1>
-          <p className="text-sm text-[#86868B] mt-1">{scan.root_url}</p>
+          <p className="text-sm text-[#6B6B6B] mt-1">{scan.root_url}</p>
           <div className="flex items-center gap-3 mt-2">
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
               scan.status === 'complete' ? 'bg-emerald-500/20 text-emerald-400' :
               scan.status === 'running' ? 'bg-blue-500/20 text-blue-400' :
               scan.status === 'failed' ? 'bg-red-500/20 text-red-400' :
-              'bg-[#F5F5F7] text-[#86868B]'
+              'bg-[#F5F5F7] text-[#6B6B6B]'
             }`}>
               {scan.status}
             </span>

@@ -34,7 +34,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="text-xl font-semibold tracking-tight text-[#1D1D1F]">Hearst A11y</div>
-          <div className="text-sm text-[#86868B] mt-1">Sign in to continue</div>
+          <div className="text-sm text-[#6B6B6B] mt-1">Sign in to continue</div>
         </div>
         <form onSubmit={handleSubmit} className="bg-white border border-[#E5E5EA] rounded-xl p-8 space-y-5 shadow-sm">
           <div>
@@ -46,7 +46,7 @@ export default function LoginPage() {
               onChange={e => setUsername(e.target.value)}
               required
               autoFocus
-              className="w-full px-3 py-2 rounded-lg border border-[#E5E5EA] bg-white text-[#1D1D1F] placeholder:text-[#C7C7CC] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-lg border border-[#E5E5EA] bg-white text-[#1D1D1F] placeholder:text-[#A1A1A6] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div>
@@ -57,7 +57,7 @@ export default function LoginPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className="w-full px-3 py-2 rounded-lg border border-[#E5E5EA] bg-white text-[#1D1D1F] placeholder:text-[#C7C7CC] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-lg border border-[#E5E5EA] bg-white text-[#1D1D1F] placeholder:text-[#A1A1A6] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
