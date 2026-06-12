@@ -35,8 +35,8 @@ export function ScoreTrendChart({ trends }: Props) {
   })
 
   const allScores = trends.flatMap(t => t.scores.map(s => s.score))
-  const minScore = Math.max(0, Math.floor(Math.min(...allScores) / 10) * 10 - 10)
-  const maxScore = Math.ceil(Math.max(...allScores) / 10) * 10 + 10
+  const minScore = allScores.length > 0 ? Math.max(0, Math.floor(Math.min(...allScores) / 10) * 10 - 10) : 0
+  const maxScore = allScores.length > 0 ? Math.ceil(Math.max(...allScores) / 10) * 10 + 10 : 100
 
   return (
     <ResponsiveContainer width="100%" height={200}>

@@ -1,17 +1,20 @@
 'use client'
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 interface Props {
   points: { date: string; count: number }[]
 }
 
 export function SiteTrendChart({ points }: Props) {
+  if (points.length === 0) return null
+
   const counts = points.map(p => p.count)
   const minVal = Math.max(0, Math.floor(Math.min(...counts) / 5) * 5 - 5)
   const maxVal = Math.ceil(Math.max(...counts) / 5) * 5 + 5
 
   const improving = points.length >= 2 && points[points.length - 1].count <= points[0].count
+  const lineColor = improving ? '#16a34a' : '#dc2626'
 
   return (
     <ResponsiveContainer width="100%" height={180}>
@@ -45,9 +48,9 @@ export function SiteTrendChart({ points }: Props) {
         <Line
           type="monotone"
           dataKey="count"
-          stroke={improving ? '#2563eb' : '#2563eb'}
+          stroke={lineColor}
           strokeWidth={2}
-          dot={{ r: 4, strokeWidth: 0, fill: '#2563eb' }}
+          dot={{ r: 4, strokeWidth: 0, fill: lineColor }}
           activeDot={{ r: 6, strokeWidth: 0 }}
         />
       </LineChart>
