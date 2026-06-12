@@ -152,12 +152,21 @@ export default async function DashboardPage({
     : division
 
   let dashData
+  let dataError: string | null = null
   try {
     dashData = await getData(effectiveDivision, allowedDivisions)
-  } catch (err) {
-    console.error('[dashboard] getData failed:', err)
-    throw err
+  } catch (err: any) {
+    dataError = err?.message ?? String(err)
   }
+
+  if (dataError || !dashData) {
+    return (
+      <div style={{ padding: 40, fontFamily: 'monospace', fontSize: 13, color: '#DC2626', background: '#FEF2F2', minHeight: '100vh' }}>
+        <strong>Dashboard error:</strong><br />{dataError}
+      </div>
+    )
+  }
+
   const { sites, scans, activeDivisions, stats, severityCounts, topViolations, scoreTrends, criticalSiteCount } = dashData
 
   const visibleDivisions = isAdmin
