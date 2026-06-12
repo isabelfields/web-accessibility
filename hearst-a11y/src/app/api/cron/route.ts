@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
 
-/**
- * Called by Vercel Cron every hour.
- * Finds all schedules whose next_run_at is in the past and triggers scans.
- *
- * Add to vercel.json:
- * {
- *   "crons": [{ "path": "/api/cron", "schedule": "0 * * * *" }]
- * }
- */
+// Called by Vercel Cron every hour (vercel.json: "0 * * * *").
+// Finds all schedules whose next_run_at is due and triggers scans.
 export async function GET(req: NextRequest) {
   // Vercel sends this header for cron jobs — reject other callers
   const authHeader = req.headers.get('authorization')
@@ -59,22 +52,20 @@ export async function GET(req: NextRequest) {
 
 function computeNextRun(cadence: string, dayOfWeek?: number, dayOfMonth?: number): Date {
   const now = new Date()
-  const next = new Date(now)
+  const y = now.getUTCFullYear()
+  const mo = now.getUTCMonth()
+  const d = now.getUTCDate()
 
   if (cadence === 'daily') {
-    next.setDate(now.getDate() + 1)
-    next.setHours(2, 0, 0, 0)
+    return new Date(Date.UTC(y, mo, d + 1, 2, 0, 0, 0))
   } else if (cadence === 'weekly') {
     const targetDay = dayOfWeek ?? 1
-    const daysUntil = (targetDay - now.getDay() + 7) % 7 || 7
-    next.setDate(now.getDate() + daysUntil)
-    next.setHours(2, 0, 0, 0)
+    const daysUntil = (targetDay - now.getUTCDay() + 7) % 7 || 7
+    return new Date(Date.UTC(y, mo, d + daysUntil, 2, 0, 0, 0))
   } else if (cadence === 'monthly') {
     const targetDay = dayOfMonth ?? 1
-    next.setMonth(now.getMonth() + 1)
-    next.setDate(targetDay)
-    next.setHours(2, 0, 0, 0)
+    return new Date(Date.UTC(y, mo + 1, targetDay, 2, 0, 0, 0))
   }
 
-  return next
+  return new Date(Date.UTC(y, mo, d + 1, 2, 0, 0, 0))
 }
