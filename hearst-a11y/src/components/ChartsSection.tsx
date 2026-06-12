@@ -28,7 +28,7 @@ export function ChartsSection({ severityCounts, topViolations, scoreTrends }: Pr
         </div>
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Issues by Tier</div>
-          <div style={{ fontSize: 11, color: '#6B6B6B', marginBottom: 12 }}>Total element-level failures by severity</div>
+          <div style={{ fontSize: 11, color: '#6B6B6B', marginBottom: 12 }}>Total failing elements grouped by tier</div>
           <SeverityDonut counts={severityCounts} />
         </div>
       </div>
