@@ -74,13 +74,9 @@ async function getData(division?: string, allowedDivisions?: string[]) {
   const violationMap = new Map<string, { count: number; impact: string; affectedSites: Set<string> }>()
 
   for (const site of sites) {
-    const [latestWithPatterns] = await sql`
-      SELECT patterns FROM scan_jobs
-      WHERE site_id = ${(site as any).id} AND status = 'complete'
-      ORDER BY started_at DESC LIMIT 1
-    `
-    if (!latestWithPatterns?.patterns) continue
-    for (const p of latestWithPatterns.patterns as any[]) {
+    const patterns = (site as any).latestScan?.patterns
+    if (!patterns) continue
+    for (const p of patterns as any[]) {
       const impact = p.impact as keyof typeof severityCounts
       if (impact in severityCounts) severityCounts[impact] += p.occurrences
       const existing = violationMap.get(p.rule)
