@@ -101,28 +101,30 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
     }))
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F5F5F7', padding: '24px 32px' }}>
+    <div style={{ minHeight: '100vh', background: '#F5F5F7' }}>
 
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
+      {/* Sticky top bar */}
+      <div style={{ borderBottom: '1px solid #E5E5EA', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, background: 'rgba(245,245,247,0.92)', backdropFilter: 'blur(8px)' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, marginBottom: 2 }}>
             <Link href="/sites" style={{ color: '#007AFF', fontWeight: 500 }}>Sites</Link>
             <span style={{ color: '#6B6B6B' }}>/</span>
             <span style={{ color: '#6B6B6B' }}>{site.name}</span>
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: '#1D1D1F', margin: 0, letterSpacing: '-0.02em' }}>{site.name}</h1>
+          <h1 style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>{site.name}</h1>
           {latestScan && (
-            <p style={{ fontSize: 13, color: '#6B6B6B', marginTop: 4 }}>
+            <p style={{ fontSize: 12, color: '#6B6B6B', margin: 0 }}>
               Last scanned {formatDate(latestScan.started_at)}
             </p>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <EditSiteButton site={{ id: site.id, name: site.name, division: site.division, pages }} />
           <RunScanButton siteId={site.id} />
         </div>
       </div>
+
+      <div style={{ padding: '24px 32px' }}>
 
       {/* Stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 20 }}>
@@ -132,14 +134,14 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Priority</div>
           {worstTier ? (
             <>
-              <div style={{ fontSize: 28, fontWeight: 800, color: TIER_SWIMLANE[worstTier], letterSpacing: '-0.02em', lineHeight: 1 }}>
+              <div style={{ fontSize: 40, fontWeight: 800, color: TIER_SWIMLANE[worstTier], letterSpacing: '-0.02em', lineHeight: 1 }}>
                 {TIER_LABEL[worstTier]}
               </div>
               <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>highest tier found</div>
             </>
           ) : (
             <>
-              <div style={{ fontSize: 22, fontWeight: 700, color: '#059669', lineHeight: 1 }}>{latestScan ? 'No issues' : 'No scans'}</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: '#059669', lineHeight: 1 }}>{latestScan ? 'No issues' : 'No scans'}</div>
               <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>{latestScan ? 'All clear' : 'Run a scan'}</div>
             </>
           )}
@@ -149,7 +151,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #007AFF', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Components with Issues</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ fontSize: 28, fontWeight: 800, color: '#007AFF', letterSpacing: '-0.02em', lineHeight: 1 }}>{currentErrors ?? '—'}</div>
+            <div style={{ fontSize: 40, fontWeight: 800, color: '#007AFF', letterSpacing: '-0.02em', lineHeight: 1 }}>{currentErrors ?? '—'}</div>
             {errorDelta !== null && errorDelta !== 0 && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 8px',
@@ -167,7 +169,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         {/* Rule Violations */}
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #60a5fa', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Rule Violations</div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: '#2563eb', letterSpacing: '-0.02em', lineHeight: 1 }}>{totalViolations}</div>
+          <div style={{ fontSize: 40, fontWeight: 800, color: '#2563eb', letterSpacing: '-0.02em', lineHeight: 1 }}>{totalViolations}</div>
           <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8, marginBottom: 10 }}>WCAG rules broken</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, borderTop: '1px solid #F0F0F5', paddingTop: 10 }}>
             {([['Tier 1', severityCounts.critical, '#1e3a8a'], ['Tier 2', severityCounts.serious, '#2563eb'], ['Tier 3', severityCounts.moderate, '#60a5fa'], ['Tier 4', severityCounts.minor, '#bfdbfe']] as const).map(([label, count, color]) => (
@@ -183,14 +185,14 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         {/* Pages Scanned */}
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Pages Scanned</div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: '#1D1D1F', letterSpacing: '-0.02em', lineHeight: 1 }}>{latestScan?.pages_scanned ?? '—'}</div>
+          <div style={{ fontSize: 40, fontWeight: 800, color: '#1D1D1F', letterSpacing: '-0.02em', lineHeight: 1 }}>{latestScan?.pages_scanned ?? '—'}</div>
           <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>{pages.length} configured</div>
         </div>
 
         {/* Total Scans */}
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Total Scans</div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: '#1D1D1F', letterSpacing: '-0.02em', lineHeight: 1 }}>{scans.length}</div>
+          <div style={{ fontSize: 40, fontWeight: 800, color: '#1D1D1F', letterSpacing: '-0.02em', lineHeight: 1 }}>{scans.length}</div>
           <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>{completedScans.length} completed</div>
         </div>
       </div>
@@ -350,6 +352,8 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           </div>
         </div>
       )}
+
+      </div>{/* end padding wrapper */}
     </div>
   )
 }
