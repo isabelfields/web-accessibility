@@ -95,14 +95,14 @@ async function getData(division?: string, allowedDivisions?: string[]) {
   const scoreTrends = await Promise.all(
     sites.slice(0, 6).map(async (site: any) => {
       const rows = await sql`
-        SELECT score, started_at::date::text as date
+        SELECT raw_violation_count, started_at::date::text as date
         FROM scan_jobs
         WHERE site_id = ${site.id} AND status = 'complete'
         ORDER BY started_at DESC LIMIT 10
       `
       return {
         name: site.name,
-        scores: rows.reverse().map((r: any) => ({ date: r.date, score: Math.round(r.score) })),
+        scores: rows.reverse().map((r: any) => ({ date: r.date, score: r.raw_violation_count ?? 0 })),
       }
     })
   )
