@@ -71,14 +71,15 @@ export function EditSiteForm({ site, onClose }: { site: Site; onClose: () => voi
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between px-6 py-4 border-b shrink-0">
+    <div className="fixed inset-0 z-50 bg-black/40 overflow-y-auto">
+      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-lg font-semibold text-gray-900">Edit Site</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
@@ -169,6 +170,7 @@ export function EditSiteForm({ site, onClose }: { site: Site; onClose: () => voi
             </button>
           </div>
         </form>
+      </div>
       </div>
     </div>
   )
