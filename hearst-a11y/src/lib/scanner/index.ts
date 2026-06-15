@@ -2,6 +2,7 @@ import { ScanJob, SitePage, PageScanResult, RawViolation, PageScore } from '@/ty
 import { crawlAndScan } from './crawler'
 import { deduplicateAndFix } from './deduplicator'
 import { calculateScore } from '@/lib/score'
+import { runKeyboardCheck } from './keyboard'
 
 async function scanPageList(pages: SitePage[]): Promise<{
   results: PageScanResult[]
@@ -33,9 +34,12 @@ async function scanPageList(pages: SitePage[]): Promise<{
         .filter((r: any) => r.id === 'color-contrast')
         .map((r: any) => ({ ...r, impact: r.impact ?? 'serious' }))
 
+      const keyboardViolations = await runKeyboardCheck(pw)
+
       const violations = [
         ...axeResults.violations,
         ...contrastIncomplete,
+        ...keyboardViolations,
       ] as unknown as RawViolation[]
 
       for (const violation of violations) {
