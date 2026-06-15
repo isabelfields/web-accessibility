@@ -1,6 +1,7 @@
 import { chromium } from 'playwright'
 import { PageScanResult } from '@/types'
 import { computeDomFingerprint, isNearDuplicate } from './fingerprint'
+import { runKeyboardCheck } from './keyboard'
 
 const MAX_PAGES = 50
 const PAGE_TIMEOUT = 30_000 // 30s per page
@@ -79,7 +80,7 @@ export async function crawlAndScan(rootUrl: string): Promise<{
               url: 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.9.1/axe.min.js',
             })
 
-            const violations = await page.evaluate(async () => {
+            const axeViolations = await page.evaluate(async () => {
               // @ts-ignore axe is injected
               const results = await window.axe.run(document, {
                 runOnly: {
@@ -89,6 +90,9 @@ export async function crawlAndScan(rootUrl: string): Promise<{
               })
               return results.violations
             })
+
+            const keyboardViolations = await runKeyboardCheck(page)
+            const violations = [...axeViolations, ...keyboardViolations]
 
             results.push({
               url,

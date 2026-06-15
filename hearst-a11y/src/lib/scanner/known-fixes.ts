@@ -99,6 +99,18 @@ export const KNOWN_FIXES: Record<string, KnownFix> = {
     fix: 'An `aria-*` attribute on this element has an invalid value. Verify the value matches what the ARIA spec allows for that attribute.',
     impact: 'critical',
   },
+  'keyboard-focus-trap': {
+    fix: 'Keyboard focus is trapped inside a component. Ensure modal dialogs and custom widgets allow users to press Escape to dismiss and return focus to the trigger. For dialogs, use the `dialog` role with proper focus management and listen for Escape key events (WCAG 2.1 SC 2.1.2).',
+    impact: 'serious',
+  },
+  'keyboard-focus-indicator': {
+    fix: 'Interactive elements must show a visible focus indicator when reached by keyboard. Add a CSS `:focus-visible` style with sufficient contrast, e.g. `outline: 2px solid #005fcc; outline-offset: 2px;`. Never use `outline: none` without a custom replacement (WCAG 2.2 SC 2.4.11).',
+    impact: 'serious',
+  },
+  'keyboard-unreachable': {
+    fix: 'Some interactive elements cannot be reached using the Tab key. Check for elements with `tabindex="-1"` that should be reachable, elements hidden off-screen with CSS but still in the DOM, and custom widgets that need `tabindex="0"` added (WCAG 2.1 SC 2.1.1).',
+    impact: 'moderate',
+  },
 }
 
 /**
