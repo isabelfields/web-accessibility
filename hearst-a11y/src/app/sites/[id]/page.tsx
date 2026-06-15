@@ -119,7 +119,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <EditSiteButton site={{ id: site.id, name: site.name, division: site.division, pages }} />
+          <EditSiteButton site={{ id: site.id, name: site.name, division: site.division, brand: site.brand, region: site.region, pages }} />
           <RunScanButton siteId={site.id} />
         </div>
       </div>
