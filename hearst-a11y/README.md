@@ -32,9 +32,19 @@ npx playwright install chromium
 
 ### 2. Set up database
 
-Create a free database at [neon.tech](https://neon.tech) or [supabase.com](https://supabase.com).
+Create a free database at [neon.tech](https://neon.tech) or [supabase.com](https://supabase.com),
+then set `DATABASE_URL` (see step 3).
 
-Run the migration SQL from `src/lib/db/schema.ts` in your database's SQL editor.
+Apply the schema by calling the migrate endpoint once the app is running (locally
+or deployed). Every statement is idempotent, so it's safe to re-run after deploys:
+
+```bash
+curl -X POST http://localhost:3000/api/migrate \
+  -H "Authorization: Bearer $CRON_SECRET"
+```
+
+The schema lives in `src/lib/db/schema.ts` (`MIGRATION_SQL`) if you prefer to run
+it manually in your database's SQL editor instead.
 
 ### 3. Configure environment
 
@@ -58,11 +68,16 @@ npm i -g vercel
 # Link to your project
 vercel link
 
-# Add environment variables
-vercel env add ANTHROPIC_API_KEY
+# Add environment variables (see .env.example for the full list)
 vercel env add DATABASE_URL
+vercel env add ADMIN_USERNAME
+vercel env add ADMIN_PASSWORD
+vercel env add AUTH_SECRET
+vercel env add ADMIN_SECRET
+vercel env add OPENAI_API_KEY
+vercel env add BROWSERLESS_TOKEN
 vercel env add CRON_SECRET
-vercel env add NEXTAUTH_SECRET
+vercel env add NEXT_PUBLIC_APP_URL
 
 # Deploy
 vercel --prod
