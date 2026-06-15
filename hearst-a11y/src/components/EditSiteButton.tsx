@@ -13,6 +13,8 @@ interface Site {
   id: string
   name: string
   division?: string
+  brand?: string
+  region?: string
   pages: SitePage[]
 }
 
