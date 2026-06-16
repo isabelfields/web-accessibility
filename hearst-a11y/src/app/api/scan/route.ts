@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
-import { runScan } from '@/lib/scanner'
-import { SitePage } from '@/types'
+import { startScan } from '@/lib/scan-job'
 
 const RequestSchema = z.object({
   url: z.string().url().optional(),
@@ -20,67 +19,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { url, siteId, scheduleId } = parsed.data
-
-  let rootUrl = url ?? ''
-  let pages: SitePage[] | undefined
-
-  if (siteId) {
-    const [site] = await sql`SELECT * FROM sites WHERE id = ${siteId}`
-    if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 })
-    rootUrl = (site.pages as SitePage[])[0]?.url ?? rootUrl
-    pages = site.pages as SitePage[]
-  }
-
-  // Create the job record
-  const [job] = await sql`
-    INSERT INTO scan_jobs (root_url, status, triggered_by, schedule_id, site_id)
-    VALUES (${rootUrl}, 'queued', ${scheduleId ? 'schedule' : 'manual'}, ${scheduleId ?? null}, ${siteId ?? null})
-    RETURNING id
-  `
-
-  const jobId = job.id
-
   // Run scan synchronously within the request (Vercel kills background work after response)
-  try {
-    await sql`UPDATE scan_jobs SET status = 'running' WHERE id = ${jobId}`
+  const result = await startScan(parsed.data)
 
-    const result = await runScan(jobId, rootUrl, async (update) => {
-      if (update.pagesScanned !== undefined) {
-        await sql`UPDATE scan_jobs SET pages_scanned = ${update.pagesScanned} WHERE id = ${jobId}`
-      }
-    }, pages)
-
-    // Check if cancelled mid-scan
-    const [current] = await sql`SELECT status FROM scan_jobs WHERE id = ${jobId}`
-    if (current?.status === 'cancelled') {
-      return NextResponse.json({ jobId, status: 'cancelled' })
+  if (!result.ok) {
+    if (result.status === 'not_found') {
+      return NextResponse.json({ error: result.error }, { status: 404 })
     }
-
-    await sql`
-      UPDATE scan_jobs SET
-        status = 'complete',
-        score = ${result.score},
-        pages_scanned = ${result.pagesScanned},
-        pages_skipped = ${result.pagesSkipped},
-        total_pages = ${result.totalPages},
-        raw_violation_count = ${result.rawViolationCount},
-        unique_pattern_count = ${result.uniquePatternCount},
-        claude_call_count = ${result.claudeCallCount},
-        estimated_cost_usd = ${result.estimatedCostUsd},
-        patterns = ${JSON.stringify(result.patterns)},
-        page_scores = ${JSON.stringify(result.pageScores)},
-        completed_at = NOW()
-      WHERE id = ${jobId}
-    `
-    return NextResponse.json({ jobId, status: 'complete' })
-  } catch (err) {
-    await sql`
-      UPDATE scan_jobs SET status = 'failed', error = ${err instanceof Error ? err.message : 'Unknown error'}, completed_at = NOW()
-      WHERE id = ${jobId}
-    `
-    return NextResponse.json({ jobId, status: 'failed' }, { status: 500 })
+    return NextResponse.json({ jobId: result.jobId, status: 'failed' }, { status: 500 })
   }
+
+  return NextResponse.json({ jobId: result.jobId, status: result.status })
 }
 
 export async function GET(req: NextRequest) {
