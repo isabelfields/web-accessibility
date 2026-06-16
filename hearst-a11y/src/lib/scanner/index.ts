@@ -59,9 +59,14 @@ async function scanPageList(pages: SitePage[]): Promise<{
         }
       }
 
-      // Score per unique rule type (same formula as calculateScore) so page scores are comparable to overall score
+      // Same formula as calculateScore so page scores are comparable to the
+      // overall score — including skipping best-practice rules, which don't
+      // count toward the WCAG score. (matches deduplicator's isBestPractice)
       let pagePenalty = 0
       for (const v of violations) {
+        const tags = (v as any).tags ?? []
+        const isBestPractice = tags.includes('best-practice') && !tags.some((t: string) => t.startsWith('wcag'))
+        if (isBestPractice) continue
         if (v.impact === 'critical') pagePenalty += 8
         else if (v.impact === 'serious') pagePenalty += 5
         else if (v.impact === 'moderate') pagePenalty += 2
