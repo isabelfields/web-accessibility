@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
 import { startScan } from '@/lib/scan-job'
+import { getSessionUser, canAccessDivision } from '@/lib/auth-helpers'
 
 const RequestSchema = z.object({
   url: z.string().url().optional(),
@@ -12,11 +13,23 @@ const RequestSchema = z.object({
 })
 
 export async function POST(req: NextRequest) {
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const body = await req.json()
   const parsed = RequestSchema.safeParse(body)
 
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  }
+
+  // Scanning a registered site is limited to users who can access its division.
+  // Ad-hoc URL scans have no division owner and are open to any signed-in user.
+  if (parsed.data.siteId) {
+    const [site] = await sql`SELECT division FROM sites WHERE id = ${parsed.data.siteId}`
+    if (!site || !canAccessDivision(user, site.division)) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
   }
 
   // Run scan synchronously within the request (Vercel kills background work after response)
@@ -33,6 +46,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  if (!(await getSessionUser())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { searchParams } = new URL(req.url)
   const jobId = searchParams.get('jobId')
 
@@ -55,6 +70,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!(await getSessionUser())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { searchParams } = new URL(req.url)
   const jobId = searchParams.get('jobId')
   if (!jobId) return NextResponse.json({ error: 'Missing jobId' }, { status: 400 })
