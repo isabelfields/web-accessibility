@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
+import { startScan } from '@/lib/scan-job'
 
 // Called by Vercel Cron every hour (vercel.json: "0 * * * *").
 // Finds all schedules whose next_run_at is due and triggers scans.
@@ -22,14 +23,15 @@ export async function GET(req: NextRequest) {
   const triggered: string[] = []
 
   for (const schedule of due) {
-    // Trigger a scan via the scan API
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/scan`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: schedule.root_url, scheduleId: schedule.id }),
+    // Run the scan in-process. Going through the HTTP API would be blocked by
+    // the auth middleware (the cron request carries no session), so we call the
+    // shared scan logic directly.
+    const result = await startScan({
+      url: schedule.root_url,
+      scheduleId: schedule.id,
     })
 
-    if (res.ok) {
+    if (result.ok) {
       // Compute next run time
       const nextRun = computeNextRun(
         schedule.cadence,
