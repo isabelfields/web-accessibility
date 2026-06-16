@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { neon } from '@neondatabase/serverless'
+import { getSessionUser } from '@/lib/auth-helpers'
 
 const ScheduleSchema = z.object({
   url: z.string().url(),
@@ -30,6 +31,8 @@ function computeNextRun(cadence: string, dayOfWeek?: number, dayOfMonth?: number
 }
 
 export async function POST(req: NextRequest) {
+  if (!(await getSessionUser())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const body = await req.json()
   const parsed = ScheduleSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
@@ -48,12 +51,16 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
+  if (!(await getSessionUser())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const sql = neon(process.env.DATABASE_URL!)
   const schedules = await sql`SELECT * FROM schedules ORDER BY created_at DESC`
   return NextResponse.json(schedules)
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!(await getSessionUser())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })

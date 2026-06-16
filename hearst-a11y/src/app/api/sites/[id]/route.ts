@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
+import { getSessionUser, canAccessDivision } from '@/lib/auth-helpers'
 
 const SitePageSchema = z.object({
   url: z.string().url(),
@@ -19,9 +20,16 @@ const UpdateSiteSchema = z.object({
 type RouteContext = { params: Promise<{ id: string }> }
 
 export async function GET(_req: NextRequest, { params }: RouteContext) {
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { id } = await params
   const [site] = await sql`SELECT * FROM sites WHERE id = ${id}`
-  if (!site) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  // Return 404 (not 403) for sites outside the user's divisions so the
+  // endpoint doesn't reveal the existence of sites they can't see.
+  if (!site || !canAccessDivision(user, site.division)) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
 
   const scans = await sql`
     SELECT id, score, status, pages_scanned, raw_violation_count,
@@ -36,11 +44,19 @@ export async function GET(_req: NextRequest, { params }: RouteContext) {
 }
 
 export async function PUT(req: NextRequest, { params }: RouteContext) {
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { id } = await params
   const body = await req.json()
   const parsed = UpdateSiteSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  }
+
+  const [existing] = await sql`SELECT division FROM sites WHERE id = ${id}`
+  if (!existing || !canAccessDivision(user, existing.division)) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
   const { name, division, brand, region, pages } = parsed.data
@@ -60,7 +76,15 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: RouteContext) {
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { id } = await params
+  const [existing] = await sql`SELECT division FROM sites WHERE id = ${id}`
+  if (!existing || !canAccessDivision(user, existing.division)) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
   await sql`DELETE FROM sites WHERE id = ${id}`
   return NextResponse.json({ deleted: true })
 }
