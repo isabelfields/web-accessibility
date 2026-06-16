@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 
 export function RunScanButton({ siteId }: { siteId: string }) {
@@ -10,14 +10,27 @@ export function RunScanButton({ siteId }: { siteId: string }) {
   const [message, setMessage] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
 
-  const pollStatus = useCallback(async (id: string) => {
-    const interval = setInterval(async () => {
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Stop any running poll/refresh timers (on unmount or before starting a new poll)
+  const stopPolling = useCallback(() => {
+    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null }
+    if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null }
+  }, [])
+
+  useEffect(() => stopPolling, [stopPolling])
+
+  const pollStatus = useCallback((id: string) => {
+    // Never run two polls at once — clear any existing interval first.
+    stopPolling()
+    intervalRef.current = setInterval(async () => {
       try {
         const res = await fetch(`/api/scan?jobId=${id}`)
         if (!res.ok) return
         const job = await res.json()
         if (job.status === 'complete' || job.status === 'failed' || job.status === 'cancelled') {
-          clearInterval(interval)
+          stopPolling()
           setLoading(false)
           setJobId(null)
           if (job.status === 'complete') {
@@ -27,16 +40,15 @@ export function RunScanButton({ siteId }: { siteId: string }) {
           } else {
             setMessage(`Scan failed: ${job.error ?? 'Unknown error'}`)
           }
-          setTimeout(() => { router.refresh(); setMessage(null) }, 2000)
+          timeoutRef.current = setTimeout(() => { router.refresh(); setMessage(null) }, 2000)
         }
       } catch {
-        clearInterval(interval)
+        stopPolling()
         setLoading(false)
         setJobId(null)
       }
     }, 3000)
-    return interval
-  }, [router])
+  }, [router, stopPolling])
 
   async function handleRun() {
     setLoading(true)
