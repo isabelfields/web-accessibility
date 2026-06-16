@@ -1,22 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [invited, setInvited] = useState(false)
+
+  useEffect(() => {
+    setInvited(new URLSearchParams(window.location.search).get('invited') === '1')
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     setLoading(true)
     const res = await signIn('credentials', {
-      username,
+      email,
       password,
       redirect: false,
     })
@@ -25,7 +30,7 @@ export default function LoginPage() {
       router.push('/')
       router.refresh()
     } else {
-      setError('Invalid username or password.')
+      setError('Invalid email or password.')
     }
   }
 
@@ -36,14 +41,20 @@ export default function LoginPage() {
           <div className="text-xl font-semibold tracking-tight text-[#1D1D1F]">Hearst A11y</div>
           <div className="text-sm text-[#6B6B6B] mt-1">Sign in to continue</div>
         </div>
+        {invited && (
+          <p className="mb-4 text-sm text-green-700 bg-green-50 border border-green-100 rounded-lg px-3 py-2 text-center">
+            Your account is ready. Sign in with your email and the password you just set.
+          </p>
+        )}
         <form onSubmit={handleSubmit} className="bg-white border border-[#E5E5EA] rounded-xl p-8 space-y-5 shadow-sm">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-[#1D1D1F] mb-1.5">Username</label>
+            <label htmlFor="email" className="block text-sm font-medium text-[#1D1D1F] mb-1.5">Email</label>
             <input
-              id="username"
+              id="email"
               type="text"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
+              autoComplete="username"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               required
               autoFocus
               className="w-full px-3 py-2 rounded-lg border border-[#E5E5EA] bg-white text-[#1D1D1F] placeholder:text-[#A1A1A6] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
