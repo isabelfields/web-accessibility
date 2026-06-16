@@ -36,7 +36,9 @@ export async function POST(req: NextRequest) {
   const applied: string[] = []
   for (const statement of statements) {
     try {
-      await sql.query(statement)
+      // Call the Neon query function directly with a plain SQL string
+      // (ordinary-function usage). This version exposes no `.query()` method.
+      await sql(statement)
       applied.push(statement.split('\n')[0].slice(0, 80))
     } catch (e: any) {
       return NextResponse.json(
