@@ -2,10 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -25,13 +23,15 @@ export default function LoginPage() {
       password,
       redirect: false,
     })
-    setLoading(false)
     if (res?.ok) {
-      router.push('/')
-      router.refresh()
-    } else {
-      setError('Invalid email or password.')
+      // Full-page navigation so the freshly-set session cookie is sent with
+      // the request — a soft router.push can race the cookie and get bounced
+      // back to /login by middleware, making it look like login failed.
+      window.location.href = '/'
+      return
     }
+    setLoading(false)
+    setError('Invalid email or password.')
   }
 
   return (
