@@ -9,7 +9,7 @@ import { ExportPdfButton } from '@/components/ExportPdfButton'
 import { patternsToWorstTier, TIER_LABEL, TIER_COLOR } from '@/lib/tiers'
 import type { ViolationPattern, PageScore } from '@/types'
 
-const RULE_WCAG_LEVEL: Record<string, 'A' | 'AA' | 'AAA'> = {
+const RULE_WCAG_LEVEL: Record<string, 'A' | 'AA'> = {
   'image-alt': 'A', 'button-name': 'A', 'label': 'A', 'link-name': 'A',
   'aria-required-attr': 'A', 'aria-valid-attr-value': 'A', 'aria-required-children': 'A',
   'aria-required-parent': 'A', 'aria-allowed-attr': 'A', 'document-title': 'A',
@@ -17,7 +17,6 @@ const RULE_WCAG_LEVEL: Record<string, 'A' | 'AA' | 'AAA'> = {
   'landmark-no-duplicate-main': 'A', 'landmark-unique': 'A', 'landmark-main-is-top-level': 'A',
   'region': 'A', 'select-name': 'A', 'tabindex': 'A', 'html-has-lang': 'A', 'input-image-alt': 'A',
   'color-contrast': 'AA', 'video-caption': 'AA',
-  'color-contrast-enhanced': 'AAA',
 }
 
 export const dynamic = 'force-dynamic'
@@ -86,7 +85,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
     minor:    byImpact.minor.reduce((s, p) => s + p.occurrences, 0),
   }
 
-  const wcagLevels = { A: 0, AA: 0, AAA: 0 }
+  const wcagLevels = { A: 0, AA: 0 }
   for (const p of patterns) {
     const level = RULE_WCAG_LEVEL[p.rule] ?? 'A'
     wcagLevels[level] += p.occurrences
@@ -168,7 +167,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               </div>
             </div>
 
-            {/* WCAG A / AA / AAA */}
+            {/* WCAG A / AA */}
             <div className="rounded-lg bg-white border border-[#E5E5EA] p-6">
               <div className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider mb-4">By WCAG Level</div>
               <div className="flex items-end gap-5">
