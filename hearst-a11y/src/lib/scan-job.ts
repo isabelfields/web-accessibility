@@ -48,13 +48,16 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
       }
     }, pages)
 
-    // Check if cancelled mid-scan
+    // Fast path: skip the expensive write if it was already cancelled.
     const [current] = await sql`SELECT status FROM scan_jobs WHERE id = ${jobId}`
     if (current?.status === 'cancelled') {
       return { ok: true, jobId, status: 'cancelled' }
     }
 
-    await sql`
+    // Guard the completion write against a cancel landing in the race window
+    // between the SELECT above and this UPDATE. If the row was cancelled (or
+    // deleted) in the meantime, no row matches and we leave it cancelled.
+    const updated = await sql`
       UPDATE scan_jobs SET
         status = 'complete',
         score = ${result.score},
@@ -68,8 +71,12 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
         patterns = ${JSON.stringify(result.patterns)},
         page_scores = ${JSON.stringify(result.pageScores)},
         completed_at = NOW()
-      WHERE id = ${jobId}
+      WHERE id = ${jobId} AND status <> 'cancelled'
+      RETURNING id
     `
+    if (updated.length === 0) {
+      return { ok: true, jobId, status: 'cancelled' }
+    }
     return { ok: true, jobId, status: 'complete' }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
