@@ -27,10 +27,12 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Invited users: look up by email and verify their password hash.
+        // Compare case-insensitively — invites are stored with the email as
+        // the admin typed it, which may differ in case from what's typed here.
         const [user] = await sql`
           SELECT id, email, role, allowed_divisions, password_hash
           FROM users
-          WHERE email = ${email}
+          WHERE LOWER(email) = ${email}
           LIMIT 1
         `
         if (!user || !user.password_hash) return null
