@@ -170,9 +170,11 @@ export async function runScan(
     violations: r.violations,
   }))
 
-  const rawViolationCount = pageViolations.reduce((sum, p) => sum + p.violations.length, 0)
-
   const { patterns, claudeCallCount, estimatedCostUsd } = await deduplicateAndFix(pageViolations)
+
+  // raw_violation_count = total failing elements (Σ occurrences across patterns),
+  // matching the "Total Violations" figure shown on the scan detail page.
+  const rawViolationCount = patterns.reduce((sum, p) => sum + p.occurrences, 0)
 
   // Attach sampleHtml and sampleScreenshot to each pattern
   const violationsByRule = new Map<string, { html: string; screenshot?: string }>()

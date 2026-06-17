@@ -47,7 +47,9 @@ Example:
 
   const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',
-    max_tokens: 1500,
+    // Up to BATCH_SIZE (20) violations per call; 1500 tokens can truncate the
+    // JSON array and force the whole batch into the fallback path.
+    max_tokens: 4096,
     messages: [{ role: 'user', content: prompt }],
   })
 

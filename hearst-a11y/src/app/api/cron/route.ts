@@ -67,10 +67,14 @@ function computeNextRun(cadence: string, dayOfWeek?: number, dayOfMonth?: number
     return new Date(Date.UTC(y, mo, d + daysUntil, 2, 0, 0, 0))
   } else if (cadence === 'monthly') {
     const targetDay = dayOfMonth ?? 1
-    // Clamp to the last day of the target month so e.g. day 31 doesn't roll
-    // over into the following month (Feb -> 28/29, Apr/Jun/Sep/Nov -> 30).
-    const lastDay = new Date(Date.UTC(y, mo + 2, 0)).getUTCDate()
-    return new Date(Date.UTC(y, mo + 1, Math.min(targetDay, lastDay), 2, 0, 0, 0))
+    // Run this month if the target day is still ahead; otherwise next month.
+    // Clamp to each month's last day so e.g. day 31 doesn't roll over
+    // (Feb -> 28/29, Apr/Jun/Sep/Nov -> 30).
+    const thisMonthLast = new Date(Date.UTC(y, mo + 1, 0)).getUTCDate()
+    const thisMonth = new Date(Date.UTC(y, mo, Math.min(targetDay, thisMonthLast), 2, 0, 0, 0))
+    if (thisMonth.getTime() > now.getTime()) return thisMonth
+    const nextMonthLast = new Date(Date.UTC(y, mo + 2, 0)).getUTCDate()
+    return new Date(Date.UTC(y, mo + 1, Math.min(targetDay, nextMonthLast), 2, 0, 0, 0))
   }
 
   return new Date(Date.UTC(y, mo, d + 1, 2, 0, 0, 0))

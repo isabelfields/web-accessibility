@@ -85,16 +85,22 @@ export async function runKeyboardCheck(page: Page): Promise<RawViolation[]> {
 
     // Check for interactive elements not reachable by Tab
     const allInteractive = await page.evaluate((): string[] => {
+      // Must mirror getSelector() used while tabbing, or reachable elements
+      // (tag.class) won't match the recorded set (which used bare tag) and get
+      // wrongly flagged unreachable.
+      const getSelector = (el: Element): string => {
+        if (el.id) return `#${CSS.escape(el.id)}`
+        const tag = el.tagName.toLowerCase()
+        const cls = Array.from(el.classList).slice(0, 2).join('.')
+        return cls ? `${tag}.${cls}` : tag
+      }
       const sel = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
       return Array.from(document.querySelectorAll(sel))
         .filter(el => {
           const s = window.getComputedStyle(el)
           return s.display !== 'none' && s.visibility !== 'hidden' && s.opacity !== '0'
         })
-        .map(el => {
-          if (el.id) return `#${CSS.escape(el.id)}`
-          return el.tagName.toLowerCase()
-        })
+        .map(getSelector)
         .slice(0, 60)
     })
 

@@ -78,11 +78,16 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   const totalViolations = patterns.reduce((sum, p) => sum + p.occurrences, 0)
   const worstTier = patternsToWorstTier(patterns)
 
+  // Severity breakdown excludes best-practice patterns (not WCAG failures, no
+  // score impact) — consistent with the dashboard and calculateScore. The
+  // violation list below (byTier) still shows every pattern.
+  const occ = (list: ViolationPattern[]) =>
+    list.filter(p => !p.isBestPractice).reduce((s, p) => s + p.occurrences, 0)
   const severityCounts = {
-    critical: byImpact.critical.reduce((s, p) => s + p.occurrences, 0),
-    serious:  byImpact.serious.reduce((s, p) => s + p.occurrences, 0),
-    moderate: byImpact.moderate.reduce((s, p) => s + p.occurrences, 0),
-    minor:    byImpact.minor.reduce((s, p) => s + p.occurrences, 0),
+    critical: occ(byImpact.critical),
+    serious:  occ(byImpact.serious),
+    moderate: occ(byImpact.moderate),
+    minor:    occ(byImpact.minor),
   }
 
   const wcagLevels = { A: 0, AA: 0 }

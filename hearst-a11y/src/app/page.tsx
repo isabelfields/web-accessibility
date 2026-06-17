@@ -14,6 +14,29 @@ async function getData(division?: string, allowedDivisions?: string[]) {
   if (allowedDivisions && allowedDivisions.length > 0 && !division) {
     division = allowedDivisions[0]
   }
+  // Scope the recent-scans list in SQL before LIMIT, so a division filter
+  // doesn't slice an already-truncated global top-5 down to near-zero.
+  const recentScansQuery = division
+    ? sql`
+        SELECT sj.id, sj.root_url, s.name as site_name, s.division,
+               sj.status, sj.score, sj.pages_scanned, sj.raw_violation_count,
+               sj.started_at, sj.triggered_by
+        FROM scan_jobs sj
+        JOIN sites s ON s.id = sj.site_id
+        WHERE s.division = ${division}
+        ORDER BY sj.started_at DESC
+        LIMIT 5
+      `
+    : sql`
+        SELECT sj.id, sj.root_url, s.name as site_name, s.division,
+               sj.status, sj.score, sj.pages_scanned, sj.raw_violation_count,
+               sj.started_at, sj.triggered_by
+        FROM scan_jobs sj
+        LEFT JOIN sites s ON s.id = sj.site_id
+        ORDER BY sj.started_at DESC
+        LIMIT 5
+      `
+
   const [allSites, recentScans] = await Promise.all([
     sql`SELECT * FROM sites ORDER BY created_at DESC`.then(async (sites) => {
       return Promise.all(
@@ -34,15 +57,7 @@ async function getData(division?: string, allowedDivisions?: string[]) {
         })
       )
     }),
-    sql`
-      SELECT sj.id, sj.root_url, s.name as site_name, s.division,
-             sj.status, sj.score, sj.pages_scanned, sj.raw_violation_count,
-             sj.started_at, sj.triggered_by
-      FROM scan_jobs sj
-      LEFT JOIN sites s ON s.id = sj.site_id
-      ORDER BY sj.started_at DESC
-      LIMIT 5
-    `,
+    recentScansQuery,
   ])
 
   const activeDivisions = [...new Set(
@@ -53,15 +68,17 @@ async function getData(division?: string, allowedDivisions?: string[]) {
     ? allSites.filter((s: any) => s.division === division)
     : allSites
 
-  const scans = division
-    ? recentScans.filter((s: any) => s.division === division)
-    : recentScans
+  const scans = recentScans // already division-scoped by the query above
 
   const totalPages = sites.reduce((sum: number, s: any) =>
     sum + (Array.isArray(s.pages) ? s.pages.length : 0), 0)
 
   const totalErrors = sites.reduce((sum: number, s: any) =>
     sum + (s.latestScan?.raw_violation_count ?? 0), 0)
+
+  // "Rule Violations" = distinct WCAG rules broken (unique patterns), not element count.
+  const totalRulesBroken = sites.reduce((sum: number, s: any) =>
+    sum + (s.latestScan?.unique_pattern_count ?? 0), 0)
 
   const errorsResolved = sites.reduce((sum: number, s: any) => {
     const latest = s.latestScan?.raw_violation_count ?? 0
@@ -77,7 +94,9 @@ async function getData(division?: string, allowedDivisions?: string[]) {
     if (!patterns) continue
     for (const p of patterns as any[]) {
       const impact = p.impact as keyof typeof severityCounts
-      if (impact in severityCounts) severityCounts[impact] += p.occurrences
+      // Best-practice patterns aren't WCAG failures and don't affect the score,
+      // so they don't count toward the severity breakdown / critical alert.
+      if (!p.isBestPractice && impact in severityCounts) severityCounts[impact] += p.occurrences
       const existing = violationMap.get(p.rule)
       if (existing) {
         existing.count += p.occurrences
@@ -109,14 +128,14 @@ async function getData(division?: string, allowedDivisions?: string[]) {
 
   const criticalSiteCount = sites.filter((s: any) => {
     const patterns = s.latestScan?.patterns ?? []
-    return patterns.some((p: any) => p.impact === 'critical')
+    return patterns.some((p: any) => p.impact === 'critical' && !p.isBestPractice)
   }).length
 
   return {
     sites,
     scans,
     activeDivisions,
-    stats: { totalPages, totalErrors, errorsResolved, siteCount: sites.length, totalViolations: severityCounts.critical + severityCounts.serious + severityCounts.moderate + severityCounts.minor },
+    stats: { totalPages, totalErrors, errorsResolved, siteCount: sites.length, totalViolations: totalRulesBroken },
     severityCounts,
     topViolations,
     scoreTrends,

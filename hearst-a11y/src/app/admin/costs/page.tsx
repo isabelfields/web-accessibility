@@ -44,7 +44,9 @@ export default function CostsPage() {
   useEffect(() => {
     fetch('/api/admin/costs')
       .then(r => r.json())
-      .then(d => { setData(d); setLoading(false) })
+      .then(d => setData(d))
+      .catch(() => setData(null))
+      .finally(() => setLoading(false))
   }, [])
 
   if (loading) return (
