@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
 import { getSessionUser, canAccessDivision } from '@/lib/auth-helpers'
+import { findUnscannableUrl } from '@/lib/net/url-guard'
 
 const SitePageSchema = z.object({
   url: z.string().url(),
@@ -60,6 +61,17 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
   }
 
   const { name, division, brand, region, pages } = parsed.data
+
+  // Don't let a user move a site into a division they can't access.
+  if (division !== undefined && !canAccessDivision(user, division ?? null)) {
+    return NextResponse.json({ error: 'Forbidden: division not allowed' }, { status: 403 })
+  }
+
+  // SSRF guard: validate any new page URLs before storing them.
+  if (pages !== undefined) {
+    const badUrl = await findUnscannableUrl(pages)
+    if (badUrl) return NextResponse.json({ error: `Invalid page URL — ${badUrl}` }, { status: 400 })
+  }
 
   const [site] = await sql`
     UPDATE sites SET

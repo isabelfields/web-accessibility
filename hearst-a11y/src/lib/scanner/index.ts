@@ -3,6 +3,7 @@ import { crawlAndScan } from './crawler'
 import { deduplicateAndFix } from './deduplicator'
 import { calculateScore } from '@/lib/score'
 import { runKeyboardCheck } from './keyboard'
+import { assertPublicUrl } from '@/lib/net/url-guard'
 
 async function scanPageList(pages: SitePage[]): Promise<{
   results: PageScanResult[]
@@ -21,6 +22,8 @@ async function scanPageList(pages: SitePage[]): Promise<{
   async function scanOnePage(page: SitePage, retry = false): Promise<{ pageScore: PageScore; result: PageScanResult }> {
     let ctx: Awaited<ReturnType<typeof browser.newContext>> | undefined
     try {
+      // SSRF guard: never render a non-public target, even from stored sites/schedules.
+      await assertPublicUrl(page.url)
       ctx = await browser.newContext()
       const pw = await ctx.newPage()
       await pw.goto(page.url, { waitUntil: 'domcontentloaded', timeout: 20000 })

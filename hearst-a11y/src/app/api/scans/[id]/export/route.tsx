@@ -3,6 +3,7 @@ import { sql } from '@/lib/db'
 import { renderToBuffer, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/auth'
+import { safeEqual } from '@/lib/security'
 import type { ViolationPattern, PageScore } from '@/types'
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET
@@ -64,11 +65,12 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Admin check: accept valid session OR legacy ADMIN_SECRET header
+  // Admin check: accept a valid admin session OR the ADMIN_SECRET header.
+  // The secret is header-only (never a query param, which would leak into logs,
+  // browser history, and Referer) and compared in constant time.
   const session = await getServerSession(authOptions)
-  const secret = req.headers.get('x-admin-secret') ?? req.nextUrl.searchParams.get('secret')
-  const hasValidSecret = ADMIN_SECRET && secret === ADMIN_SECRET
   const hasAdminSession = (session?.user as any)?.role === 'admin'
+  const hasValidSecret = !!ADMIN_SECRET && safeEqual(req.headers.get('x-admin-secret'), ADMIN_SECRET)
   if (!hasAdminSession && !hasValidSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

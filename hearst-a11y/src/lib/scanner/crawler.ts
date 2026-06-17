@@ -2,6 +2,7 @@ import { chromium } from 'playwright'
 import { PageScanResult } from '@/types'
 import { computeDomFingerprint, isNearDuplicate } from './fingerprint'
 import { runKeyboardCheck } from './keyboard'
+import { assertPublicUrl } from '@/lib/net/url-guard'
 
 const MAX_PAGES = 50
 const PAGE_TIMEOUT = 30_000 // 30s per page
@@ -45,6 +46,8 @@ export async function crawlAndScan(rootUrl: string): Promise<{
 
           let context: Awaited<ReturnType<typeof browser.newContext>> | undefined
           try {
+            // SSRF guard: re-check every URL (incl. crawled links) before rendering.
+            await assertPublicUrl(url)
             context = await browser.newContext({
               userAgent: 'HearstA11yScanner/1.0 (+https://hearst.com/accessibility)',
             })

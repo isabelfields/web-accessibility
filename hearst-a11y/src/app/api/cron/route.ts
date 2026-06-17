@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
 import { startScan } from '@/lib/scan-job'
+import { isValidBearer } from '@/lib/security'
 
 // Called by Vercel Cron every hour (vercel.json: "0 * * * *").
 // Finds all schedules whose next_run_at is due and triggers scans.
 export async function GET(req: NextRequest) {
-  // Vercel sends this header for cron jobs — reject other callers
-  const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Vercel sends this header for cron jobs — reject other callers.
+  // Constant-time compare; rejects outright if CRON_SECRET is unset.
+  if (!isValidBearer(req.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
