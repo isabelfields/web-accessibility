@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { sql } from '@/lib/db'
+import { sha256 } from '@/lib/security'
 
 type Ctx = { params: Promise<{ token: string }> }
 
@@ -8,7 +9,7 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
   const { token } = await params
   const [user] = await sql`
     SELECT id, email, role FROM users
-    WHERE invite_token = ${token} AND invite_expires_at > NOW()
+    WHERE invite_token = ${sha256(token)} AND invite_expires_at > NOW()
     LIMIT 1
   `
   if (!user) return NextResponse.json({ error: 'Invalid or expired invite' }, { status: 404 })
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
 
   const [user] = await sql`
     SELECT id FROM users
-    WHERE invite_token = ${token} AND invite_expires_at > NOW()
+    WHERE invite_token = ${sha256(token)} AND invite_expires_at > NOW()
     LIMIT 1
   `
   if (!user) return NextResponse.json({ error: 'Invalid or expired invite' }, { status: 404 })

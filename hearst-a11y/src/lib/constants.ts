@@ -15,6 +15,15 @@ export const AI = {
   OUTPUT_USD_PER_MTOK: 10,
 } as const
 
+/** DoS guards for the expensive synchronous scan endpoint. */
+export const SCAN_LIMITS = {
+  // Hard cap on scans running concurrently (DB-backed), to bound paid usage.
+  MAX_CONCURRENT: 3,
+  // Soft per-user burst limit (in-memory, best-effort).
+  PER_USER_MAX: 10,
+  PER_USER_WINDOW_MS: 5 * 60_000,
+} as const
+
 /** Browserless CDP endpoint used by both the crawler and page-list scanner. */
 export function browserlessWsEndpoint(): string {
   return `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`
