@@ -12,6 +12,11 @@ export function safeEqual(a: string | undefined | null, b: string | undefined | 
   return timingSafeEqual(ha, hb)
 }
 
+/** Hex SHA-256 digest — used to store invite tokens hashed at rest. */
+export function sha256(value: string): string {
+  return createHash('sha256').update(value).digest('hex')
+}
+
 /** Validates a `Bearer <secret>` Authorization header against an expected secret, in constant time. */
 export function isValidBearer(authHeader: string | null, expectedSecret: string | undefined): boolean {
   if (!expectedSecret) return false

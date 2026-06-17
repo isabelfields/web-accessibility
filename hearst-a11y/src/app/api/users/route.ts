@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth-helpers'
+import { sha256 } from '@/lib/security'
 import crypto from 'crypto'
 
 const InviteSchema = z.object({
@@ -40,14 +41,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'User already exists' }, { status: 409 })
   }
 
+  // Store only a hash of the token; the plaintext is returned once for the link.
   const token = crypto.randomUUID()
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
   const divisions = allowedDivisions ?? []
 
   const [user] = await sql`
     INSERT INTO users (email, role, allowed_divisions, invite_token, invite_expires_at, invited_by)
-    VALUES (${email}, ${role}, ${JSON.stringify(divisions)}, ${token}, ${expiresAt.toISOString()}, ${admin.email ?? ''})
-    RETURNING id, email, role, allowed_divisions, invite_token, created_at
+    VALUES (${email}, ${role}, ${JSON.stringify(divisions)}, ${sha256(token)}, ${expiresAt.toISOString()}, ${admin.email ?? ''})
+    RETURNING id, email, role, allowed_divisions, created_at
   `
 
   return NextResponse.json({ ...user, inviteToken: token }, { status: 201 })

@@ -4,6 +4,8 @@ import { sql } from '@/lib/db'
 import { startScan } from '@/lib/scan-job'
 import { getSessionUser, canAccessDivision, type SessionUser } from '@/lib/auth-helpers'
 import { assertPublicUrl, UrlNotAllowedError } from '@/lib/net/url-guard'
+import { rateLimit } from '@/lib/rate-limit'
+import { SCAN_LIMITS } from '@/lib/constants'
 
 const RequestSchema = z.object({
   url: z.string().url().optional(),
@@ -22,6 +24,20 @@ function isRestricted(user: SessionUser): boolean {
 export async function POST(req: NextRequest) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Soft per-user burst limit (best-effort, in-memory).
+  if (user.id && !rateLimit(`scan:${user.id}`, SCAN_LIMITS.PER_USER_MAX, SCAN_LIMITS.PER_USER_WINDOW_MS)) {
+    return NextResponse.json({ error: 'Too many scans — please wait a few minutes.' }, { status: 429 })
+  }
+
+  // Hard global concurrency cap (DB-backed) to bound paid Browserless/OpenAI usage.
+  const [{ active }] = await sql`
+    SELECT COUNT(*)::int AS active FROM scan_jobs
+    WHERE status IN ('queued', 'running') AND started_at > NOW() - INTERVAL '15 minutes'
+  `
+  if (active >= SCAN_LIMITS.MAX_CONCURRENT) {
+    return NextResponse.json({ error: 'Too many scans running right now — try again shortly.' }, { status: 429 })
+  }
 
   const body = await req.json()
   const parsed = RequestSchema.safeParse(body)
