@@ -80,10 +80,15 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
     return { ok: true, jobId, status: 'complete' }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
-    await sql`
+    // Don't clobber a cancellation that landed before/while the scan errored.
+    const failed = await sql`
       UPDATE scan_jobs SET status = 'failed', error = ${message}, completed_at = NOW()
-      WHERE id = ${jobId}
+      WHERE id = ${jobId} AND status <> 'cancelled'
+      RETURNING id
     `
+    if (failed.length === 0) {
+      return { ok: true, jobId, status: 'cancelled' }
+    }
     return { ok: false, jobId, status: 'failed', error: message }
   }
 }
