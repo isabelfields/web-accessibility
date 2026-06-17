@@ -51,11 +51,34 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
+        // Initial sign-in: seed the token from the authorize() result.
         token.id = user.id
         token.role = user.role
         token.allowedDivisions = user.allowedDivisions
+        token.refreshedAt = Date.now()
+        return token
+      }
+
+      // Periodically re-read role/divisions from the DB so admin changes
+      // (e.g. a demotion or division update) apply to live sessions without
+      // requiring re-login. Skip the env bootstrap admin (id '1'), which has
+      // no DB row (and isn't a valid UUID).
+      const REFRESH_MS = 60_000
+      if (token.id && token.id !== '1' && Date.now() - (token.refreshedAt ?? 0) > REFRESH_MS) {
+        try {
+          const [u] = await sql`
+            SELECT role, allowed_divisions FROM users WHERE id = ${token.id} LIMIT 1
+          `
+          if (u) {
+            token.role = u.role as 'admin' | 'user'
+            token.allowedDivisions = (u.allowed_divisions as string[]) ?? []
+          }
+          token.refreshedAt = Date.now()
+        } catch {
+          // Keep the existing token on a transient DB error; retry next interval.
+        }
       }
       return token
     },

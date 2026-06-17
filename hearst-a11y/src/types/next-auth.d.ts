@@ -19,5 +19,6 @@ declare module 'next-auth/jwt' {
     id: string
     role: 'admin' | 'user'
     allowedDivisions: string[]
+    refreshedAt?: number
   }
 }
