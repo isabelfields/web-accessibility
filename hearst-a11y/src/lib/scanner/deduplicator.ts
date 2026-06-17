@@ -43,7 +43,7 @@ export async function deduplicateAndFix(
       const newNodes: PatternNode[] = (violation.nodes ?? []).slice(0, MAX_NODES_PER_RULE).map(n => ({
         html: n.html ?? '',
         url,
-        screenshot: (violation as any).sampleScreenshot,
+        screenshot: violation.sampleScreenshot,
       }))
       const nodeCount = Math.max(1, newNodes.length)
       const bestPractice = isBestPractice(violation.tags)

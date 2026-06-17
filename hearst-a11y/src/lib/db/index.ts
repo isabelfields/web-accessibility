@@ -11,6 +11,5 @@ function getClient(): NeonQueryFunction<false, false> {
 
 // Cast to any then back to the proper type so TypeScript accepts the wrapper
 // while callers still get correct return types.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const sql = ((strings: TemplateStringsArray, ...values: any[]) =>
-  getClient()(strings, ...values)) as unknown as NeonQueryFunction<false, false>
+export const sql = ((strings: TemplateStringsArray, ...values: unknown[]) =>
+  getClient()(strings, ...(values as unknown[]))) as unknown as NeonQueryFunction<false, false>

@@ -158,8 +158,8 @@ export default async function DashboardPage({
 }) {
   try {
   const [{ division }, session] = await Promise.all([searchParams, getServerSession(authOptions)])
-  const isAdmin = (session?.user as any)?.role === 'admin'
-  const allowedDivisions = isAdmin ? [] : ((session?.user as any)?.allowedDivisions ?? [])
+  const isAdmin = session?.user?.role === 'admin'
+  const allowedDivisions = isAdmin ? [] : (session?.user?.allowedDivisions ?? [])
 
   const effectiveDivision = (!isAdmin && allowedDivisions.length > 0 && division && !allowedDivisions.includes(division))
     ? allowedDivisions[0]
@@ -268,7 +268,7 @@ export default async function DashboardPage({
         {sites.length === 0 ? (
           <div style={{ borderRadius: 12, border: '1.5px dashed #D1D1D6', padding: '48px 32px', textAlign: 'center', color: '#6B6B6B', background: '#fff', marginBottom: 20 }}>
             {effectiveDivision ? `No sites in ${effectiveDivision} yet.` : 'No sites yet.'}{' '}
-            <a href="/sites" style={{ color: '#007AFF' }}>Add a site</a>.
+            <Link href="/sites" style={{ color: '#007AFF' }}>Add a site</Link>.
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>

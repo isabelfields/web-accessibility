@@ -320,7 +320,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                       <td style={{ padding: '12px 16px', fontWeight: 600, color: '#1D1D1F' }}>{page.label}</td>
                       <td style={{ padding: '12px 16px' }}>
                         <PageViolationsModal
-                          pageScore={ps ?? { url: page.url, label: page.label, score: null as any, violationCount: null as any }}
+                          pageScore={ps ?? { url: page.url, label: page.label, score: null, violationCount: null }}
                           patterns={patterns}
                         />
                       </td>
