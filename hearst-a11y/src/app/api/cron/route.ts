@@ -3,7 +3,9 @@ import { neon } from '@neondatabase/serverless'
 import { startScan } from '@/lib/scan-job'
 import { isValidBearer } from '@/lib/security'
 
-// Called by Vercel Cron every hour (vercel.json: "0 * * * *").
+// Called by Vercel Cron daily at 02:00 UTC (vercel.json: "0 2 * * *"), matching
+// the 02:00 next_run_at that computeNextRun sets — so due schedules fire that
+// day. (Vercel Hobby plan only permits daily crons.)
 // Finds all schedules whose next_run_at is due and triggers scans.
 export async function GET(req: NextRequest) {
   // Vercel sends this header for cron jobs — reject other callers.
