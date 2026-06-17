@@ -19,6 +19,12 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   return session.user as SessionUser
 }
 
+/** Returns the user if they're an admin, otherwise null (caller returns 403). */
+export async function requireAdmin(): Promise<SessionUser | null> {
+  const user = await getSessionUser()
+  return user?.role === 'admin' ? user : null
+}
+
 /**
  * Mirrors the visibility rule used by `GET /api/sites`: admins — and users with
  * no division restriction — can see everything; otherwise access is limited to

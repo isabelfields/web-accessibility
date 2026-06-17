@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/auth'
 import { sql } from '@/lib/db'
+import { requireAdmin } from '@/lib/auth-helpers'
 
 type Ctx = { params: Promise<{ id: string }> }
 
@@ -12,8 +11,7 @@ const PatchSchema = z.object({
 })
 
 export async function PATCH(req: NextRequest, { params }: Ctx) {
-  const session = await getServerSession(authOptions)
-  if ((session?.user as any)?.role !== 'admin') {
+  if (!(await requireAdmin())) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
   const { id } = await params
@@ -34,13 +32,13 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Ctx) {
-  const session = await getServerSession(authOptions)
-  if ((session?.user as any)?.role !== 'admin') {
+  const admin = await requireAdmin()
+  if (!admin) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
   const { id } = await params
   // Prevent deleting yourself
-  if (id === (session?.user as any)?.id) {
+  if (id === admin.id) {
     return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 })
   }
   await sql`DELETE FROM users WHERE id = ${id}`

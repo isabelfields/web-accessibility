@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/auth'
 import { sql } from '@/lib/db'
+import { requireAdmin } from '@/lib/auth-helpers'
 import crypto from 'crypto'
 
 const InviteSchema = z.object({
@@ -12,8 +11,7 @@ const InviteSchema = z.object({
 })
 
 export async function GET() {
-  const session = await getServerSession(authOptions)
-  if ((session?.user as any)?.role !== 'admin') {
+  if (!(await requireAdmin())) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
   const users = await sql`
@@ -26,8 +24,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if ((session?.user as any)?.role !== 'admin') {
+  const admin = await requireAdmin()
+  if (!admin) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -48,7 +46,7 @@ export async function POST(req: NextRequest) {
 
   const [user] = await sql`
     INSERT INTO users (email, role, allowed_divisions, invite_token, invite_expires_at, invited_by)
-    VALUES (${email}, ${role}, ${JSON.stringify(divisions)}, ${token}, ${expiresAt.toISOString()}, ${session?.user?.email ?? ''})
+    VALUES (${email}, ${role}, ${JSON.stringify(divisions)}, ${token}, ${expiresAt.toISOString()}, ${admin.email ?? ''})
     RETURNING id, email, role, allowed_divisions, invite_token, created_at
   `
 

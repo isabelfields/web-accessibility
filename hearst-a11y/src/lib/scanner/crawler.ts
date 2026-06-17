@@ -3,6 +3,7 @@ import { PageScanResult } from '@/types'
 import { computeDomFingerprint, isNearDuplicate } from './fingerprint'
 import { runKeyboardCheck } from './keyboard'
 import { assertPublicUrl } from '@/lib/net/url-guard'
+import { AXE_TAGS, browserlessWsEndpoint } from '@/lib/constants'
 
 const MAX_PAGES = 50
 const PAGE_TIMEOUT = 30_000 // 30s per page
@@ -31,8 +32,7 @@ export async function crawlAndScan(rootUrl: string): Promise<{
   const results: PageScanResult[] = []
   let pagesSkipped = 0
 
-  const wsEndpoint = `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`
-  const browser = await chromium.connectOverCDP(wsEndpoint)
+  const browser = await chromium.connectOverCDP(browserlessWsEndpoint())
 
   try {
     while (queue.length > 0 && visited.size < MAX_PAGES) {
@@ -83,16 +83,13 @@ export async function crawlAndScan(rootUrl: string): Promise<{
               url: 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.9.1/axe.min.js',
             })
 
-            const axeViolations = await page.evaluate(async () => {
+            const axeViolations = await page.evaluate(async (tags: string[]) => {
               // @ts-ignore axe is injected
               const results = await window.axe.run(document, {
-                runOnly: {
-                  type: 'tag',
-                  values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'],
-                },
+                runOnly: { type: 'tag', values: tags },
               })
               return results.violations
-            })
+            }, AXE_TAGS)
 
             const keyboardViolations = await runKeyboardCheck(page)
             const violations = [...axeViolations, ...keyboardViolations]

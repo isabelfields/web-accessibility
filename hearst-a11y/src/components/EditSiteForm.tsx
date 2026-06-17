@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { HEARST_DIVISIONS, HEARST_BRANDS, HEARST_REGIONS, HearstDivision } from '@/types'
+import { normalizeUrl } from '@/lib/format'
 
 interface PageRow {
   url: string
@@ -18,13 +19,6 @@ interface Site {
   brand?: string | null
   region?: string | null
   pages: PageRow[]
-}
-
-function normalizeUrl(url: string): string {
-  const trimmed = url.trim()
-  if (!trimmed) return trimmed
-  if (/^https?:\/\//i.test(trimmed)) return trimmed
-  return `https://${trimmed}`
 }
 
 const emptyPage = (): PageRow => ({ url: '', label: '', templateType: 'other' })

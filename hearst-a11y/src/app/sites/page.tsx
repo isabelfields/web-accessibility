@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { AddSiteForm } from '@/components/AddSiteForm'
 import { EditSiteForm } from '@/components/EditSiteForm'
+import { formatDay } from '@/lib/format'
 import type { SitePage } from '@/types'
 
 interface Site {
@@ -22,9 +23,6 @@ interface Site {
   } | null
 }
 
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
 
 const selectStyle: React.CSSProperties = {
   fontSize: 13,
@@ -165,10 +163,10 @@ export default function SitesPage() {
                     {site.latestScan ? site.latestScan.raw_violation_count : <span style={{ color: '#6B6B6B', fontWeight: 400 }}>—</span>}
                   </td>
                   <td style={{ padding: '13px 16px', textAlign: 'right', color: '#6B6B6B' }}>
-                    {site.latestScan ? formatDate(site.latestScan.started_at) : '—'}
+                    {site.latestScan ? formatDay(site.latestScan.started_at) : '—'}
                   </td>
                   <td style={{ padding: '13px 16px', textAlign: 'right', color: '#6B6B6B' }}>
-                    {formatDate(site.created_at)}
+                    {formatDay(site.created_at)}
                   </td>
                   <td style={{ padding: '13px 16px', textAlign: 'right' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>

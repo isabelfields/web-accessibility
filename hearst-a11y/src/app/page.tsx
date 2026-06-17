@@ -7,6 +7,7 @@ import { DivisionFilter } from '@/components/DivisionFilter'
 import { ChartsSection } from '@/components/ChartsSection'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/auth'
+import { formatDateTime } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
 
@@ -87,7 +88,7 @@ async function getData(division?: string, allowedDivisions?: string[]) {
   }, 0)
 
   const severityCounts = { critical: 0, serious: 0, moderate: 0, minor: 0 }
-  const violationMap = new Map<string, { count: number; impact: string; affectedSites: Set<string> }>()
+  const violationMap = new Map<string, { count: number; impact: string }>()
 
   for (const site of sites) {
     const patterns = (site as any).latestScan?.patterns
@@ -100,15 +101,14 @@ async function getData(division?: string, allowedDivisions?: string[]) {
       const existing = violationMap.get(p.rule)
       if (existing) {
         existing.count += p.occurrences
-        existing.affectedSites.add((site as any).id)
       } else {
-        violationMap.set(p.rule, { count: p.occurrences, impact: p.impact, affectedSites: new Set([(site as any).id]) })
+        violationMap.set(p.rule, { count: p.occurrences, impact: p.impact })
       }
     }
   }
 
   const topViolations = [...violationMap.entries()]
-    .map(([rule, v]) => ({ rule, count: v.count, impact: v.impact, affectedSites: v.affectedSites.size }))
+    .map(([rule, v]) => ({ rule, count: v.count, impact: v.impact }))
     .sort((a, b) => b.count - a.count)
 
   const scoreTrends = await Promise.all(
@@ -143,10 +143,6 @@ async function getData(division?: string, allowedDivisions?: string[]) {
   }
 }
 
-function formatDate(d: string | Date | null) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-}
 
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
   complete: { background: '#ECFDF5', color: '#059669' },
@@ -326,7 +322,7 @@ export default async function DashboardPage({
                     </td>
                     <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F', fontVariantNumeric: 'tabular-nums' }}>{scan.pages_scanned ?? 0}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F', fontVariantNumeric: 'tabular-nums' }}>{scan.raw_violation_count ?? '—'}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'right', color: '#6B6B6B', fontSize: 12 }}>{formatDate(scan.started_at)}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', color: '#6B6B6B', fontSize: 12 }}>{formatDateTime(scan.started_at)}</td>
                     <td style={{ padding: '12px 8px', textAlign: 'right', position: 'relative', zIndex: 1 }}>
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                         <DeleteScanButton jobId={scan.id} />

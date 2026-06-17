@@ -13,7 +13,7 @@ interface SiteTrend {
 
 interface Props {
   severityCounts: { critical: number; serious: number; moderate: number; minor: number }
-  topViolations: { rule: string; count: number; impact: string; affectedSites: number }[]
+  topViolations: { rule: string; count: number; impact: string }[]
   scoreTrends: SiteTrend[]
 }
 

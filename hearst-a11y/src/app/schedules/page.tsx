@@ -2,11 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { AddScheduleForm } from '@/components/AddScheduleForm'
-
-function formatDate(d: string | Date | null) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-}
+import { formatDateTime } from '@/lib/format'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -98,8 +94,8 @@ export default function SchedulesPage() {
                       {s.enabled ? 'Active' : 'Disabled'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-400 text-xs">{formatDate(s.last_run_at)}</td>
-                  <td className="px-4 py-3 text-right text-gray-600 text-xs">{formatDate(s.next_run_at)}</td>
+                  <td className="px-4 py-3 text-right text-gray-400 text-xs">{formatDateTime(s.last_run_at)}</td>
+                  <td className="px-4 py-3 text-right text-gray-600 text-xs">{formatDateTime(s.next_run_at)}</td>
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => deleteSchedule(s.id)}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
 import { startScan } from '@/lib/scan-job'
 import { isValidBearer } from '@/lib/security'
+import { computeNextRun } from '@/lib/schedule'
 
 // Called by Vercel Cron daily at 02:00 UTC (vercel.json: "0 2 * * *"), matching
 // the 02:00 next_run_at that computeNextRun sets — so due schedules fire that
@@ -53,31 +54,4 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({ triggered, count: triggered.length })
-}
-
-function computeNextRun(cadence: string, dayOfWeek?: number, dayOfMonth?: number): Date {
-  const now = new Date()
-  const y = now.getUTCFullYear()
-  const mo = now.getUTCMonth()
-  const d = now.getUTCDate()
-
-  if (cadence === 'daily') {
-    return new Date(Date.UTC(y, mo, d + 1, 2, 0, 0, 0))
-  } else if (cadence === 'weekly') {
-    const targetDay = dayOfWeek ?? 1
-    const daysUntil = (targetDay - now.getUTCDay() + 7) % 7 || 7
-    return new Date(Date.UTC(y, mo, d + daysUntil, 2, 0, 0, 0))
-  } else if (cadence === 'monthly') {
-    const targetDay = dayOfMonth ?? 1
-    // Run this month if the target day is still ahead; otherwise next month.
-    // Clamp to each month's last day so e.g. day 31 doesn't roll over
-    // (Feb -> 28/29, Apr/Jun/Sep/Nov -> 30).
-    const thisMonthLast = new Date(Date.UTC(y, mo + 1, 0)).getUTCDate()
-    const thisMonth = new Date(Date.UTC(y, mo, Math.min(targetDay, thisMonthLast), 2, 0, 0, 0))
-    if (thisMonth.getTime() > now.getTime()) return thisMonth
-    const nextMonthLast = new Date(Date.UTC(y, mo + 2, 0)).getUTCDate()
-    return new Date(Date.UTC(y, mo + 1, Math.min(targetDay, nextMonthLast), 2, 0, 0, 0))
-  }
-
-  return new Date(Date.UTC(y, mo, d + 1, 2, 0, 0, 0))
 }

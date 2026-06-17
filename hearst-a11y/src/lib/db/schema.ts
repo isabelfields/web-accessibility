@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS scan_jobs (
   claude_call_count INTEGER DEFAULT 0,
   estimated_cost_usd REAL DEFAULT 0,
   patterns JSONB DEFAULT '[]',
+  page_scores JSONB DEFAULT '[]',
   error TEXT,
   started_at TIMESTAMPTZ DEFAULT NOW(),
   completed_at TIMESTAMPTZ,
@@ -100,6 +101,9 @@ CREATE TABLE IF NOT EXISTS schedules (
 CREATE TABLE IF NOT EXISTS sites (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
+  division TEXT,
+  brand TEXT,
+  region TEXT,
   pages JSONB DEFAULT '[]',
   schedule_id UUID,
   created_at TIMESTAMPTZ DEFAULT NOW(),

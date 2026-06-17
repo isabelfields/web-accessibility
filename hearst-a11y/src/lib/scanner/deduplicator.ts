@@ -2,6 +2,8 @@ import { RawViolation, ViolationPattern, PatternNode, StrippedViolation } from '
 import { getKnownFix, partitionByKnowledge } from './known-fixes'
 import { stripViolation, normalizeSelector } from './strip-html'
 import { getClaudeSuggestions } from '../claude/suggestions'
+import { isBestPractice } from '@/lib/score'
+import { AI, MAX_NODES_PER_RULE } from '@/lib/constants'
 
 /**
  * Takes raw violations from multiple pages and returns deduplicated patterns
@@ -37,23 +39,21 @@ export async function deduplicateAndFix(
       const stripped = stripViolation(violation)
       const fingerprint = stripped.rule  // one card per rule type
 
-      // Collect each failing node (cap at 50 per rule to keep DB size sane)
-      const newNodes: PatternNode[] = (violation.nodes ?? []).slice(0, 50).map(n => ({
+      // Collect each failing node (capped per rule to keep DB size sane)
+      const newNodes: PatternNode[] = (violation.nodes ?? []).slice(0, MAX_NODES_PER_RULE).map(n => ({
         html: n.html ?? '',
         url,
         screenshot: (violation as any).sampleScreenshot,
       }))
       const nodeCount = Math.max(1, newNodes.length)
-
-      const tags = violation.tags ?? []
-      const isBestPractice = tags.includes('best-practice') && !tags.some(t => t.startsWith('wcag'))
+      const bestPractice = isBestPractice(violation.tags)
 
       if (patternMap.has(fingerprint)) {
         const existing = patternMap.get(fingerprint)!
         existing.occurrences += nodeCount
         existing.affectedPages.add(url)
-        // Cap total stored nodes at 50 across all pages
-        const remaining = 50 - existing.nodes.length
+        // Cap total stored nodes across all pages
+        const remaining = MAX_NODES_PER_RULE - existing.nodes.length
         if (remaining > 0) existing.nodes.push(...newNodes.slice(0, remaining))
       } else {
         patternMap.set(fingerprint, {
@@ -61,7 +61,7 @@ export async function deduplicateAndFix(
           occurrences: nodeCount,
           affectedPages: new Set([url]),
           nodes: newNodes,
-          isBestPractice,
+          isBestPractice: bestPractice,
         })
       }
     }
@@ -101,9 +101,8 @@ export async function deduplicateAndFix(
   let totalOutputTokens = 0
 
   if (unknownFingerprints.length > 0) {
-    // Batch into chunks of 20 to stay within a reasonable prompt size
-    const BATCH_SIZE = 20
-    const batches = chunk(unknownFingerprints, BATCH_SIZE)
+    // Batch to keep each prompt a reasonable size
+    const batches = chunk(unknownFingerprints, AI.BATCH_SIZE)
 
     for (const batch of batches) {
       const items = batch.map(fp => {
@@ -136,11 +135,10 @@ export async function deduplicateAndFix(
     }
   }
 
-  // Rough cost estimate at OpenAI gpt-4o rates: input $2.50/MTok, output $10/MTok
-  // (must match the model used in lib/claude/suggestions.ts).
+  // Rough cost estimate at the configured model's rates (see AI constants).
   const estimatedCostUsd =
-    (totalInputTokens / 1_000_000) * 2.5 +
-    (totalOutputTokens / 1_000_000) * 10
+    (totalInputTokens / 1_000_000) * AI.INPUT_USD_PER_MTOK +
+    (totalOutputTokens / 1_000_000) * AI.OUTPUT_USD_PER_MTOK
 
   // Sort by impact severity
   const impactOrder: Record<string, number> = { critical: 0, serious: 1, moderate: 2, minor: 3 }

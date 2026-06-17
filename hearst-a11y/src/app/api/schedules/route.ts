@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { neon } from '@neondatabase/serverless'
 import { getSessionUser } from '@/lib/auth-helpers'
 import { assertPublicUrl, UrlNotAllowedError } from '@/lib/net/url-guard'
+import { computeNextRun } from '@/lib/schedule'
 
 const ScheduleSchema = z.object({
   url: z.string().url(),
@@ -10,33 +11,6 @@ const ScheduleSchema = z.object({
   dayOfWeek: z.number().min(0).max(6).optional(),
   dayOfMonth: z.number().min(1).max(31).optional(),
 })
-
-function computeNextRun(cadence: string, dayOfWeek?: number, dayOfMonth?: number): Date {
-  const now = new Date()
-  const y = now.getUTCFullYear()
-  const mo = now.getUTCMonth()
-  const d = now.getUTCDate()
-
-  if (cadence === 'daily') {
-    return new Date(Date.UTC(y, mo, d + 1, 2, 0, 0, 0))
-  } else if (cadence === 'weekly') {
-    const targetDay = dayOfWeek ?? 1
-    const daysUntil = (targetDay - now.getUTCDay() + 7) % 7 || 7
-    return new Date(Date.UTC(y, mo, d + daysUntil, 2, 0, 0, 0))
-  } else if (cadence === 'monthly') {
-    const targetDay = dayOfMonth ?? 1
-    // Run this month if the target day is still ahead; otherwise next month.
-    // Clamp to each month's last day so e.g. day 31 doesn't roll over
-    // (Feb -> 28/29, Apr/Jun/Sep/Nov -> 30).
-    const thisMonthLast = new Date(Date.UTC(y, mo + 1, 0)).getUTCDate()
-    const thisMonth = new Date(Date.UTC(y, mo, Math.min(targetDay, thisMonthLast), 2, 0, 0, 0))
-    if (thisMonth.getTime() > now.getTime()) return thisMonth
-    const nextMonthLast = new Date(Date.UTC(y, mo + 2, 0)).getUTCDate()
-    return new Date(Date.UTC(y, mo + 1, Math.min(targetDay, nextMonthLast), 2, 0, 0, 0))
-  }
-
-  return new Date(Date.UTC(y, mo, d + 1, 2, 0, 0, 0))
-}
 
 export async function POST(req: NextRequest) {
   if (!(await getSessionUser())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
