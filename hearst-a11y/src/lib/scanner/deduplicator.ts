@@ -136,10 +136,11 @@ export async function deduplicateAndFix(
     }
   }
 
-  // Rough cost estimate: Sonnet input $3/MTok, output $15/MTok
+  // Rough cost estimate at OpenAI gpt-4o rates: input $2.50/MTok, output $10/MTok
+  // (must match the model used in lib/claude/suggestions.ts).
   const estimatedCostUsd =
-    (totalInputTokens / 1_000_000) * 3 +
-    (totalOutputTokens / 1_000_000) * 15
+    (totalInputTokens / 1_000_000) * 2.5 +
+    (totalOutputTokens / 1_000_000) * 10
 
   // Sort by impact severity
   const impactOrder: Record<string, number> = { critical: 0, serious: 1, moderate: 2, minor: 3 }

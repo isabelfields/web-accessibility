@@ -75,11 +75,12 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   }
   const worstTier = patternsToWorstTier(patterns)
 
-  // Severity counts from patterns
+  // Severity counts from patterns (excluding best-practice, which don't affect
+  // the WCAG score — consistent with the dashboard and scan detail).
   const severityCounts = { critical: 0, serious: 0, moderate: 0, minor: 0 }
   for (const p of patterns) {
     const impact = p.impact as keyof typeof severityCounts
-    if (impact in severityCounts) severityCounts[impact] += p.occurrences
+    if (!p.isBestPractice && impact in severityCounts) severityCounts[impact] += p.occurrences
   }
   const totalViolations = severityCounts.critical + severityCounts.serious + severityCounts.moderate + severityCounts.minor
 
