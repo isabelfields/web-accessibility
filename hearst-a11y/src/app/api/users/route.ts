@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/auth'
 import { sql } from '@/lib/db'
 import crypto from 'crypto'
+
+const InviteSchema = z.object({
+  email: z.string().email(),
+  role: z.enum(['admin', 'user']),
+  allowedDivisions: z.array(z.string()).optional(),
+})
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -24,10 +31,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const { email, role, allowedDivisions } = await req.json()
-  if (!email || !role) {
-    return NextResponse.json({ error: 'email and role required' }, { status: 400 })
+  const parsed = InviteSchema.safeParse(await req.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
+  const { email, role, allowedDivisions } = parsed.data
 
   const existing = await sql`SELECT id FROM users WHERE email = ${email} LIMIT 1`
   if (existing.length > 0) {
