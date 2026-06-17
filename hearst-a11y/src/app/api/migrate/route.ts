@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
 import { MIGRATION_SQL } from '@/lib/db/schema'
+import { isValidBearer } from '@/lib/security'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,8 +16,7 @@ export const dynamic = 'force-dynamic'
  * Every statement is idempotent (IF NOT EXISTS), so it is safe to re-run.
  */
 export async function POST(req: NextRequest) {
-  const authHeader = req.headers.get('authorization')
-  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isValidBearer(req.headers.get('authorization'), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

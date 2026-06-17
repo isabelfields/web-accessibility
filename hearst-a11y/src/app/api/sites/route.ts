@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/auth'
+import { getSessionUser, canAccessDivision } from '@/lib/auth-helpers'
+import { findUnscannableUrl } from '@/lib/net/url-guard'
 
 const SitePageSchema = z.object({
   url: z.string().url(),
@@ -19,9 +19,11 @@ const SiteSchema = z.object({
 })
 
 export async function GET() {
-  const session = await getServerSession(authOptions)
-  const isAdmin = (session?.user as any)?.role === 'admin'
-  const allowedDivisions = isAdmin ? [] : ((session?.user as any)?.allowedDivisions ?? [])
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const isAdmin = user.role === 'admin'
+  const allowedDivisions = isAdmin ? [] : (user.allowedDivisions ?? [])
 
   const sites = allowedDivisions.length > 0
     ? await sql`SELECT * FROM sites WHERE division = ANY(${allowedDivisions}::text[]) ORDER BY created_at DESC`
@@ -44,8 +46,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
   const parsed = SiteSchema.safeParse(body)
@@ -54,6 +56,15 @@ export async function POST(req: NextRequest) {
   }
 
   const { name, division, brand, region, pages } = parsed.data
+
+  // A user may only create sites within a division they can access.
+  if (!canAccessDivision(user, division ?? null)) {
+    return NextResponse.json({ error: 'Forbidden: division not allowed' }, { status: 403 })
+  }
+
+  const badUrl = await findUnscannableUrl(pages)
+  if (badUrl) return NextResponse.json({ error: `Invalid page URL — ${badUrl}` }, { status: 400 })
+
   const [site] = await sql`
     INSERT INTO sites (name, division, brand, region, pages)
     VALUES (${name}, ${division ?? null}, ${brand ?? null}, ${region ?? null}, ${JSON.stringify(pages)})

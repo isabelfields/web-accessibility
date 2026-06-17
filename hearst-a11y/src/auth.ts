@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import type { NextAuthOptions } from 'next-auth'
 import bcrypt from 'bcryptjs'
 import { sql } from '@/lib/db'
+import { safeEqual } from '@/lib/security'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -21,7 +22,7 @@ export const authOptions: NextAuthOptions = {
         if (
           process.env.ADMIN_USERNAME &&
           email === process.env.ADMIN_USERNAME.trim().toLowerCase() &&
-          password === process.env.ADMIN_PASSWORD
+          safeEqual(password, process.env.ADMIN_PASSWORD)
         ) {
           return { id: '1', name: 'Admin', role: 'admin' as const, allowedDivisions: [] }
         }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { neon } from '@neondatabase/serverless'
 import { getSessionUser } from '@/lib/auth-helpers'
+import { assertPublicUrl, UrlNotAllowedError } from '@/lib/net/url-guard'
 
 const ScheduleSchema = z.object({
   url: z.string().url(),
@@ -41,6 +42,15 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
 
   const { url, cadence, dayOfWeek, dayOfMonth } = parsed.data
+
+  // SSRF guard: don't persist a schedule that points at a non-public target.
+  try {
+    await assertPublicUrl(url)
+  } catch (e) {
+    if (e instanceof UrlNotAllowedError) return NextResponse.json({ error: e.message }, { status: 400 })
+    throw e
+  }
+
   const nextRun = computeNextRun(cadence, dayOfWeek, dayOfMonth)
   const sql = neon(process.env.DATABASE_URL!)
 
