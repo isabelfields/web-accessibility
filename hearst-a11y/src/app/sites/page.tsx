@@ -5,7 +5,10 @@ import Link from 'next/link'
 import { AddSiteForm } from '@/components/AddSiteForm'
 import { EditSiteForm } from '@/components/EditSiteForm'
 import { formatDay } from '@/lib/format'
+import { Pagination } from '@/components/Pagination'
 import type { SitePage } from '@/types'
+
+const PAGE_SIZE = 15
 
 interface Site {
   id: string
@@ -38,17 +41,26 @@ const selectStyle: React.CSSProperties = {
 export default function SitesPage() {
   const [sites, setSites] = useState<Site[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [editingSite, setEditingSite] = useState<Site | null>(null)
+  const [query, setQuery] = useState('')
   const [divisionFilter, setDivisionFilter] = useState('')
   const [regionFilter, setRegionFilter] = useState('')
+  const [page, setPage] = useState(1)
 
   async function load() {
     setLoading(true)
-    const res = await fetch('/api/sites')
-    const data = await res.json()
-    setSites(data)
-    setLoading(false)
+    setError(null)
+    try {
+      const res = await fetch('/api/sites')
+      if (!res.ok) throw new Error('Failed to load sites')
+      setSites(await res.json())
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load sites')
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [])
@@ -61,9 +73,14 @@ export default function SitesPage() {
 
   const activeDivisions = [...new Set(sites.map(s => s.division).filter(Boolean))] as string[]
   const activeRegions = [...new Set(sites.map(s => s.region).filter(Boolean))] as string[]
+  const q = query.trim().toLowerCase()
   const filtered = sites
     .filter(s => !divisionFilter || s.division === divisionFilter)
     .filter(s => !regionFilter || s.region === regionFilter)
+    .filter(s => !q || s.name.toLowerCase().includes(q) || (s.brand ?? '').toLowerCase().includes(q))
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, pageCount)
+  const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   return (
     <div style={{ minHeight: '100vh', background: '#F5F5F7', padding: '24px 32px' }}>
@@ -87,9 +104,24 @@ export default function SitesPage() {
         </button>
       </div>
 
-      {/* Filters */}
-      {(activeDivisions.length > 0 || activeRegions.length > 0) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 16 }}>
+      {error && (
+        <div style={{ marginBottom: 16, borderRadius: 10, border: '1px solid #FECACA', background: '#FEF2F2', padding: '12px 16px', fontSize: 13, color: '#B91C1C' }}>
+          {error}{' '}
+          <button onClick={load} style={{ textDecoration: 'underline', fontWeight: 600, color: '#B91C1C' }}>Retry</button>
+        </div>
+      )}
+
+      {/* Search + filters */}
+      {!loading && !error && sites.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 16, flexWrap: 'wrap' }}>
+          <input
+            type="search"
+            value={query}
+            onChange={e => { setQuery(e.target.value); setPage(1) }}
+            placeholder="Search sites…"
+            aria-label="Search sites by name or brand"
+            style={{ ...selectStyle, cursor: 'text', minWidth: 220 }}
+          />
           {activeDivisions.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Division</span>
@@ -113,7 +145,7 @@ export default function SitesPage() {
 
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0', color: '#6B6B6B', fontSize: 14 }}>Loading…</div>
-      ) : sites.length === 0 ? (
+      ) : error ? null : sites.length === 0 ? (
         <div style={{ borderRadius: 12, border: '1.5px dashed #D1D1D6', padding: '64px 32px', textAlign: 'center', background: '#fff' }}>
           <div style={{ fontSize: 16, color: '#1D1D1F', fontWeight: 600, marginBottom: 8 }}>No sites configured yet</div>
           <p style={{ fontSize: 13, color: '#6B6B6B', marginBottom: 20 }}>Add your first site to start monitoring accessibility.</p>
@@ -140,7 +172,14 @@ export default function SitesPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((site, i) => (
+              {visible.length === 0 && (
+                <tr>
+                  <td colSpan={8} style={{ padding: '48px 16px', textAlign: 'center', color: '#6B6B6B', fontSize: 13 }}>
+                    No sites match your search or filters.
+                  </td>
+                </tr>
+              )}
+              {visible.map((site, i) => (
                 <tr key={site.id} style={{ borderTop: i > 0 ? '1px solid #F0F0F0' : undefined }}
                   className="hover:bg-[#F5F5F7] transition-colors">
                   <td style={{ padding: '13px 16px' }}>
@@ -182,6 +221,7 @@ export default function SitesPage() {
               ))}
             </tbody>
           </table>
+          <Pagination page={currentPage} pageCount={pageCount} onPage={setPage} />
         </div>
       )}
     </div>

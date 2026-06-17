@@ -9,13 +9,21 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export default function SchedulesPage() {
   const [schedules, setSchedules] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const res = await fetch('/api/schedules')
-    setSchedules(await res.json())
-    setLoading(false)
+    setError(null)
+    try {
+      const res = await fetch('/api/schedules')
+      if (!res.ok) throw new Error('Failed to load schedules')
+      setSchedules(await res.json())
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load schedules')
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -46,9 +54,15 @@ export default function SchedulesPage() {
         </button>
       </div>
 
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error} <button onClick={load} className="underline font-medium">Retry</button>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-20 text-gray-400">Loading…</div>
-      ) : schedules.length === 0 ? (
+      ) : error ? null : schedules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-200 p-16 text-center">
           <div className="text-gray-400 text-lg mb-3">No schedules yet</div>
           <p className="text-gray-400 text-sm mb-6">Schedules automatically run accessibility scans on a recurring basis.</p>

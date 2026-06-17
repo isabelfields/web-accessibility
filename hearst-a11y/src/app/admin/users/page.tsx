@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { HEARST_DIVISIONS } from '@/types'
 import { Modal } from '@/components/Modal'
+import { Pagination } from '@/components/Pagination'
+
+const PAGE_SIZE = 15
 
 interface AppUser {
   id: string
@@ -200,19 +203,34 @@ function EditDivisionsModal({ user, onClose, onSaved }: { user: AppUser; onClose
 export default function UsersPage() {
   const [users, setUsers] = useState<AppUser[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const [page, setPage] = useState(1)
   const [showInvite, setShowInvite] = useState(false)
   const [inviteLink, setInviteLink] = useState<string | null>(null)
   const [editingUser, setEditingUser] = useState<AppUser | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const res = await fetch('/api/users')
-    const data = await res.json()
-    setUsers(data)
-    setLoading(false)
+    setError(null)
+    try {
+      const res = await fetch('/api/users')
+      if (!res.ok) throw new Error('Failed to load users')
+      setUsers(await res.json())
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load users')
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  const q = query.trim().toLowerCase()
+  const filtered = q ? users.filter(u => u.email.toLowerCase().includes(q)) : users
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, pageCount)
+  const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   async function changeRole(user: AppUser, newRole: 'admin' | 'user') {
     await fetch(`/api/users/${user.id}`, {
@@ -264,6 +282,23 @@ export default function UsersPage() {
         />
       )}
 
+      <div className="mb-4">
+        <input
+          type="search"
+          value={query}
+          onChange={e => { setQuery(e.target.value); setPage(1) }}
+          placeholder="Search by email…"
+          aria-label="Search users by email"
+          className="w-full max-w-xs px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error} <button onClick={load} className="underline font-medium">Retry</button>
+        </div>
+      )}
+
       {loading ? (
         <div className="text-center py-16 text-gray-400">Loading…</div>
       ) : (
@@ -279,7 +314,14 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {users.map(user => (
+              {visible.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-12 text-center text-sm text-gray-400">
+                    {query ? 'No users match your search.' : 'No users yet.'}
+                  </td>
+                </tr>
+              )}
+              {visible.map(user => (
                 <tr key={user.id} className="hover:bg-gray-50/60 transition-colors">
                   <td className="px-4 py-3 font-medium text-gray-800">{user.email}</td>
                   <td className="px-4 py-3">
@@ -343,6 +385,7 @@ export default function UsersPage() {
               ))}
             </tbody>
           </table>
+          <Pagination page={currentPage} pageCount={pageCount} onPage={setPage} />
         </div>
       )}
     </div>
