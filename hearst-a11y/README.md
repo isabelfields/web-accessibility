@@ -6,17 +6,17 @@ Web accessibility scanner with full-site crawling, AI-powered fix suggestions, s
 
 - **Next.js 15** (App Router) — frontend + API routes
 - **Playwright + axe-core** — headless page rendering + WCAG auditing
-- **Claude API (Sonnet)** — generates fix suggestions for complex violations
+- **OpenAI API (gpt-4o)** — generates fix suggestions for complex violations
 - **Neon** — serverless Postgres
 - **Vercel** — hosting + cron jobs
 - **GitHub Actions** — CI/CD
 
 ## Cost Optimizations
 
-Three optimizations keep Claude API costs under $0.10 per full 50-page scan:
+Three optimizations keep AI API costs under $0.10 per full 50-page scan:
 
 1. **Skip near-duplicate pages** — DOM structure fingerprinting skips pages that share a template with an already-scanned page (e.g. article pages)
-2. **Strip HTML before Claude** — sends `selector + context` instead of raw HTML, cutting input tokens ~60%
+2. **Strip HTML before the model** — sends `selector + context` instead of raw HTML, cutting input tokens ~60%
 3. **Hardcoded rules for known violations** — 25+ common axe rules (image-alt, label, button-name, etc.) return pre-written fixes without hitting the API
 
 ## Setup
@@ -119,5 +119,6 @@ POST /api/schedules
 
 ## Cron
 
-Vercel runs `/api/cron` hourly. It checks for due schedules and triggers scans automatically.
-The cron endpoint is protected by `CRON_SECRET`.
+Vercel runs `/api/cron` daily at 02:00 UTC (the Hobby plan only allows daily crons).
+It checks for due schedules and runs their scans in-process. The cron endpoint is
+protected by `CRON_SECRET`.

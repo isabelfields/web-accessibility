@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { HEARST_DIVISIONS, HEARST_BRANDS, HEARST_REGIONS, HearstDivision } from '@/types'
+import { normalizeUrl } from '@/lib/format'
 
 interface PageRow {
   url: string
@@ -11,13 +12,6 @@ interface PageRow {
 }
 
 const emptyPage = (): PageRow => ({ url: '', label: '', templateType: 'other' })
-
-function normalizeUrl(url: string): string {
-  const trimmed = url.trim()
-  if (!trimmed) return trimmed
-  if (/^https?:\/\//i.test(trimmed)) return trimmed
-  return `https://${trimmed}`
-}
 
 export function AddSiteForm({ onClose }: { onClose: () => void }) {
   const router = useRouter()

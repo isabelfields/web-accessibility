@@ -7,6 +7,7 @@ import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { SeverityBar } from '@/components/SeverityBar'
 import { ExportPdfButton } from '@/components/ExportPdfButton'
 import { patternsToWorstTier, TIER_LABEL, TIER_COLOR } from '@/lib/tiers'
+import { formatDateTime } from '@/lib/format'
 import type { ViolationPattern, PageScore } from '@/types'
 
 const RULE_WCAG_LEVEL: Record<string, 'A' | 'AA'> = {
@@ -34,23 +35,6 @@ async function getScan(id: string) {
   }
 
   return { scan, site }
-}
-
-function formatDate(d: string | Date | null) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
-}
-
-function impactColor(impact: string) {
-  switch (impact) {
-    case 'critical': return 'bg-red-500/20 text-red-400'
-    case 'serious': return 'bg-red-500/20 text-red-400'
-    case 'moderate': return 'bg-amber-500/20 text-amber-400'
-    default: return 'bg-blue-500/20 text-blue-400'
-  }
 }
 
 export default async function ScanDetailPage({ params }: RouteContext) {
@@ -108,7 +92,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             <span className="text-[#A1A1A6]">/</span>
           </>
         )}
-        <span className="text-[#1D1D1F] font-medium">Scan {formatDate(scan.started_at)}</span>
+        <span className="text-[#1D1D1F] font-medium">Scan {formatDateTime(scan.started_at)}</span>
       </div>
 
       {/* Header */}
@@ -127,7 +111,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             }`}>
               {scan.status}
             </span>
-            <span className="text-sm text-[#3A3A3C]">{formatDate(scan.started_at)}</span>
+            <span className="text-sm text-[#3A3A3C]">{formatDateTime(scan.started_at)}</span>
             {scan.triggered_by && (
               <span className="text-sm text-[#3A3A3C] capitalize">· {scan.triggered_by}</span>
             )}

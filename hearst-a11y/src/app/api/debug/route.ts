@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/auth'
-import { sql } from '@/lib/db/index'
+import { sql } from '@/lib/db'
+import { requireAdmin } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   // Admin-only: this endpoint exposes database contents.
-  const session = await getServerSession(authOptions)
-  if (session?.user?.role !== 'admin') {
+  if (!(await requireAdmin())) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

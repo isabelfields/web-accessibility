@@ -10,6 +10,7 @@ import { EditSiteButton } from '@/components/EditSiteButton'
 import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { patternsToWorstTier, TIER_LABEL, impactToTier, TIER_COLOR } from '@/lib/tiers'
 import { SeverityDonut } from '@/components/SeverityDonut'
+import { formatDateTime } from '@/lib/format'
 import type { ViolationPattern, SitePage } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -42,10 +43,6 @@ async function getSiteData(id: string) {
   return { site, scans }
 }
 
-function formatDate(d: string | Date | null) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-}
 
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
   complete: { background: '#ECFDF5', color: '#059669' },
@@ -115,7 +112,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           <h1 style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>{site.name}</h1>
           {latestScan && (
             <p style={{ fontSize: 12, color: '#6B6B6B', margin: 0 }}>
-              Last scanned {formatDate(latestScan.started_at)}
+              Last scanned {formatDateTime(latestScan.started_at)}
             </p>
           )}
         </div>
@@ -276,8 +273,8 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                 <tr key={scan.id} style={{ borderTop: '1px solid #F0F0F0', cursor: 'pointer', position: 'relative' }}
                   className="group hover:bg-[#F5F5F7] transition-colors">
                   <td style={{ padding: '12px 16px', color: '#1D1D1F' }}>
-                    <Link href={`/scans/${scan.id}`} style={{ position: 'absolute', inset: 0 }} aria-label={`View scan from ${formatDate(scan.started_at)}`} />
-                    {formatDate(scan.started_at)}
+                    <Link href={`/scans/${scan.id}`} style={{ position: 'absolute', inset: 0 }} aria-label={`View scan from ${formatDateTime(scan.started_at)}`} />
+                    {formatDateTime(scan.started_at)}
                   </td>
                   <td style={{ padding: '12px 16px' }}>
                     <span style={{ display: 'inline-flex', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, ...(STATUS_STYLE[scan.status] ?? STATUS_STYLE.queued) }}>

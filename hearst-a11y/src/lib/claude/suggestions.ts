@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
 import { StrippedViolation } from '@/types'
+import { AI } from '@/lib/constants'
 
 let _openai: OpenAI | undefined
 function getOpenAI() {
@@ -46,10 +47,10 @@ Example:
 [{"index":1,"fix":"Add \`aria-label\` to this button..."},{"index":2,"fix":"..."}]`
 
   const response = await getOpenAI().chat.completions.create({
-    model: 'gpt-4o',
-    // Up to BATCH_SIZE (20) violations per call; 1500 tokens can truncate the
-    // JSON array and force the whole batch into the fallback path.
-    max_tokens: 4096,
+    model: AI.MODEL,
+    // Up to AI.BATCH_SIZE violations per call; too small a budget truncates the
+    // JSON array and forces the whole batch into the fallback path.
+    max_tokens: AI.MAX_TOKENS,
     messages: [{ role: 'user', content: prompt }],
   })
 

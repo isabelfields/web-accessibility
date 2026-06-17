@@ -1,9 +1,10 @@
 import { ScanJob, SitePage, PageScanResult, RawViolation, PageScore } from '@/types'
 import { crawlAndScan } from './crawler'
 import { deduplicateAndFix } from './deduplicator'
-import { calculateScore } from '@/lib/score'
+import { calculateScore, impactDeduction, isBestPractice } from '@/lib/score'
 import { runKeyboardCheck } from './keyboard'
 import { assertPublicUrl } from '@/lib/net/url-guard'
+import { AXE_TAGS, browserlessWsEndpoint } from '@/lib/constants'
 
 async function scanPageList(pages: SitePage[]): Promise<{
   results: PageScanResult[]
@@ -14,8 +15,7 @@ async function scanPageList(pages: SitePage[]): Promise<{
   const { chromium } = await import('playwright')
   const AxeBuilder = (await import('@axe-core/playwright')).default
 
-  const wsEndpoint = `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`
-  let browser = await chromium.connectOverCDP(wsEndpoint)
+  let browser = await chromium.connectOverCDP(browserlessWsEndpoint())
   const results: PageScanResult[] = []
   const pageScores: PageScore[] = []
 
@@ -29,7 +29,7 @@ async function scanPageList(pages: SitePage[]): Promise<{
       await pw.goto(page.url, { waitUntil: 'domcontentloaded', timeout: 20000 })
 
       const axeResults = await new AxeBuilder({ page: pw })
-        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
+        .withTags(AXE_TAGS)
         .analyze()
 
       // Include incomplete contrast results — axe can't compute ratio when CSS vars are used
@@ -63,17 +63,11 @@ async function scanPageList(pages: SitePage[]): Promise<{
       }
 
       // Same formula as calculateScore so page scores are comparable to the
-      // overall score — including skipping best-practice rules, which don't
-      // count toward the WCAG score. (matches deduplicator's isBestPractice)
+      // overall score — best-practice rules don't count toward the WCAG score.
       let pagePenalty = 0
       for (const v of violations) {
-        const tags = (v as any).tags ?? []
-        const isBestPractice = tags.includes('best-practice') && !tags.some((t: string) => t.startsWith('wcag'))
-        if (isBestPractice) continue
-        if (v.impact === 'critical') pagePenalty += 8
-        else if (v.impact === 'serious') pagePenalty += 5
-        else if (v.impact === 'moderate') pagePenalty += 2
-        else pagePenalty += 0.5
+        if (isBestPractice((v as any).tags)) continue
+        pagePenalty += impactDeduction(v.impact)
       }
       const pageScore = Math.max(0, Math.round(100 - pagePenalty))
       const rawForScore = violations.reduce((sum, v) => sum + v.nodes.length, 0)
@@ -93,7 +87,7 @@ async function scanPageList(pages: SitePage[]): Promise<{
         err.message.includes('context or browser')
       )) {
         try { await browser.close() } catch { /* ignore */ }
-        browser = await chromium.connectOverCDP(wsEndpoint)
+        browser = await chromium.connectOverCDP(browserlessWsEndpoint())
         return scanOnePage(page, true)
       }
       throw err
