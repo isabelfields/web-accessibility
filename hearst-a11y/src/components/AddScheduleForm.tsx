@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Modal } from './Modal'
 
 interface Site { id: string; name: string; pages: { url: string }[] }
 
@@ -49,13 +50,8 @@ export function AddScheduleForm({ onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-gray-900">New Schedule</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <Modal title="New Schedule" onClose={onClose} size="md">
+        <form onSubmit={handleSubmit} className="space-y-4 p-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Site</label>
             <select
@@ -126,7 +122,6 @@ export function AddScheduleForm({ onClose }: Props) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 }

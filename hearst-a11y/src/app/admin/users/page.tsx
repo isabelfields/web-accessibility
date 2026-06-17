@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { HEARST_DIVISIONS } from '@/types'
+import { Modal } from '@/components/Modal'
 
 interface AppUser {
   id: string
@@ -45,10 +46,8 @@ function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-xl p-6 w-[480px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
-        <h2 className="text-base font-semibold text-gray-900 mb-4">Invite user</h2>
-        <form onSubmit={submit} className="space-y-4">
+    <Modal title="Invite user" onClose={onClose} size="md">
+        <form onSubmit={submit} className="space-y-4 p-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
@@ -109,8 +108,7 @@ function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -122,9 +120,8 @@ function InviteLinkModal({ link, onClose }: { link: string; onClose: () => void 
     setTimeout(() => setCopied(false), 2000)
   }
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-xl p-6 w-[480px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
-        <h2 className="text-base font-semibold text-gray-900 mb-2">Invite link created</h2>
+    <Modal title="Invite link created" onClose={onClose} size="md">
+      <div className="p-6">
         <p className="text-sm text-gray-500 mb-4">Share this link with the user. It expires in 7 days.</p>
         <div className="flex gap-2">
           <input
@@ -143,7 +140,7 @@ function InviteLinkModal({ link, onClose }: { link: string; onClose: () => void 
           Done
         </button>
       </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -167,9 +164,8 @@ function EditDivisionsModal({ user, onClose, onSaved }: { user: AppUser; onClose
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-xl p-6 w-[400px] max-w-[95vw]" onClick={e => e.stopPropagation()}>
-        <h2 className="text-base font-semibold text-gray-900 mb-1">Edit divisions</h2>
+    <Modal title="Edit divisions" onClose={onClose} size="md">
+      <div className="p-6">
         <p className="text-sm text-gray-400 mb-4">{user.email}</p>
         <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto mb-4">
           {HEARST_DIVISIONS.map(d => (
@@ -197,7 +193,7 @@ function EditDivisionsModal({ user, onClose, onSaved }: { user: AppUser; onClose
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 

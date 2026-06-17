@@ -22,9 +22,10 @@ export function DeleteScanButton({ jobId }: { jobId: string }) {
       onClick={handleDelete}
       disabled={deleting}
       title="Remove this scan"
+      aria-label="Remove this scan"
       className="p-1 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 disabled:opacity-40 transition-colors"
     >
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
