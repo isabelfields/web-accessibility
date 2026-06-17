@@ -1,5 +1,5 @@
 import { chromium } from 'playwright'
-import { PageScanResult } from '@/types'
+import { PageScanResult, RawViolation } from '@/types'
 import { computeDomFingerprint, isNearDuplicate } from './fingerprint'
 import { runKeyboardCheck } from './keyboard'
 import { assertPublicUrl } from '@/lib/net/url-guard'
@@ -84,8 +84,9 @@ export async function crawlAndScan(rootUrl: string): Promise<{
             })
 
             const axeViolations = await page.evaluate(async (tags: string[]) => {
-              // @ts-ignore axe is injected
-              const results = await window.axe.run(document, {
+              // axe is injected into the page via the CDN script tag above.
+              const axe = (window as unknown as { axe: { run: (doc: Document, opts: object) => Promise<{ violations: RawViolation[] }> } }).axe
+              const results = await axe.run(document, {
                 runOnly: { type: 'tag', values: tags },
               })
               return results.violations

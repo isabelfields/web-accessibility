@@ -55,7 +55,7 @@ async function scanPageList(pages: SitePage[]): Promise<{
               const shot = await el.screenshot({ type: 'jpeg', quality: 65 })
               const b64 = shot.toString('base64')
               if (b64.length < 60000) {
-                ;(violation as any).sampleScreenshot = b64
+                violation.sampleScreenshot = b64
               }
             }
           } catch { /* silently skip — element may not be findable */ }
@@ -66,7 +66,7 @@ async function scanPageList(pages: SitePage[]): Promise<{
       // overall score — best-practice rules don't count toward the WCAG score.
       let pagePenalty = 0
       for (const v of violations) {
-        if (isBestPractice((v as any).tags)) continue
+        if (isBestPractice(v.tags)) continue
         pagePenalty += impactDeduction(v.impact)
       }
       const pageScore = Math.max(0, Math.round(100 - pagePenalty))
@@ -105,10 +105,10 @@ async function scanPageList(pages: SitePage[]): Promise<{
       pageScores.push({
         url: page.url,
         label: page.label,
-        score: null as any,
-        violationCount: null as any,
+        score: null,
+        violationCount: null,
         error: errorMsg,
-      } as any)
+      })
       results.push({
         url: page.url,
         domFingerprint: '',
@@ -177,7 +177,7 @@ export async function runScan(
       if (!violationsByRule.has(v.id)) {
         violationsByRule.set(v.id, {
           html: v.nodes[0]?.html ?? '',
-          screenshot: (v as any).sampleScreenshot,
+          screenshot: v.sampleScreenshot,
         })
       }
     }

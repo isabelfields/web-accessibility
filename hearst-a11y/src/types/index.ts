@@ -14,6 +14,7 @@ export interface RawViolation {
   helpUrl: string
   nodes: ViolationNode[]
   tags?: string[]
+  sampleScreenshot?: string  // base64 JPEG attached during scanning
 }
 
 // Stripped-down violation we send to Claude (NOT raw HTML)

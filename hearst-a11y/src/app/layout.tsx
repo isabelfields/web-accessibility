@@ -14,7 +14,7 @@ const navLink = "flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-med
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions)
-  const isAdmin = (session?.user as any)?.role === 'admin'
+  const isAdmin = session?.user?.role === 'admin'
 
   return (
     <html lang="en">
