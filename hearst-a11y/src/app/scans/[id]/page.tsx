@@ -104,9 +104,9 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           <p className="text-sm text-[#6B6B6B] mt-1">{scan.root_url}</p>
           <div className="flex items-center gap-3 mt-2">
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-              scan.status === 'complete' ? 'bg-emerald-500/20 text-emerald-400' :
-              scan.status === 'running' ? 'bg-blue-500/20 text-blue-400' :
-              scan.status === 'failed' ? 'bg-red-500/20 text-red-400' :
+              scan.status === 'complete' ? 'bg-emerald-100 text-emerald-700' :
+              scan.status === 'running' ? 'bg-blue-100 text-blue-700' :
+              scan.status === 'failed' ? 'bg-red-100 text-red-700' :
               'bg-[#F5F5F7] text-[#6B6B6B]'
             }`}>
               {scan.status}
@@ -142,7 +142,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                   <div className="text-xs text-[#3A3A3C] mt-1">highest tier found</div>
                 </>
               ) : (
-                <div className="text-lg font-semibold text-emerald-400">No issues</div>
+                <div className="text-lg font-semibold text-emerald-600">No issues</div>
               )}
             </div>
 
@@ -198,9 +198,9 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                         <tr className={`border-t border-[#E5E5EA] transition-colors ${ps.score != null ? 'hover:bg-[#F5F5F7] cursor-pointer' : ''}`}>
                           <td className="px-4 py-3 font-medium text-[#1D1D1F]">{ps.label ?? '—'}</td>
                           <td className="px-4 py-3">
-                            <span className="text-[#5b9bd6] truncate block max-w-sm">{ps.url}</span>
+                            <span className="text-[#1d4ed8] truncate block max-w-sm">{ps.url}</span>
                             {ps.error && (
-                              <div className="text-xs text-red-400 mt-0.5 truncate max-w-sm" title={ps.error}>
+                              <div className="text-xs text-red-600 mt-0.5 truncate max-w-sm" title={ps.error}>
                                 ⚠ {ps.error.length > 80 ? ps.error.slice(0, 80) + '…' : ps.error}
                               </div>
                             )}
@@ -208,7 +208,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                           <td className="px-4 py-3 text-right text-[#1D1D1F]">{ps.violationCount ?? '—'}</td>
                           <td className="px-4 py-3 text-right">
                             {ps.score == null
-                              ? <span className="text-xs font-normal bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md">Failed</span>
+                              ? <span className="text-xs font-normal bg-red-100 text-red-700 px-2 py-0.5 rounded-md">Failed</span>
                               : <span className="text-xs text-[#3A3A3C]">Scanned</span>
                             }
                           </td>

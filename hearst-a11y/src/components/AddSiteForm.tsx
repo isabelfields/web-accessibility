@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { HEARST_DIVISIONS, HEARST_BRANDS, HEARST_REGIONS, HearstDivision } from '@/types'
 import { normalizeUrl } from '@/lib/format'
+import { Modal } from './Modal'
 
 interface PageRow {
   url: string
@@ -67,13 +68,7 @@ export function AddSiteForm({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Add New Site</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
-        </div>
-
+    <Modal title="Add New Site" onClose={onClose} size="lg">
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -146,6 +141,7 @@ export function AddSiteForm({ onClose }: { onClose: () => void }) {
                   <div className="flex-1 grid grid-cols-3 gap-2">
                     <input
                       type="text"
+                      aria-label={`Page ${i + 1} URL`}
                       placeholder="elle.com/fashion/article"
                       value={page.url}
                       onChange={e => updatePage(i, 'url', e.target.value)}
@@ -155,6 +151,7 @@ export function AddSiteForm({ onClose }: { onClose: () => void }) {
                     />
                     <input
                       type="text"
+                      aria-label={`Page ${i + 1} label`}
                       placeholder="Label (e.g. Homepage)"
                       value={page.label}
                       onChange={e => updatePage(i, 'label', e.target.value)}
@@ -162,6 +159,7 @@ export function AddSiteForm({ onClose }: { onClose: () => void }) {
                       className="col-span-3 sm:col-span-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <select
+                      aria-label={`Page ${i + 1} template type`}
                       value={page.templateType}
                       onChange={e => updatePage(i, 'templateType', e.target.value)}
                       className="col-span-3 sm:col-span-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -180,6 +178,7 @@ export function AddSiteForm({ onClose }: { onClose: () => void }) {
                     <button
                       type="button"
                       onClick={() => removePage(i)}
+                      aria-label={`Remove page ${i + 1}`}
                       className="mt-2 text-red-400 hover:text-red-600 text-lg"
                     >
                       &times;
@@ -213,7 +212,6 @@ export function AddSiteForm({ onClose }: { onClose: () => void }) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 }
