@@ -1,11 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Modal } from './Modal'
 
-interface Site { id: string; name: string; pages: { url: string }[] }
+interface Site { id: string; name: string; division?: string | null; pages: { url: string }[] }
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+const NO_DIVISION = 'Other'
+
+/** Group sites by division, sorted division → site name ("Other" division last). */
+function groupByDivision(sites: Site[]): { division: string; sites: Site[] }[] {
+  const byDivision = new Map<string, Site[]>()
+  for (const s of sites) {
+    const key = s.division || NO_DIVISION
+    if (!byDivision.has(key)) byDivision.set(key, [])
+    byDivision.get(key)!.push(s)
+  }
+  return [...byDivision.keys()]
+    .sort((a, b) => (a === NO_DIVISION ? 1 : b === NO_DIVISION ? -1 : a.localeCompare(b)))
+    .map(division => ({
+      division,
+      sites: byDivision.get(division)!.slice().sort((x, y) => x.name.localeCompare(y.name)),
+    }))
+}
 
 interface Props { onClose: () => void }
 
@@ -18,10 +36,14 @@ export function AddScheduleForm({ onClose }: Props) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  const grouped = useMemo(() => groupByDivision(sites), [sites])
+
   useEffect(() => {
     fetch('/api/sites').then(r => r.json()).then((data: Site[]) => {
       setSites(data)
-      if (data.length > 0) setSiteId(data[0].id)
+      // Default to the first site in division → name order, matching the dropdown.
+      const first = groupByDivision(data)[0]?.sites[0]
+      if (first) setSiteId(first.id)
     })
   }, [])
 
@@ -60,7 +82,11 @@ export function AddScheduleForm({ onClose }: Props) {
               required
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {grouped.map(g => (
+                <optgroup key={g.division} label={g.division}>
+                  {g.sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </optgroup>
+              ))}
             </select>
           </div>
 
