@@ -91,7 +91,7 @@ export default function SitesPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>Sites</h1>
-          <p style={{ fontSize: 13, color: '#6B6B6B', margin: '4px 0 0' }}>Manage your monitored web properties</p>
+          <p style={{ fontSize: 13, color: '#57575A', margin: '4px 0 0' }}>Manage your monitored web properties</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
@@ -124,7 +124,7 @@ export default function SitesPage() {
           />
           {activeDivisions.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Division</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Division</span>
               <select value={divisionFilter} onChange={e => setDivisionFilter(e.target.value)} style={selectStyle}>
                 <option value="">All</option>
                 {activeDivisions.map(d => <option key={d} value={d}>{d}</option>)}
@@ -133,7 +133,7 @@ export default function SitesPage() {
           )}
           {activeRegions.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Region</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Region</span>
               <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)} style={selectStyle}>
                 <option value="">All</option>
                 {activeRegions.map(r => <option key={r} value={r}>{r}</option>)}
@@ -144,11 +144,11 @@ export default function SitesPage() {
       )}
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0', color: '#6B6B6B', fontSize: 14 }}>Loading…</div>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0', color: '#57575A', fontSize: 14 }}>Loading…</div>
       ) : error ? null : sites.length === 0 ? (
         <div style={{ borderRadius: 12, border: '1.5px dashed #D1D1D6', padding: '64px 32px', textAlign: 'center', background: '#fff' }}>
           <div style={{ fontSize: 16, color: '#1D1D1F', fontWeight: 600, marginBottom: 8 }}>No sites configured yet</div>
-          <p style={{ fontSize: 13, color: '#6B6B6B', marginBottom: 20 }}>Add your first site to start monitoring accessibility.</p>
+          <p style={{ fontSize: 13, color: '#57575A', marginBottom: 20 }}>Add your first site to start monitoring accessibility.</p>
           <button
             onClick={() => setShowForm(true)}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 10, background: '#007AFF', color: '#fff', fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer' }}
@@ -161,20 +161,20 @@ export default function SitesPage() {
           <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#F9F9FB', borderBottom: '1px solid #E5E5EA' }}>
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Site</th>
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Division</th>
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Brand</th>
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pages</th>
-                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>WCAG Errors</th>
-                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Last Scan</th>
-                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Added</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Site</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Division</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Brand</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pages</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>WCAG Errors</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Last Scan</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Added</th>
                 <th style={{ padding: '10px 16px' }} />
               </tr>
             </thead>
             <tbody>
               {visible.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{ padding: '48px 16px', textAlign: 'center', color: '#6B6B6B', fontSize: 13 }}>
+                  <td colSpan={8} style={{ padding: '48px 16px', textAlign: 'center', color: '#57575A', fontSize: 13 }}>
                     No sites match your search or filters.
                   </td>
                 </tr>
@@ -190,21 +190,21 @@ export default function SitesPage() {
                   <td style={{ padding: '13px 16px' }}>
                     {site.division
                       ? <span style={{ display: 'inline-flex', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: '#EFF6FF', color: '#1D4ED8' }}>{site.division}</span>
-                      : <span style={{ color: '#6B6B6B' }}>—</span>}
+                      : <span style={{ color: '#57575A' }}>—</span>}
                   </td>
                   <td style={{ padding: '13px 16px', color: '#3A3A3C' }}>
-                    {site.brand ?? <span style={{ color: '#6B6B6B' }}>—</span>}
+                    {site.brand ?? <span style={{ color: '#57575A' }}>—</span>}
                   </td>
                   <td style={{ padding: '13px 16px', color: '#3A3A3C' }}>
                     {site.pages?.length ?? 0} page{(site.pages?.length ?? 0) !== 1 ? 's' : ''}
                   </td>
                   <td style={{ padding: '13px 16px', textAlign: 'right', fontWeight: 600, color: '#1D1D1F', fontVariantNumeric: 'tabular-nums' }}>
-                    {site.latestScan ? site.latestScan.raw_violation_count : <span style={{ color: '#6B6B6B', fontWeight: 400 }}>—</span>}
+                    {site.latestScan ? site.latestScan.raw_violation_count : <span style={{ color: '#57575A', fontWeight: 400 }}>—</span>}
                   </td>
-                  <td style={{ padding: '13px 16px', textAlign: 'right', color: '#6B6B6B' }}>
+                  <td style={{ padding: '13px 16px', textAlign: 'right', color: '#57575A' }}>
                     {site.latestScan ? formatDay(site.latestScan.started_at) : '—'}
                   </td>
-                  <td style={{ padding: '13px 16px', textAlign: 'right', color: '#6B6B6B' }}>
+                  <td style={{ padding: '13px 16px', textAlign: 'right', color: '#57575A' }}>
                     {formatDay(site.created_at)}
                   </td>
                   <td style={{ padding: '13px 16px', textAlign: 'right' }}>

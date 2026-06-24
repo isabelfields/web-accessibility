@@ -18,7 +18,7 @@ const LINE_COLORS = ['#2563eb', '#16a34a', '#dc2626', '#d97706', '#7c3aed', '#08
 
 export function ScoreTrendChart({ trends }: Props) {
   if (trends.length === 0 || trends.every(t => t.scores.length < 2)) {
-    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, fontSize: 13, color: '#6B6B6B' }}>Run more scans to see trends</div>
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, fontSize: 13, color: '#57575A' }}>Run more scans to see trends</div>
   }
 
   const allDates = [...new Set(
@@ -44,14 +44,14 @@ export function ScoreTrendChart({ trends }: Props) {
         <CartesianGrid strokeDasharray="3 3" stroke="#E5E5EA" vertical={false} />
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 11, fill: '#6B6B6B' }}
+          tick={{ fontSize: 11, fill: '#57575A' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         />
         <YAxis
           domain={[minScore, maxScore]}
-          tick={{ fontSize: 11, fill: '#6B6B6B' }}
+          tick={{ fontSize: 11, fill: '#57575A' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => `${v}`}
@@ -65,13 +65,13 @@ export function ScoreTrendChart({ trends }: Props) {
             color: '#1C1C1E',
             boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
           }}
-          labelStyle={{ color: '#6B6B6B', marginBottom: 4 }}
+          labelStyle={{ color: '#57575A', marginBottom: 4 }}
           labelFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         />
         <Legend
           iconType="circle"
           iconSize={8}
-          wrapperStyle={{ fontSize: 11, color: '#6B6B6B', paddingTop: 8 }}
+          wrapperStyle={{ fontSize: 11, color: '#57575A', paddingTop: 8 }}
           formatter={(value) => <span style={{ color: '#374151' }}>{value}</span>}
         />
         {trends.map((site, i) => (

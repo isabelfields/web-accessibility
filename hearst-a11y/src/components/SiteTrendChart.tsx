@@ -22,14 +22,14 @@ export function SiteTrendChart({ points }: Props) {
         <CartesianGrid strokeDasharray="3 3" stroke="#E5E5EA" vertical={false} />
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 11, fill: '#6B6B6B' }}
+          tick={{ fontSize: 11, fill: '#57575A' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         />
         <YAxis
           domain={[minVal, maxVal]}
-          tick={{ fontSize: 11, fill: '#6B6B6B' }}
+          tick={{ fontSize: 11, fill: '#57575A' }}
           tickLine={false}
           axisLine={false}
         />
