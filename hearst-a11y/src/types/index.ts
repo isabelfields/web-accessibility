@@ -46,6 +46,7 @@ export interface ViolationPattern {
   nodes: PatternNode[]   // every failing element, each individually fixable
   sampleHtml?: string    // kept for backwards compat with old scan records
   sampleScreenshot?: string
+  isNew?: boolean        // transient: not present in the previous scan (diff view)
 }
 
 export interface PageScore {

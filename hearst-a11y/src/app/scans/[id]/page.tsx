@@ -29,12 +29,21 @@ async function getScan(id: string) {
   if (!scan) return null
 
   let site = null
+  let prevScan = null
   if (scan.site_id) {
     const [s] = await sql`SELECT id, name FROM sites WHERE id = ${scan.site_id}`
     site = s ?? null
+    // Previous completed scan of the same site, for the diff/regression view.
+    const [prev] = await sql`
+      SELECT id, raw_violation_count, started_at, COALESCE(patterns, '[]'::jsonb) AS patterns
+      FROM scan_jobs
+      WHERE site_id = ${scan.site_id} AND status = 'complete' AND started_at < ${scan.started_at}
+      ORDER BY started_at DESC LIMIT 1
+    `
+    prevScan = prev ?? null
   }
 
-  return { scan, site }
+  return { scan, site, prevScan }
 }
 
 export default async function ScanDetailPage({ params }: RouteContext) {
@@ -42,9 +51,21 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   const data = await getScan(id)
   if (!data) notFound()
 
-  const { scan, site } = data
+  const { scan, site, prevScan } = data
   const patterns: ViolationPattern[] = scan.patterns ?? []
   const pageScores: PageScore[] = scan.page_scores ?? []
+
+  // Diff against the previous completed scan of this site.
+  const prevPatterns: ViolationPattern[] = prevScan?.patterns ?? []
+  const prevFingerprints = new Set(prevPatterns.map(p => p.fingerprint))
+  const currentFingerprints = new Set(patterns.map(p => p.fingerprint))
+  for (const p of patterns) p.isNew = prevScan ? !prevFingerprints.has(p.fingerprint) : false
+  const newCount = patterns.filter(p => p.isNew).length
+  const resolvedPatterns = prevPatterns.filter(p => !currentFingerprints.has(p.fingerprint))
+  const carriedOver = patterns.length - newCount
+  const prevTotal = prevPatterns.reduce((s, p) => s + p.occurrences, 0)
+  const currentTotal = patterns.reduce((s, p) => s + p.occurrences, 0)
+  const regressed = prevScan != null && currentTotal > prevTotal
 
   const byImpact: Record<string, ViolationPattern[]> = { critical: [], serious: [], moderate: [], minor: [] }
   for (const p of patterns) {
@@ -115,6 +136,17 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             {scan.triggered_by && (
               <span className="text-sm text-[#3A3A3C] capitalize">· {scan.triggered_by}</span>
             )}
+            {scan.status === 'complete' && prevScan && (
+              regressed ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                  ↑ Regressed vs last scan
+                </span>
+              ) : (currentTotal < prevTotal) ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                  ↓ Improved vs last scan
+                </span>
+              ) : null
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -177,6 +209,30 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               <SeverityBar counts={severityCounts} height="h-3" />
             </div>
           </div>
+
+          {/* Change since last scan */}
+          {prevScan && (
+            <div className="mb-8 rounded-lg bg-white border border-[#E5E5EA] p-5">
+              <div className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider mb-3">Change since last scan</div>
+              <div className="flex flex-wrap gap-6 text-sm">
+                <div><span className="text-lg font-bold text-red-600 tabular-nums">{newCount}</span> <span className="text-[#3A3A3C]">new issue type{newCount !== 1 ? 's' : ''}</span></div>
+                <div><span className="text-lg font-bold text-emerald-600 tabular-nums">{resolvedPatterns.length}</span> <span className="text-[#3A3A3C]">resolved</span></div>
+                <div><span className="text-lg font-bold text-[#1D1D1F] tabular-nums">{carriedOver}</span> <span className="text-[#3A3A3C]">carried over</span></div>
+              </div>
+              {resolvedPatterns.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-[#F0F0F0]">
+                  <div className="text-xs font-semibold text-[#6B6B6B] mb-1.5">Resolved rules</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {resolvedPatterns.map(p => (
+                      <span key={p.fingerprint} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">
+                        {p.rule}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Per-page issues */}
           {pageScores.length > 0 && (
