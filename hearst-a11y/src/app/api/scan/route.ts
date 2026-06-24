@@ -11,6 +11,7 @@ const RequestSchema = z.object({
   url: z.string().url().optional(),
   siteId: z.string().uuid().optional(),
   scheduleId: z.string().uuid().optional(),
+  crawl: z.boolean().optional(),
 }).refine(data => data.url || data.siteId, {
   message: 'Either url or siteId is required',
 })

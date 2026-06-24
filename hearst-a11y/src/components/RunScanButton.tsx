@@ -9,6 +9,7 @@ export function RunScanButton({ siteId }: { siteId: string }) {
   const [jobId, setJobId] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
+  const [crawl, setCrawl] = useState(false)
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -57,7 +58,7 @@ export function RunScanButton({ siteId }: { siteId: string }) {
       const res = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId }),
+        body: JSON.stringify({ siteId, crawl }),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -90,6 +91,19 @@ export function RunScanButton({ siteId }: { siteId: string }) {
 
   return (
     <div className="flex items-center gap-3">
+      <label
+        className="inline-flex items-center gap-1.5 text-sm text-[#3A3A3C] cursor-pointer select-none"
+        title="Discover and scan up to 5 pages found via links and sitemap.xml, instead of only the configured pages."
+      >
+        <input
+          type="checkbox"
+          checked={crawl}
+          onChange={e => setCrawl(e.target.checked)}
+          disabled={loading}
+          className="rounded border-gray-300 text-blue-600"
+        />
+        Crawl site
+      </label>
       <button
         onClick={handleRun}
         disabled={loading}

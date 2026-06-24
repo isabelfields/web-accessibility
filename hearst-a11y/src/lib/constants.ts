@@ -1,5 +1,10 @@
 /** Shared configuration constants for the scanner and AI suggestion pipeline. */
 
+// Cap on pages fetched during a crawl. Kept small so we sample a few distinct
+// templates (seeded from sitemap.xml) instead of scanning thousands of
+// same-template pages.
+export const CRAWL_MAX_PAGES = 5
+
 // axe-core tag set scanned on every page.
 export const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice']
 

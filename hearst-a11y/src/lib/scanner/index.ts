@@ -133,7 +133,8 @@ export async function runScan(
   jobId: string,
   rootUrl: string,
   onProgress?: (update: Partial<ScanJob>) => void,
-  pages?: SitePage[]
+  pages?: SitePage[],
+  crawl = false
 ): Promise<ScanJob> {
   const startedAt = new Date().toISOString()
   onProgress?.({ status: 'running', startedAt })
@@ -143,15 +144,20 @@ export async function runScan(
   let pagesScanned: number
   let pagesSkipped: number
 
-  if (pages) {
-    const out = await scanPageList(pages)
+  if (crawl) {
+    // Discover pages by crawling (seeded from sitemap.xml), capped to keep cost down.
+    const out = await crawlAndScan(rootUrl)
     results = out.results
-    pageScores = out.pageScores
     pagesScanned = out.pagesScanned
     pagesSkipped = out.pagesSkipped
   } else {
-    const out = await crawlAndScan(rootUrl)
+    // Scan exactly the given pages — the configured site pages, or just the root URL.
+    const list: SitePage[] = pages && pages.length > 0
+      ? pages
+      : [{ url: rootUrl, label: rootUrl, templateType: 'other' }]
+    const out = await scanPageList(list)
     results = out.results
+    pageScores = out.pageScores
     pagesScanned = out.pagesScanned
     pagesSkipped = out.pagesSkipped
   }
