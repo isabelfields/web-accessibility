@@ -65,6 +65,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   // Annotate each pattern with its triage state; "active" = open/untriaged.
   for (const p of patterns) p.triageStatus = (triage[p.fingerprint] as ViolationPattern['triageStatus']) ?? 'open'
   const activePatterns = patterns.filter(p => (p.triageStatus ?? 'open') === 'open')
+  const dismissedPatterns = patterns.filter(p => (p.triageStatus ?? 'open') !== 'open')
 
   // Diff against the previous completed scan of this site.
   const prevPatterns: ViolationPattern[] = prevScan?.patterns ?? []
@@ -79,7 +80,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   const regressed = prevScan != null && currentTotal > prevTotal
 
   const byImpact: Record<string, ViolationPattern[]> = { critical: [], serious: [], moderate: [], minor: [] }
-  for (const p of patterns) {
+  for (const p of activePatterns) {
     if (byImpact[p.impact]) byImpact[p.impact].push(p)
   }
 
@@ -293,11 +294,11 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           {/* Violations */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-[#1D1D1F]">WCAG Errors Found</h2>
-            <span className="text-sm text-[#3A3A3C]">{patterns.length} issue type{patterns.length !== 1 ? 's' : ''} · {totalViolations} total</span>
+            <span className="text-sm text-[#3A3A3C]">{activePatterns.length} issue type{activePatterns.length !== 1 ? 's' : ''} · {totalViolations} total</span>
           </div>
-          {patterns.length === 0 ? (
+          {activePatterns.length === 0 ? (
             <div className="bg-white rounded-xl border border-dashed border-[#E5E5EA] p-12 text-center text-[#3A3A3C]">
-              No WCAG errors found — great job!
+              {dismissedPatterns.length > 0 ? 'No active WCAG errors — all issues have been dismissed.' : 'No WCAG errors found — great job!'}
             </div>
           ) : (
             <div>
@@ -316,6 +317,20 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                   />
                 )
               })}
+            </div>
+          )}
+
+          {/* Dismissed issues (fixed / won't-fix / false-positive), collapsed by default */}
+          {dismissedPatterns.length > 0 && (
+            <div className="mt-6">
+              <TierSection
+                tier="dismissed"
+                label={`Dismissed (${dismissedPatterns.length})`}
+                color={{ text: '#6B6B6B', dot: '#9CA3AF', hex: '#9CA3AF' }}
+                patterns={dismissedPatterns}
+                siteId={site?.id}
+                defaultOpen={false}
+              />
             </div>
           )}
         </>
