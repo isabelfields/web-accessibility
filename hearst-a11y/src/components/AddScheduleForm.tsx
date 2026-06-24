@@ -25,9 +25,9 @@ function groupByDivision(sites: Site[]): { division: string; sites: Site[] }[] {
     }))
 }
 
-interface Props { onClose: () => void }
+interface Props { onClose: () => void; initialSiteId?: string }
 
-export function AddScheduleForm({ onClose }: Props) {
+export function AddScheduleForm({ onClose, initialSiteId }: Props) {
   const [sites, setSites] = useState<Site[]>([])
   const [siteId, setSiteId] = useState('')
   const [cadence, setCadence] = useState<'daily' | 'weekly' | 'monthly'>('weekly')
@@ -41,11 +41,14 @@ export function AddScheduleForm({ onClose }: Props) {
   useEffect(() => {
     fetch('/api/sites').then(r => r.json()).then((data: Site[]) => {
       setSites(data)
-      // Default to the first site in division → name order, matching the dropdown.
-      const first = groupByDivision(data)[0]?.sites[0]
-      if (first) setSiteId(first.id)
+      // Preselect the requested site if present; otherwise the first in
+      // division → name order (matching the dropdown).
+      const preferred = initialSiteId && data.some(s => s.id === initialSiteId)
+        ? initialSiteId
+        : groupByDivision(data)[0]?.sites[0]?.id
+      if (preferred) setSiteId(preferred)
     })
-  }, [])
+  }, [initialSiteId])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
