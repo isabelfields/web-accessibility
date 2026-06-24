@@ -59,6 +59,18 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 })
 
+// Triage state for a violation pattern on a site (persists across scans, keyed
+// by site + fingerprint). Absence of a row = 'open'.
+export const violationTriage = pgTable('violation_triage', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  siteId: uuid('site_id').notNull(),
+  fingerprint: text('fingerprint').notNull(),
+  status: text('status').notNull().default('open'), // open | fixed | wontfix | false_positive
+  note: text('note'),
+  updatedBy: text('updated_by'),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
 // Migration SQL — run this in your Neon/Supabase SQL editor
 export const MIGRATION_SQL = `
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -135,4 +147,16 @@ CREATE TABLE IF NOT EXISTS users (
   invited_by TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS violation_triage (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  site_id UUID NOT NULL,
+  fingerprint TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'open',
+  note TEXT,
+  updated_by TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (site_id, fingerprint)
+);
+CREATE INDEX IF NOT EXISTS violation_triage_site ON violation_triage(site_id);
 `
