@@ -67,7 +67,7 @@ export function SiteCard({ site }: SiteCardProps) {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontWeight: 700, color: '#1D1D1F', fontSize: 15, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{site.name}</div>
-          <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 3 }}>
+          <div style={{ fontSize: 12, color: '#57575A', marginTop: 3 }}>
             {pageCount} page{pageCount !== 1 ? 's' : ''}
             {site.division ? ` · ${site.division}` : ''}
           </div>
@@ -84,13 +84,13 @@ export function SiteCard({ site }: SiteCardProps) {
           <span style={{ fontWeight: 700, color: '#1D1D1F' }}>
             {latestScan.raw_violation_count} error{latestScan.raw_violation_count !== 1 ? 's' : ''}
           </span>
-          <span style={{ color: '#6B6B6B' }}>
+          <span style={{ color: '#57575A' }}>
             {latestScan.unique_pattern_count} type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
           </span>
           <span style={{ color: '#A1A1A6', fontSize: 16 }}>→</span>
         </div>
       ) : (
-        <div style={{ fontSize: 12, color: '#6B6B6B', fontStyle: 'italic' }}>No scans yet</div>
+        <div style={{ fontSize: 12, color: '#57575A', fontStyle: 'italic' }}>No scans yet</div>
       )}
     </Link>
   )

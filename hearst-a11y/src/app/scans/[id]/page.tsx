@@ -118,7 +118,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   return (
     <div className="px-8 py-6 bg-[#F5F5F7] min-h-screen">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[#6B6B6B] mb-6">
+      <div className="flex items-center gap-2 text-sm text-[#57575A] mb-6">
         <Link href="/" className="hover:text-[#1D1D1F]">Dashboard</Link>
         <span className="text-[#A1A1A6]">/</span>
         {site && (
@@ -136,13 +136,13 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           <h1 className="text-2xl font-bold text-[#1D1D1F]">
             {site?.name ?? scan.root_url}
           </h1>
-          <p className="text-sm text-[#6B6B6B] mt-1">{scan.root_url}</p>
+          <p className="text-sm text-[#57575A] mt-1">{scan.root_url}</p>
           <div className="flex items-center gap-3 mt-2">
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
               scan.status === 'complete' ? 'bg-emerald-100 text-emerald-700' :
               scan.status === 'running' ? 'bg-blue-100 text-blue-700' :
               scan.status === 'failed' ? 'bg-red-100 text-red-700' :
-              'bg-[#F5F5F7] text-[#6B6B6B]'
+              'bg-[#F5F5F7] text-[#57575A]'
             }`}>
               {scan.status}
             </span>
@@ -235,7 +235,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               </div>
               {resolvedPatterns.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-[#F0F0F0]">
-                  <div className="text-xs font-semibold text-[#6B6B6B] mb-1.5">Resolved rules</div>
+                  <div className="text-xs font-semibold text-[#57575A] mb-1.5">Resolved rules</div>
                   <div className="flex flex-wrap gap-1.5">
                     {resolvedPatterns.map(p => (
                       <span key={p.fingerprint} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">
@@ -326,7 +326,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               <TierSection
                 tier="dismissed"
                 label={`Dismissed (${dismissedPatterns.length})`}
-                color={{ text: '#6B6B6B', dot: '#9CA3AF', hex: '#9CA3AF' }}
+                color={{ text: '#57575A', dot: '#9CA3AF', hex: '#9CA3AF' }}
                 patterns={dismissedPatterns}
                 siteId={site?.id}
                 defaultOpen={false}

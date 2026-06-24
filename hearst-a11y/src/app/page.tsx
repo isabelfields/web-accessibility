@@ -148,7 +148,7 @@ const STATUS_STYLE: Record<string, React.CSSProperties> = {
   complete: { background: '#ECFDF5', color: '#059669' },
   running:  { background: '#EFF6FF', color: '#2563EB' },
   failed:   { background: '#FEF2F2', color: '#DC2626' },
-  queued:   { background: '#F3F4F6', color: '#6B6B6B' },
+  queued:   { background: '#F3F4F6', color: '#57575A' },
 }
 
 export default async function DashboardPage({
@@ -196,7 +196,7 @@ export default async function DashboardPage({
       <div style={{ borderBottom: '1px solid #E5E5EA', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, background: 'rgba(245,245,247,0.92)', backdropFilter: 'blur(8px)' }}>
         <div>
           <h1 style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>Dashboard</h1>
-          <p style={{ fontSize: 12, color: '#6B6B6B', margin: 0 }}>{effectiveDivision ? `${effectiveDivision} division` : 'All Hearst properties'}</p>
+          <p style={{ fontSize: 12, color: '#57575A', margin: 0 }}>{effectiveDivision ? `${effectiveDivision} division` : 'All Hearst properties'}</p>
         </div>
         {(isAdmin || allowedDivisions.length > 1) && visibleDivisions.length > 0 && (
           <Suspense>
@@ -223,37 +223,37 @@ export default async function DashboardPage({
 
           {/* Sites */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Sites</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Sites</div>
             <div style={{ fontSize: 40, fontWeight: 800, color: '#1D1D1F', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.siteCount}</div>
-            <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>{stats.totalPages} pages monitored</div>
+            <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>{stats.totalPages} pages monitored</div>
           </div>
 
           {/* Tier 1 Critical — navy left accent */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #002D82', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Tier 1 Critical</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Tier 1 Critical</div>
             <div style={{ fontSize: 40, fontWeight: 800, color: '#002D82', lineHeight: 1, letterSpacing: '-0.02em' }}>{severityCounts.critical}</div>
-            <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>across all sites</div>
+            <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>across all sites</div>
           </div>
 
           {/* Components with Issues */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #007AFF', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Components with Issues</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Components with Issues</div>
             <div style={{ fontSize: 40, fontWeight: 800, color: '#007AFF', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalErrors}</div>
-            <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>failing elements on page</div>
+            <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>failing elements on page</div>
           </div>
 
           {/* Rule Violations */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #60a5fa', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Rule Violations</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Rule Violations</div>
             <div style={{ fontSize: 40, fontWeight: 800, color: '#2563eb', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalViolations}</div>
-            <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>WCAG rules broken across all sites</div>
+            <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>WCAG rules broken across all sites</div>
           </div>
 
           {/* Resolved */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Resolved</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Resolved</div>
             <div style={{ fontSize: 40, fontWeight: 800, color: stats.errorsResolved > 0 ? '#059669' : '#1D1D1F', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.errorsResolved}</div>
-            <div style={{ fontSize: 12, color: '#6B6B6B', marginTop: 8 }}>vs previous scan</div>
+            <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>vs previous scan</div>
           </div>
         </div>
 
@@ -262,11 +262,11 @@ export default async function DashboardPage({
 
         {/* Site cards */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Sites</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Sites</div>
           <Link href="/sites" style={{ fontSize: 12, color: '#007AFF', fontWeight: 600 }}>View all →</Link>
         </div>
         {sites.length === 0 ? (
-          <div style={{ borderRadius: 12, border: '1.5px dashed #D1D1D6', padding: '48px 32px', textAlign: 'center', color: '#6B6B6B', background: '#fff', marginBottom: 20 }}>
+          <div style={{ borderRadius: 12, border: '1.5px dashed #D1D1D6', padding: '48px 32px', textAlign: 'center', color: '#57575A', background: '#fff', marginBottom: 20 }}>
             {effectiveDivision ? `No sites in ${effectiveDivision} yet.` : 'No sites yet.'}{' '}
             <Link href="/sites" style={{ color: '#007AFF' }}>Add a site</Link>.
           </div>
@@ -280,25 +280,25 @@ export default async function DashboardPage({
 
         {/* Recent scans */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Recent Scans</div>
-          <span style={{ fontSize: 12, color: '#6B6B6B' }}>Last 5</span>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Recent Scans</div>
+          <span style={{ fontSize: 12, color: '#57575A' }}>Last 5</span>
         </div>
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#F9F9FB', borderBottom: '1px solid #E5E5EA' }}>
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Site</th>
-                {showDivisionCol && <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Division</th>}
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</th>
-                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pages</th>
-                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>WCAG Errors</th>
-                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#6B6B6B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Started</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Site</th>
+                {showDivisionCol && <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Division</th>}
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pages</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>WCAG Errors</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Started</th>
                 <th style={{ padding: '10px 8px' }} />
               </tr>
             </thead>
             <tbody>
               {scans.length === 0 ? (
-                <tr><td colSpan={showDivisionCol ? 7 : 6} style={{ textAlign: 'center', padding: '32px 0', color: '#6B6B6B' }}>No scans yet.</td></tr>
+                <tr><td colSpan={showDivisionCol ? 7 : 6} style={{ textAlign: 'center', padding: '32px 0', color: '#57575A' }}>No scans yet.</td></tr>
               ) : (
                 scans.map((scan: any) => (
                   <tr key={scan.id} style={{ borderTop: '1px solid #F0F0F0', cursor: 'pointer', position: 'relative' }}
@@ -306,13 +306,13 @@ export default async function DashboardPage({
                     <td style={{ padding: '12px 16px' }}>
                       <Link href={`/scans/${scan.id}`} style={{ position: 'absolute', inset: 0 }} aria-label={`View scan for ${scan.site_name ?? scan.root_url}`} />
                       <div style={{ fontWeight: 600, color: '#1D1D1F', fontSize: 13 }}>{scan.site_name ?? scan.root_url}</div>
-                      {scan.site_name && <div style={{ fontSize: 11, color: '#6B6B6B', marginTop: 2, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{scan.root_url}</div>}
+                      {scan.site_name && <div style={{ fontSize: 11, color: '#57575A', marginTop: 2, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{scan.root_url}</div>}
                     </td>
                     {showDivisionCol && (
                       <td style={{ padding: '12px 16px' }}>
                         {scan.division
                           ? <span style={{ display: 'inline-flex', padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: '#EFF6FF', color: '#1D4ED8' }}>{scan.division}</span>
-                          : <span style={{ color: '#6B6B6B' }}>—</span>}
+                          : <span style={{ color: '#57575A' }}>—</span>}
                       </td>
                     )}
                     <td style={{ padding: '12px 16px' }}>
@@ -322,7 +322,7 @@ export default async function DashboardPage({
                     </td>
                     <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F', fontVariantNumeric: 'tabular-nums' }}>{scan.pages_scanned ?? 0}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F', fontVariantNumeric: 'tabular-nums' }}>{scan.raw_violation_count ?? '—'}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'right', color: '#6B6B6B', fontSize: 12 }}>{formatDateTime(scan.started_at)}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', color: '#57575A', fontSize: 12 }}>{formatDateTime(scan.started_at)}</td>
                     <td style={{ padding: '12px 8px', textAlign: 'right', position: 'relative', zIndex: 1 }}>
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                         <DeleteScanButton jobId={scan.id} />

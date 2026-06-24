@@ -163,7 +163,7 @@ export function RunScanButton({ siteId }: { siteId: string }) {
               />
               <span>
                 Crawl site
-                <span className="block text-xs text-[#6B6B6B]">Discover &amp; scan up to 5 pages via links and sitemap.xml</span>
+                <span className="block text-xs text-[#57575A]">Discover &amp; scan up to 5 pages via links and sitemap.xml</span>
               </span>
             </label>
             <div className="my-1 border-t border-[#F0F0F0]" />
@@ -173,7 +173,7 @@ export function RunScanButton({ siteId }: { siteId: string }) {
               onClick={() => { setMenuOpen(false); setShowSchedule(true) }}
               className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-[#1D1D1F] hover:bg-[#F5F5F7]"
             >
-              <svg className="w-4 h-4 text-[#6B6B6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-[#57575A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               Set a schedule…
