@@ -124,9 +124,9 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
         )}
         <div className="flex-1 min-w-0">
           <span className="font-semibold text-[#1D1D1F] text-sm">{ruleInfo.name}</span>
-          <span className="text-xs text-[#6B6B6B] ml-2 bg-[#F5F5F7] px-1.5 py-0.5 rounded">{ruleInfo.wcag}</span>
-          <span className="text-xs text-[#6B6B6B] mx-1.5">·</span>
-          <span className="text-xs text-[#6B6B6B] truncate">{pattern.description}</span>
+          <span className="text-xs text-[#3A3A3C] font-medium ml-2 bg-[#ECECEE] px-1.5 py-0.5 rounded">{ruleInfo.wcag}</span>
+          <span className="text-xs text-[#8A8A8E] mx-1.5">·</span>
+          <span className="text-xs text-[#3A3A3C] truncate">{pattern.description}</span>
         </div>
         <div className="hidden sm:flex items-center gap-5 shrink-0 text-right">
           <div>
