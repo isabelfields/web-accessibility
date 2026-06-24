@@ -6,6 +6,9 @@ export interface StartScanInput {
   url?: string
   siteId?: string
   scheduleId?: string
+  /** Follow links / sitemap to discover pages. Defaults to page-list scanning
+   *  when a site's pages are available, crawl otherwise (back-compat). */
+  crawl?: boolean
 }
 
 export type StartScanResult =
@@ -18,7 +21,7 @@ export type StartScanResult =
  * scans run in-process instead of via an authenticated HTTP round-trip.
  */
 export async function startScan(input: StartScanInput): Promise<StartScanResult> {
-  const { url, siteId, scheduleId } = input
+  const { url, siteId, scheduleId, crawl } = input
 
   let rootUrl = url ?? ''
   let pages: SitePage[] | undefined
@@ -29,6 +32,10 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
     rootUrl = (site.pages as SitePage[])[0]?.url ?? rootUrl
     pages = site.pages as SitePage[]
   }
+
+  // Honor an explicit toggle; otherwise preserve prior behavior: crawl when
+  // there's no configured page list (ad-hoc URL / schedule), page-list otherwise.
+  const shouldCrawl = crawl ?? (pages == null || pages.length === 0)
 
   // Create the job record
   const [job] = await sql`
@@ -46,7 +53,7 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
       if (update.pagesScanned !== undefined) {
         await sql`UPDATE scan_jobs SET pages_scanned = ${update.pagesScanned} WHERE id = ${jobId}`
       }
-    }, pages)
+    }, pages, shouldCrawl)
 
     // Fast path: skip the expensive write if it was already cancelled.
     const [current] = await sql`SELECT status FROM scan_jobs WHERE id = ${jobId}`

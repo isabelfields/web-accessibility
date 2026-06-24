@@ -3,15 +3,17 @@ import { PageScanResult, RawViolation } from '@/types'
 import { computeDomFingerprint, isNearDuplicate } from './fingerprint'
 import { runKeyboardCheck } from './keyboard'
 import { assertPublicUrl } from '@/lib/net/url-guard'
-import { AXE_TAGS, browserlessWsEndpoint } from '@/lib/constants'
+import { AXE_TAGS, browserlessWsEndpoint, CRAWL_MAX_PAGES } from '@/lib/constants'
+import { fetchSitemapUrls } from './sitemap'
 
-const MAX_PAGES = 50
+const MAX_PAGES = CRAWL_MAX_PAGES
 const PAGE_TIMEOUT = 30_000 // 30s per page
 const SCAN_CONCURRENCY = 3  // parallel pages
 
 /**
- * Crawls a website BFS-style up to MAX_PAGES.
- * For each page:
+ * Crawls a website BFS-style up to MAX_PAGES, seeding the queue from the root
+ * plus the site's sitemap.xml so coverage isn't limited to homepage-reachable
+ * links. For each page:
  * 1. Render with Playwright (full JS execution)
  * 2. Compute DOM fingerprint
  * 3. Skip if near-duplicate of a seen template (optimization 1)
@@ -26,8 +28,12 @@ export async function crawlAndScan(rootUrl: string): Promise<{
   const root = new URL(rootUrl)
   const origin = root.origin
 
+  // Seed from the sitemap (best-effort) so we sample distinct templates, not
+  // just whatever links off the homepage. Capped to MAX_PAGES.
+  const sitemapUrls = await fetchSitemapUrls(rootUrl, MAX_PAGES)
+
   const visited = new Set<string>()
-  const queue: string[] = [rootUrl]
+  const queue: string[] = [...new Set([rootUrl, ...sitemapUrls])]
   const seenFingerprints = new Set<string>()
   const results: PageScanResult[] = []
   let pagesSkipped = 0
