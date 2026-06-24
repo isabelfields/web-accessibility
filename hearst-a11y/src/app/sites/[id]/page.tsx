@@ -40,7 +40,11 @@ async function getSiteData(id: string) {
     LIMIT 20
   `
 
-  return { site, scans }
+  const triage: Record<string, string> = {}
+  const rows = await sql`SELECT fingerprint, status FROM violation_triage WHERE site_id = ${id}`
+  for (const r of rows) triage[r.fingerprint] = r.status
+
+  return { site, scans, triage }
 }
 
 
@@ -56,7 +60,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   const data = await getSiteData(id)
   if (!data) notFound()
 
-  const { site, scans } = data
+  const { site, scans, triage } = data
   const pages: SitePage[] = (site.pages as SitePage[]) ?? []
 
   const completedScans = scans.filter((s: any) => s.status === 'complete')
@@ -66,16 +70,20 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
     latestScan?.page_scores ?? []
 
   const patterns: ViolationPattern[] = latestScan?.patterns ?? []
+  // Annotate triage state; "active" excludes triaged (dismissed) patterns.
+  for (const p of patterns) p.triageStatus = (triage[p.fingerprint] as ViolationPattern['triageStatus']) ?? 'open'
+  const activePatterns = patterns.filter(p => (p.triageStatus ?? 'open') === 'open')
+  const dismissedPatterns = patterns.filter(p => (p.triageStatus ?? 'open') !== 'open')
+
   const byTier: Record<string, ViolationPattern[]> = { tier1: [], tier2: [], tier3: [], tier4: [] }
-  for (const p of patterns) {
+  for (const p of activePatterns) {
     byTier[impactToTier(p.impact)].push(p)
   }
-  const worstTier = patternsToWorstTier(patterns)
+  const worstTier = patternsToWorstTier(activePatterns.filter(p => !p.isBestPractice))
 
-  // Severity counts from patterns (excluding best-practice, which don't affect
-  // the WCAG score — consistent with the dashboard and scan detail).
+  // Severity counts exclude best-practice (no score impact) and triaged patterns.
   const severityCounts = { critical: 0, serious: 0, moderate: 0, minor: 0 }
-  for (const p of patterns) {
+  for (const p of activePatterns) {
     const impact = p.impact as keyof typeof severityCounts
     if (!p.isBestPractice && impact in severityCounts) severityCounts[impact] += p.occurrences
   }
@@ -227,9 +235,11 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           )}
         </div>
 
-        {patterns.length === 0 ? (
+        {activePatterns.length === 0 ? (
           <div style={{ borderRadius: 12, border: '1.5px dashed #D1D1D6', padding: '48px', textAlign: 'center', color: '#6B6B6B', background: '#fff' }}>
-            {latestScan ? 'No violations found. Great job!' : 'Run a scan to see violations.'}
+            {!latestScan ? 'Run a scan to see violations.'
+              : dismissedPatterns.length > 0 ? 'No active violations — all issues have been dismissed.'
+              : 'No violations found. Great job!'}
           </div>
         ) : (
           <div>
@@ -243,10 +253,24 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                     label={TIER_LABEL[tier]}
                     color={{ text: '', dot: '', hex: TIER_SWIMLANE[tier] }}
                     patterns={group}
+                    siteId={site.id}
                   />
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {dismissedPatterns.length > 0 && (
+          <div style={{ marginTop: 24 }}>
+            <TierSection
+              tier="dismissed"
+              label={`Dismissed (${dismissedPatterns.length})`}
+              color={{ text: '#6B6B6B', dot: '#9CA3AF', hex: '#9CA3AF' }}
+              patterns={dismissedPatterns}
+              siteId={site.id}
+              defaultOpen={false}
+            />
           </div>
         )}
       </div>
