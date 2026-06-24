@@ -43,7 +43,14 @@ async function getScan(id: string) {
     prevScan = prev ?? null
   }
 
-  return { scan, site, prevScan }
+  // Triage state for this site (fingerprint -> status), persists across scans.
+  const triage: Record<string, string> = {}
+  if (scan.site_id) {
+    const rows = await sql`SELECT fingerprint, status FROM violation_triage WHERE site_id = ${scan.site_id}`
+    for (const r of rows) triage[r.fingerprint] = r.status
+  }
+
+  return { scan, site, prevScan, triage }
 }
 
 export default async function ScanDetailPage({ params }: RouteContext) {
@@ -51,9 +58,13 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   const data = await getScan(id)
   if (!data) notFound()
 
-  const { scan, site, prevScan } = data
+  const { scan, site, prevScan, triage } = data
   const patterns: ViolationPattern[] = scan.patterns ?? []
   const pageScores: PageScore[] = scan.page_scores ?? []
+
+  // Annotate each pattern with its triage state; "active" = open/untriaged.
+  for (const p of patterns) p.triageStatus = (triage[p.fingerprint] as ViolationPattern['triageStatus']) ?? 'open'
+  const activePatterns = patterns.filter(p => (p.triageStatus ?? 'open') === 'open')
 
   // Diff against the previous completed scan of this site.
   const prevPatterns: ViolationPattern[] = prevScan?.patterns ?? []
@@ -80,14 +91,15 @@ export default async function ScanDetailPage({ params }: RouteContext) {
     tier4: byImpact.minor,
   }
 
-  const totalViolations = patterns.reduce((sum, p) => sum + p.occurrences, 0)
-  const worstTier = patternsToWorstTier(patterns)
+  // "Active" totals exclude best-practice (no score impact) and triaged patterns
+  // (fixed/won't-fix/false-positive). The violation list below (byTier) still
+  // shows every pattern, with triaged ones de-emphasized.
+  const isActive = (p: ViolationPattern) => !p.isBestPractice && (p.triageStatus ?? 'open') === 'open'
+  const totalViolations = activePatterns.reduce((sum, p) => sum + p.occurrences, 0)
+  const worstTier = patternsToWorstTier(activePatterns.filter(p => !p.isBestPractice))
 
-  // Severity breakdown excludes best-practice patterns (not WCAG failures, no
-  // score impact) — consistent with the dashboard and calculateScore. The
-  // violation list below (byTier) still shows every pattern.
   const occ = (list: ViolationPattern[]) =>
-    list.filter(p => !p.isBestPractice).reduce((s, p) => s + p.occurrences, 0)
+    list.filter(isActive).reduce((s, p) => s + p.occurrences, 0)
   const severityCounts = {
     critical: occ(byImpact.critical),
     serious:  occ(byImpact.serious),
@@ -97,6 +109,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
 
   const wcagLevels = { A: 0, AA: 0 }
   for (const p of patterns) {
+    if (!isActive(p)) continue
     const level = RULE_WCAG_LEVEL[p.rule] ?? 'A'
     wcagLevels[level] += p.occurrences
   }
@@ -299,6 +312,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                     label={TIER_LABEL[tier]}
                     color={{ text: c.text, dot: c.dot, hex: c.hex }}
                     patterns={group}
+                    siteId={site?.id}
                   />
                 )
               })}

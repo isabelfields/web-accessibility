@@ -47,7 +47,10 @@ export interface ViolationPattern {
   sampleHtml?: string    // kept for backwards compat with old scan records
   sampleScreenshot?: string
   isNew?: boolean        // transient: not present in the previous scan (diff view)
+  triageStatus?: TriageStatus  // transient: per-site triage state, joined at read time
 }
+
+export type TriageStatus = 'open' | 'fixed' | 'wontfix' | 'false_positive'
 
 export interface PageScore {
   url: string

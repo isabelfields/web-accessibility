@@ -10,9 +10,10 @@ interface Props {
   color: { text: string; dot: string; hex: string }
   patterns: ViolationPattern[]
   defaultOpen?: boolean
+  siteId?: string
 }
 
-export function TierSection({ tier, label, color, patterns, defaultOpen = true }: Props) {
+export function TierSection({ tier, label, color, patterns, defaultOpen = true, siteId }: Props) {
   const [open, setOpen] = useState(defaultOpen)
 
   return (
@@ -48,7 +49,7 @@ export function TierSection({ tier, label, color, patterns, defaultOpen = true }
       {open && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {patterns.map((p) => (
-            <ViolationCard key={p.fingerprint} pattern={p} />
+            <ViolationCard key={p.fingerprint} pattern={p} siteId={siteId} />
           ))}
         </div>
       )}

@@ -1,8 +1,22 @@
 'use client'
 
 import { useState } from 'react'
-import type { ViolationPattern } from '@/types'
+import { useRouter } from 'next/navigation'
+import type { ViolationPattern, TriageStatus } from '@/types'
 import { impactToTier, TIER_COLOR, TIER_LABEL } from '@/lib/tiers'
+
+const TRIAGE_OPTIONS: { value: TriageStatus; label: string }[] = [
+  { value: 'open', label: 'Open' },
+  { value: 'fixed', label: 'Fixed' },
+  { value: 'wontfix', label: "Won't fix" },
+  { value: 'false_positive', label: 'False positive' },
+]
+
+const TRIAGE_BADGE: Record<Exclude<TriageStatus, 'open'>, string> = {
+  fixed: 'bg-emerald-100 text-emerald-700',
+  wontfix: 'bg-gray-200 text-gray-600',
+  false_positive: 'bg-amber-100 text-amber-700',
+}
 
 const WCAG_RULES: Record<string, { name: string; wcag: string; what: string }> = {
   'html-has-lang':           { name: 'Page Language',           wcag: 'WCAG 3.1.1 (A)',   what: "The page must declare its language so screen readers pronounce words correctly." },
@@ -41,9 +55,34 @@ function truncateHtml(html: string, max = 120) {
 
 const SHOW_LIMIT = 5
 
-export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
+export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; siteId?: string }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
+  const [triage, setTriage] = useState<TriageStatus>(pattern.triageStatus ?? 'open')
+  const [savingTriage, setSavingTriage] = useState(false)
+
+  async function changeTriage(status: TriageStatus) {
+    if (!siteId) return
+    const previous = triage
+    setTriage(status)
+    setSavingTriage(true)
+    try {
+      const res = await fetch('/api/triage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId, fingerprint: pattern.fingerprint, status }),
+      })
+      if (!res.ok) { setTriage(previous); return }
+      router.refresh() // recompute active counts server-side
+    } catch {
+      setTriage(previous)
+    } finally {
+      setSavingTriage(false)
+    }
+  }
+
+  const triaged = triage !== 'open'
 
   const tier = impactToTier(pattern.impact)
   const c = TIER_COLOR[tier]
@@ -62,7 +101,7 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
   const hiddenCount = nodes.length - SHOW_LIMIT
 
   return (
-    <div className={`bg-white border border-[#E5E5EA] border-l-[3px] rounded-lg overflow-hidden`}
+    <div className={`bg-white border border-[#E5E5EA] border-l-[3px] rounded-lg overflow-hidden ${triaged ? 'opacity-60' : ''}`}
       style={{ borderLeftColor: c.hex }}>
 
       {/* ── Collapsed header row ── */}
@@ -73,7 +112,12 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
         <span className={`shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md ${c.bg} ${c.text} ring-1 ring-inset ${c.border}`}>
           {tierLabel}
         </span>
-        {pattern.isNew && (
+        {triaged && (
+          <span className={`shrink-0 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded ${TRIAGE_BADGE[triage as Exclude<TriageStatus, 'open'>]}`}>
+            {TRIAGE_OPTIONS.find(o => o.value === triage)?.label}
+          </span>
+        )}
+        {pattern.isNew && !triaged && (
           <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 text-red-700" title="Not present in the previous scan">
             New
           </span>
@@ -168,6 +212,23 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
                   + {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
                 </button>
               )}
+            </div>
+          )}
+
+          {/* Triage */}
+          {siteId && (
+            <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex items-center gap-2">
+              <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider">Status</label>
+              <select
+                id={`triage-${pattern.fingerprint}`}
+                value={triage}
+                disabled={savingTriage}
+                onChange={e => changeTriage(e.target.value as TriageStatus)}
+                className="text-xs border border-[#E5E5EA] rounded-md px-2 py-1 bg-white text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+              >
+                {TRIAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+              <span className="text-[11px] text-[#6B6B6B]">Triaged issues are excluded from active counts; the rule still appears here.</span>
             </div>
           )}
 
