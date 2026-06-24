@@ -73,6 +73,11 @@ export function ViolationCard({ pattern }: { pattern: ViolationPattern }) {
         <span className={`shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md ${c.bg} ${c.text} ring-1 ring-inset ${c.border}`}>
           {tierLabel}
         </span>
+        {pattern.isNew && (
+          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 text-red-700" title="Not present in the previous scan">
+            New
+          </span>
+        )}
         <div className="flex-1 min-w-0">
           <span className="font-semibold text-[#1D1D1F] text-sm">{ruleInfo.name}</span>
           <span className="text-xs text-[#6B6B6B] ml-2 bg-[#F5F5F7] px-1.5 py-0.5 rounded">{ruleInfo.wcag}</span>
