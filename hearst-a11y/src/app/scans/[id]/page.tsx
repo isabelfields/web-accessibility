@@ -77,7 +77,10 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   const carriedOver = patterns.length - newCount
   const prevTotal = prevPatterns.reduce((s, p) => s + p.occurrences, 0)
   const currentTotal = patterns.reduce((s, p) => s + p.occurrences, 0)
-  const regressed = prevScan != null && currentTotal > prevTotal
+  const errorDelta = currentTotal - prevTotal
+  const hasMoreErrors = prevScan != null && errorDelta > 0
+  const hasFewerErrors = prevScan != null && errorDelta < 0
+  const currentErrorLabel = currentTotal === 1 ? 'error' : 'errors'
 
   const byImpact: Record<string, ViolationPattern[]> = { critical: [], serious: [], moderate: [], minor: [] }
   for (const p of activePatterns) {
@@ -151,13 +154,13 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               <span className="text-sm text-[#3A3A3C] capitalize">· {scan.triggered_by}</span>
             )}
             {scan.status === 'complete' && prevScan && (
-              regressed ? (
+              hasMoreErrors ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                  ↑ Regressed vs last scan
+                  {currentTotal} {currentErrorLabel} (+{errorDelta} since last scan)
                 </span>
-              ) : (currentTotal < prevTotal) ? (
+              ) : hasFewerErrors ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
-                  ↓ Improved vs last scan
+                  {currentTotal} {currentErrorLabel} ({errorDelta} since last scan)
                 </span>
               ) : null
             )}
