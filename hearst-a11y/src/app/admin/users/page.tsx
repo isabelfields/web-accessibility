@@ -17,6 +17,28 @@ interface AppUser {
   pending: boolean
 }
 
+function toggleSelection(values: string[], value: string): string[] {
+  return values.includes(value) ? values.filter(item => item !== value) : [...values, value]
+}
+
+function DivisionChecklist({ divisions, onToggle, className = '' }: { divisions: string[]; onToggle: (division: string) => void; className?: string }) {
+  return (
+    <div className={`grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto ${className}`}>
+      {HEARST_DIVISIONS.map(division => (
+        <label key={division} className="flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded-lg hover:bg-gray-50">
+          <input
+            type="checkbox"
+            checked={divisions.includes(division)}
+            onChange={() => onToggle(division)}
+            className="rounded border-gray-300 text-blue-600"
+          />
+          <span className="text-sm text-gray-700">{division}</span>
+        </label>
+      ))}
+    </div>
+  )
+}
+
 function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (link: string) => void }) {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<'admin' | 'user'>('user')
@@ -24,8 +46,8 @@ function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  function toggleDivision(d: string) {
-    setDivisions(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])
+  function toggleDivision(division: string) {
+    setDivisions(prev => toggleSelection(prev, division))
   }
 
   async function submit(e: React.FormEvent) {
@@ -78,19 +100,7 @@ function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Allowed divisions <span className="text-gray-400 font-normal">(select at least one)</span>
               </label>
-              <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto">
-                {HEARST_DIVISIONS.map(d => (
-                  <label key={d} className="flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded-lg hover:bg-gray-50">
-                    <input
-                      type="checkbox"
-                      checked={divisions.includes(d)}
-                      onChange={() => toggleDivision(d)}
-                      className="rounded border-gray-300 text-blue-600"
-                    />
-                    <span className="text-sm text-gray-700">{d}</span>
-                  </label>
-                ))}
-              </div>
+              <DivisionChecklist divisions={divisions} onToggle={toggleDivision} />
             </div>
           )}
           {error && <p className="text-sm text-red-500">{error}</p>}
@@ -151,8 +161,8 @@ function EditDivisionsModal({ user, onClose, onSaved }: { user: AppUser; onClose
   const [divisions, setDivisions] = useState<string[]>(user.allowed_divisions ?? [])
   const [loading, setLoading] = useState(false)
 
-  function toggleDivision(d: string) {
-    setDivisions(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])
+  function toggleDivision(division: string) {
+    setDivisions(prev => toggleSelection(prev, division))
   }
 
   async function save() {
@@ -170,19 +180,7 @@ function EditDivisionsModal({ user, onClose, onSaved }: { user: AppUser; onClose
     <Modal title="Edit divisions" onClose={onClose} size="md">
       <div className="p-6">
         <p className="text-sm text-gray-400 mb-4">{user.email}</p>
-        <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto mb-4">
-          {HEARST_DIVISIONS.map(d => (
-            <label key={d} className="flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded-lg hover:bg-gray-50">
-              <input
-                type="checkbox"
-                checked={divisions.includes(d)}
-                onChange={() => toggleDivision(d)}
-                className="rounded border-gray-300 text-blue-600"
-              />
-              <span className="text-sm text-gray-700">{d}</span>
-            </label>
-          ))}
-        </div>
+        <DivisionChecklist divisions={divisions} onToggle={toggleDivision} className="mb-4" />
         <div className="flex gap-2">
           <button
             onClick={save}
