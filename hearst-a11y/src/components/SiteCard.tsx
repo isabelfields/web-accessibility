@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { countIssueTypes, countOccurrences, isWcagPattern } from '@/lib/metrics'
+import type { ViolationPattern } from '@/types'
 
 interface LatestScan {
   score: number
@@ -8,7 +10,7 @@ interface LatestScan {
   started_at: string
   unique_pattern_count: number
   raw_violation_count: number
-  patterns?: { impact: string; occurrences: number }[]
+  patterns?: ViolationPattern[]
 }
 
 interface SiteCardProps {
@@ -22,7 +24,7 @@ interface SiteCardProps {
   }
 }
 
-function worstTier(patterns: { impact: string }[] = []): string | null {
+function worstTier(patterns: ViolationPattern[] = []): string | null {
   if (patterns.some(p => p.impact === 'critical')) return 'T1'
   if (patterns.some(p => p.impact === 'serious'))  return 'T2'
   if (patterns.some(p => p.impact === 'moderate')) return 'T3'
@@ -40,7 +42,10 @@ const TIER_STYLE: Record<string, React.CSSProperties> = {
 export function SiteCard({ site }: SiteCardProps) {
   const { latestScan } = site
   const pageCount = site.pages?.length ?? 0
-  const tier = latestScan ? worstTier(latestScan.patterns ?? []) : null
+  const patterns = latestScan?.patterns ?? []
+  const wcagErrorCount = countOccurrences(patterns, isWcagPattern)
+  const issueTypeCount = countIssueTypes(patterns, isWcagPattern)
+  const tier = latestScan ? worstTier(patterns.filter(isWcagPattern)) : null
 
   return (
     <Link
@@ -82,10 +87,10 @@ export function SiteCard({ site }: SiteCardProps) {
       {latestScan ? (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13 }}>
           <span style={{ fontWeight: 700, color: '#1D1D1F' }}>
-            {latestScan.raw_violation_count} error{latestScan.raw_violation_count !== 1 ? 's' : ''}
+            {wcagErrorCount} component issue{wcagErrorCount !== 1 ? 's' : ''}
           </span>
           <span style={{ color: '#57575A' }}>
-            {latestScan.unique_pattern_count} type{latestScan.unique_pattern_count !== 1 ? 's' : ''}
+            {issueTypeCount} issue type{issueTypeCount !== 1 ? 's' : ''}
           </span>
           <span style={{ color: '#A1A1A6', fontSize: 16 }}>→</span>
         </div>

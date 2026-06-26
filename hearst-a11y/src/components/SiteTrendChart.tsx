@@ -44,7 +44,7 @@ export function SiteTrendChart({ points }: Props) {
             boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
           }}
           labelFormatter={(v) => formatChartDate(v)}
-          formatter={(val) => [val, 'issues']}
+          formatter={(val) => [val, 'component issues']}
         />
         <Line
           type="monotone"
