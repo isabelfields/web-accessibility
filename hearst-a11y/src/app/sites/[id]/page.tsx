@@ -11,6 +11,7 @@ import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { patternsToWorstTier, TIER_LABEL, impactToTier, TIER_COLOR } from '@/lib/tiers'
 import { SeverityDonut } from '@/components/SeverityDonut'
 import { formatDateTime } from '@/lib/format'
+import { countComponentsWithIssues, countIssueTypes, countOccurrences, formatSignedDelta, getSeverityCounts, isActiveWcagPattern, isWcagPattern } from '@/lib/metrics'
 import type { ViolationPattern, SitePage } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -81,17 +82,16 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   }
   const worstTier = patternsToWorstTier(activePatterns.filter(p => !p.isBestPractice))
 
-  // Severity counts exclude best-practice (no score impact) and triaged patterns.
-  const severityCounts = { critical: 0, serious: 0, moderate: 0, minor: 0 }
-  for (const p of activePatterns) {
-    const impact = p.impact as keyof typeof severityCounts
-    if (!p.isBestPractice && impact in severityCounts) severityCounts[impact] += p.occurrences
-  }
-  const totalViolations = severityCounts.critical + severityCounts.serious + severityCounts.moderate + severityCounts.minor
+  // Active WCAG counts exclude best-practice-only findings and triaged patterns.
+  const severityCounts = getSeverityCounts(patterns)
+  const totalViolations = countOccurrences(patterns, isActiveWcagPattern)
+  const activeComponentsWithIssues = countComponentsWithIssues(patterns, isActiveWcagPattern)
+  const activeIssueTypes = countIssueTypes(patterns, isActiveWcagPattern)
 
-  // WCAG error trend vs previous scan
-  const currentErrors = latestScan?.raw_violation_count ?? null
-  const prevErrors = prevScan?.raw_violation_count ?? null
+  // component issue trend vs previous scan. Historical scans do not have joined triage
+  // state, so compare WCAG findings while excluding best-practice-only rules.
+  const currentErrors = latestScan ? countOccurrences(patterns, isWcagPattern) : null
+  const prevErrors = prevScan ? countOccurrences((prevScan.patterns ?? []) as ViolationPattern[], isWcagPattern) : null
   const errorDelta = (currentErrors !== null && prevErrors !== null) ? currentErrors - prevErrors : null
 
   // Tiers present (for jump nav)
@@ -103,7 +103,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
     .reverse()
     .map((s: any) => ({
       date: new Date(s.started_at).toISOString().split('T')[0],
-      count: s.raw_violation_count ?? 0,
+      count: countOccurrences((s.patterns ?? []) as ViolationPattern[], isWcagPattern),
     }))
 
   return (
@@ -133,7 +133,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
       <div style={{ padding: '24px 32px' }}>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 16, marginBottom: 20 }}>
 
         {/* Priority — navy left accent */}
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #002D82', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
@@ -153,11 +153,11 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           )}
         </div>
 
-        {/* Components with Issues */}
+        {/* Total Issues */}
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #007AFF', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Components with Issues</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Total Issues</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ fontSize: 40, fontWeight: 800, color: '#007AFF', letterSpacing: '-0.02em', lineHeight: 1 }}>{currentErrors ?? '—'}</div>
+            <div style={{ fontSize: 40, fontWeight: 800, color: '#007AFF', letterSpacing: '-0.02em', lineHeight: 1 }}>{latestScan ? totalViolations : '—'}</div>
             {errorDelta !== null && errorDelta !== 0 && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 8px',
@@ -165,18 +165,25 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                 background: errorDelta > 0 ? '#FEF2F2' : '#ECFDF5',
                 color: errorDelta > 0 ? '#DC2626' : '#059669',
               }}>
-                {errorDelta > 0 ? '↑' : '↓'} {Math.abs(errorDelta)}
+                {formatSignedDelta(errorDelta)}
               </span>
             )}
           </div>
-          <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>failing elements on page</div>
+          <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>active WCAG failures</div>
         </div>
 
-        {/* Rule Violations */}
+        {/* Components with Issues */}
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #3B82F6', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Components with Issues</div>
+          <div style={{ fontSize: 40, fontWeight: 800, color: '#1D4ED8', letterSpacing: '-0.02em', lineHeight: 1 }}>{latestScan ? activeComponentsWithIssues : '—'}</div>
+          <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>deduped affected components</div>
+        </div>
+
+        {/* Issue Types */}
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #60a5fa', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Rule Violations</div>
-          <div style={{ fontSize: 40, fontWeight: 800, color: '#2563eb', letterSpacing: '-0.02em', lineHeight: 1 }}>{totalViolations}</div>
-          <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>WCAG rules broken</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Issue Types</div>
+          <div style={{ fontSize: 40, fontWeight: 800, color: '#2563eb', letterSpacing: '-0.02em', lineHeight: 1 }}>{activeIssueTypes}</div>
+          <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>unique active issue types</div>
         </div>
 
         {/* Pages Scanned */}
@@ -200,24 +207,24 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           {totalViolations > 0 && (
             <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Issues by Tier</div>
-              <div style={{ fontSize: 11, color: '#57575A', marginBottom: 12 }}>Total failing elements grouped by tier</div>
+              <div style={{ fontSize: 11, color: '#57575A', marginBottom: 12 }}>Total component instances grouped by tier</div>
               <SeverityDonut counts={severityCounts} />
             </div>
           )}
           {trendPoints.length >= 2 && (
             <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Issue Count Over Time</div>
-              <div style={{ fontSize: 11, color: '#57575A', marginBottom: 12 }}>Failing elements across scans</div>
+              <div style={{ fontSize: 11, color: '#57575A', marginBottom: 12 }}>Component instances across scans</div>
               <SiteTrendChart points={trendPoints} />
             </div>
           )}
         </div>
       )}
 
-      {/* WCAG Errors — swimlane layout */}
+      {/* Component Issues — swimlane layout */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <h2 style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', margin: 0 }}>WCAG Errors</h2>
+          <h2 style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', margin: 0 }}>Component Issues</h2>
           {presentTiers.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 12, color: '#57575A', marginRight: 4 }}>Jump to</span>
@@ -237,9 +244,9 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
         {activePatterns.length === 0 ? (
           <div style={{ borderRadius: 12, border: '1.5px dashed #D1D1D6', padding: '48px', textAlign: 'center', color: '#57575A', background: '#fff' }}>
-            {!latestScan ? 'Run a scan to see violations.'
-              : dismissedPatterns.length > 0 ? 'No active violations — all issues have been dismissed.'
-              : 'No violations found. Great job!'}
+            {!latestScan ? 'Run a scan to see component issues.'
+              : dismissedPatterns.length > 0 ? 'No active component issues — all issues have been dismissed.'
+              : 'No component issues found. Great job!'}
           </div>
         ) : (
           <div>
@@ -285,7 +292,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                 <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Started</th>
                 <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</th>
                 <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pages</th>
-                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Issues</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Issues</th>
                 <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Triggered By</th>
                 <th style={{ padding: '10px 16px' }} />
               </tr>
@@ -306,7 +313,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                     </span>
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F' }}>{scan.pages_scanned ?? 0}</td>
-                  <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F' }}>{scan.raw_violation_count ?? 0}</td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F' }}>{countOccurrences((scan.patterns ?? []) as ViolationPattern[], isWcagPattern)}</td>
                   <td style={{ padding: '12px 16px', color: '#57575A', textTransform: 'capitalize' }}>{scan.triggered_by}</td>
                   <td style={{ padding: '12px 16px', textAlign: 'right', position: 'relative', zIndex: 1 }}>
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
@@ -332,7 +339,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                   <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Label</th>
                   <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>URL</th>
                   <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Type</th>
-                  <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>WCAG Errors</th>
+                  <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Issues</th>
                   <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</th>
                 </tr>
               </thead>

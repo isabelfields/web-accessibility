@@ -1,5 +1,6 @@
 'use client'
 
+import { formatChartDate, formatChartDay } from '@/lib/format'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
@@ -47,7 +48,7 @@ export function ScoreTrendChart({ trends }: Props) {
           tick={{ fontSize: 11, fill: '#57575A' }}
           tickLine={false}
           axisLine={false}
-          tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          tickFormatter={(v) => formatChartDay(v)}
         />
         <YAxis
           domain={[minScore, maxScore]}
@@ -66,7 +67,7 @@ export function ScoreTrendChart({ trends }: Props) {
             boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
           }}
           labelStyle={{ color: '#57575A', marginBottom: 4 }}
-          labelFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          labelFormatter={(v) => formatChartDate(v)}
         />
         <Legend
           iconType="circle"

@@ -8,6 +8,7 @@ import { SeverityBar } from '@/components/SeverityBar'
 import { ExportPdfButton } from '@/components/ExportPdfButton'
 import { patternsToWorstTier, TIER_LABEL, TIER_COLOR } from '@/lib/tiers'
 import { formatDateTime } from '@/lib/format'
+import { countComponentsWithIssues, countIssueTypes, countOccurrences, formatSignedDelta, getSeverityCounts, isActiveWcagPattern, isWcagPattern, pluralize } from '@/lib/metrics'
 import type { ViolationPattern, PageScore } from '@/types'
 
 const RULE_WCAG_LEVEL: Record<string, 'A' | 'AA'> = {
@@ -75,9 +76,12 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   const newCount = patterns.filter(p => p.isNew).length
   const resolvedPatterns = prevPatterns.filter(p => !currentFingerprints.has(p.fingerprint))
   const carriedOver = patterns.length - newCount
-  const prevTotal = prevPatterns.reduce((s, p) => s + p.occurrences, 0)
-  const currentTotal = patterns.reduce((s, p) => s + p.occurrences, 0)
-  const regressed = prevScan != null && currentTotal > prevTotal
+  const prevTotal = countOccurrences(prevPatterns, isWcagPattern)
+  const currentTotal = countOccurrences(patterns, isWcagPattern)
+  const errorDelta = currentTotal - prevTotal
+  const hasMoreErrors = prevScan != null && errorDelta > 0
+  const hasFewerErrors = prevScan != null && errorDelta < 0
+  const currentErrorLabel = pluralize(currentTotal, 'error')
 
   const byImpact: Record<string, ViolationPattern[]> = { critical: [], serious: [], moderate: [], minor: [] }
   for (const p of activePatterns) {
@@ -92,25 +96,19 @@ export default async function ScanDetailPage({ params }: RouteContext) {
     tier4: byImpact.minor,
   }
 
-  // "Active" totals exclude best-practice (no score impact) and triaged patterns
+  // Active WCAG totals exclude best-practice-only findings and triaged patterns
   // (fixed/won't-fix/false-positive). The violation list below (byTier) still
   // shows every pattern, with triaged ones de-emphasized.
-  const isActive = (p: ViolationPattern) => !p.isBestPractice && (p.triageStatus ?? 'open') === 'open'
-  const totalViolations = activePatterns.reduce((sum, p) => sum + p.occurrences, 0)
+  const totalViolations = countOccurrences(patterns, isActiveWcagPattern)
+  const activeComponentsWithIssues = countComponentsWithIssues(patterns, isActiveWcagPattern)
+  const activeIssueTypes = countIssueTypes(patterns, isActiveWcagPattern)
   const worstTier = patternsToWorstTier(activePatterns.filter(p => !p.isBestPractice))
 
-  const occ = (list: ViolationPattern[]) =>
-    list.filter(isActive).reduce((s, p) => s + p.occurrences, 0)
-  const severityCounts = {
-    critical: occ(byImpact.critical),
-    serious:  occ(byImpact.serious),
-    moderate: occ(byImpact.moderate),
-    minor:    occ(byImpact.minor),
-  }
+  const severityCounts = getSeverityCounts(patterns)
 
   const wcagLevels = { A: 0, AA: 0 }
   for (const p of patterns) {
-    if (!isActive(p)) continue
+    if (!isActiveWcagPattern(p)) continue
     const level = RULE_WCAG_LEVEL[p.rule] ?? 'A'
     wcagLevels[level] += p.occurrences
   }
@@ -151,13 +149,13 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               <span className="text-sm text-[#3A3A3C] capitalize">· {scan.triggered_by}</span>
             )}
             {scan.status === 'complete' && prevScan && (
-              regressed ? (
+              hasMoreErrors ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                  ↑ Regressed vs last scan
+                  {currentTotal} {currentErrorLabel} (+{errorDelta} since last scan)
                 </span>
-              ) : (currentTotal < prevTotal) ? (
+              ) : hasFewerErrors ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
-                  ↓ Improved vs last scan
+                  {currentTotal} {currentErrorLabel} ({formatSignedDelta(errorDelta)} since last scan)
                 </span>
               ) : null
             )}
@@ -178,7 +176,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
       ) : (
         <>
           {/* Summary Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
             {/* Priority tier */}
             <div className="rounded-lg bg-white border border-[#E5E5EA] p-6 flex flex-col items-center justify-center">
               <div className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider mb-3">Priority</div>
@@ -192,14 +190,22 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               )}
             </div>
 
-            {/* Violations summary */}
+            {/* Issues summary */}
             <div className="rounded-lg bg-white border border-[#E5E5EA] p-6 flex flex-col justify-between">
-              <div className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider mb-3">WCAG Errors</div>
+              <div className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider mb-3">Total Issues</div>
               <div className="text-4xl font-bold text-[#1D1D1F] tabular-nums leading-none">{totalViolations}</div>
               <div className="mt-3 space-y-1.5 text-xs text-[#3A3A3C]">
-                <div className="flex justify-between"><span>Issue types</span><span className="font-semibold text-[#1D1D1F]">{scan.unique_pattern_count ?? 0}</span></div>
+                <div className="flex justify-between"><span>Components</span><span className="font-semibold text-[#1D1D1F]">{activeComponentsWithIssues}</span></div>
+                <div className="flex justify-between"><span>Issue types</span><span className="font-semibold text-[#1D1D1F]">{activeIssueTypes}</span></div>
                 <div className="flex justify-between"><span>Pages scanned</span><span className="font-semibold text-[#1D1D1F]">{scan.pages_scanned ?? 0}</span></div>
               </div>
+            </div>
+
+            {/* Components with issues */}
+            <div className="rounded-lg bg-white border border-[#E5E5EA] p-6 flex flex-col justify-between">
+              <div className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider mb-3">Components with Issues</div>
+              <div className="text-4xl font-bold text-[#1D1D1F] tabular-nums leading-none">{activeComponentsWithIssues}</div>
+              <div className="text-xs text-[#3A3A3C] mt-3">deduped affected components</div>
             </div>
 
             {/* WCAG A / AA */}
@@ -258,7 +264,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                     <tr className="bg-[#F5F5F7] border-b border-[#E5E5EA]">
                       <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Page</th>
                       <th className="text-left px-4 py-3 text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">URL</th>
-                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">WCAG Errors</th>
+                      <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Total Issues</th>
                       <th className="text-right px-4 py-3 text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Status</th>
                     </tr>
                   </thead>
@@ -293,12 +299,12 @@ export default async function ScanDetailPage({ params }: RouteContext) {
 
           {/* Violations */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-[#1D1D1F]">WCAG Errors Found</h2>
-            <span className="text-sm text-[#3A3A3C]">{activePatterns.length} issue type{activePatterns.length !== 1 ? 's' : ''} · {totalViolations} total</span>
+            <h2 className="text-lg font-semibold text-[#1D1D1F]">Component Issues Found</h2>
+            <span className="text-sm text-[#3A3A3C]">{activeIssueTypes} issue type{activeIssueTypes !== 1 ? 's' : ''} · {totalViolations} component instance{totalViolations !== 1 ? 's' : ''}</span>
           </div>
           {activePatterns.length === 0 ? (
             <div className="bg-white rounded-xl border border-dashed border-[#E5E5EA] p-12 text-center text-[#3A3A3C]">
-              {dismissedPatterns.length > 0 ? 'No active WCAG errors — all issues have been dismissed.' : 'No WCAG errors found — great job!'}
+              {dismissedPatterns.length > 0 ? 'No active component issues — all issues have been dismissed.' : 'No component issues found — great job!'}
             </div>
           ) : (
             <div>
