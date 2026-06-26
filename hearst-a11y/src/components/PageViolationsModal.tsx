@@ -5,6 +5,7 @@ import { TierSection } from './TierSection'
 import { Modal } from './Modal'
 import { impactToTier, TIER_LABEL, TIER_COLOR } from '@/lib/tiers'
 import type { ViolationPattern, PageScore } from '@/types'
+import { isWcagPattern } from '@/lib/metrics'
 
 interface Props {
   pageScore: PageScore
@@ -16,9 +17,15 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
   const [open, setOpen] = useState(false)
 
   const pagePatterns = patterns.filter(p =>
-    p.affectedPages?.includes(pageScore.url) ||
-    p.nodes?.some(n => n.url === pageScore.url)
+    isWcagPattern(p) && (
+      p.affectedPages?.includes(pageScore.url) ||
+      p.nodes?.some(n => n.url === pageScore.url)
+    )
   )
+  const pageErrorCount = pagePatterns.reduce((sum, pattern) => {
+    const pageNodeCount = pattern.nodes?.filter(node => node.url === pageScore.url).length ?? 0
+    return sum + (pageNodeCount || pattern.occurrences)
+  }, 0)
 
   const hasData = pageScore.score != null
 
@@ -65,7 +72,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
                   {pagePatterns.length} issue type{pagePatterns.length !== 1 ? 's' : ''}
                 </span>
                 {pageScore.violationCount != null && (
-                  <span className="text-sm text-[#57575A]">· {pageScore.violationCount} total violations</span>
+                  <span className="text-sm text-[#57575A]">· {pageErrorCount} component issue{pageErrorCount !== 1 ? 's' : ''}</span>
                 )}
               </div>
             </div>
@@ -73,7 +80,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
         >
           <div className="px-6 py-5">
             {pagePatterns.length === 0 ? (
-              <div className="text-center py-10 text-[#57575A] text-sm">No violations found on this page.</div>
+              <div className="text-center py-10 text-[#57575A] text-sm">No component issues found on this page.</div>
             ) : (
               (['tier1', 'tier2', 'tier3', 'tier4'] as const).map(tier => {
                 const group = byTier[tier]

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { formatCurrency, formatYearMonth } from '@/lib/format'
 
 interface CostData {
   totals: { total_cost: number; total_calls: number; total_scans: number }
@@ -10,14 +11,6 @@ interface CostData {
   byDivision: { division: string; cost: number; calls: number; scans: number }[]
 }
 
-function fmt$(n: number) {
-  return n < 0.01 ? '<$0.01' : `$${n.toFixed(2)}`
-}
-
-function fmtMonth(ym: string) {
-  const [y, m] = ym.split('-')
-  return new Date(Number(y), Number(m) - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
-}
 
 const statStyle: React.CSSProperties = {
   background: '#fff',
@@ -69,7 +62,7 @@ export default function CostsPage() {
       <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
         <div style={statStyle}>
           <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Total spend</div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em' }}>{fmt$(Number(totals.total_cost))}</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em' }}>{formatCurrency(Number(totals.total_cost))}</div>
           <div style={{ fontSize: 12, color: '#57575A', marginTop: 2 }}>all time</div>
         </div>
         <div style={statStyle}>
@@ -85,7 +78,7 @@ export default function CostsPage() {
         <div style={statStyle}>
           <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Avg cost / scan</div>
           <div style={{ fontSize: 28, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em' }}>
-            {totals.total_scans > 0 ? fmt$(Number(totals.total_cost) / Number(totals.total_scans)) : '—'}
+            {totals.total_scans > 0 ? formatCurrency(Number(totals.total_cost) / Number(totals.total_scans)) : '—'}
           </div>
           <div style={{ fontSize: 12, color: '#57575A', marginTop: 2 }}>per completed scan</div>
         </div>
@@ -96,7 +89,7 @@ export default function CostsPage() {
         <div style={{ ...cardStyle, padding: 24, marginBottom: 24 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: '#1D1D1F', marginBottom: 16 }}>Monthly spend</div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={monthly.map(m => ({ ...m, month: fmtMonth(m.month), cost: Number(m.cost) }))} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
+            <BarChart data={monthly.map(m => ({ ...m, month: formatYearMonth(m.month), cost: Number(m.cost) }))} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="2 4" stroke="#F0F0F0" vertical={false} />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#57575A' }} tickLine={false} axisLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#57575A' }} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
@@ -159,7 +152,7 @@ export default function CostsPage() {
                 {tab === 'site' && (
                   <td style={{ padding: '11px 16px', color: '#57575A', fontSize: 12 }}>{row.division ?? '—'}</td>
                 )}
-                <td style={{ padding: '11px 16px', textAlign: 'right', fontWeight: 600, color: '#1D1D1F' }}>{fmt$(Number(row.cost))}</td>
+                <td style={{ padding: '11px 16px', textAlign: 'right', fontWeight: 600, color: '#1D1D1F' }}>{formatCurrency(Number(row.cost))}</td>
                 <td style={{ padding: '11px 16px', textAlign: 'right', color: '#57575A' }}>{Number(row.calls).toLocaleString()}</td>
                 <td style={{ padding: '11px 20px', textAlign: 'right', color: '#57575A' }}>{Number(row.scans).toLocaleString()}</td>
               </tr>
