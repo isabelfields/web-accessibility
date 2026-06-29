@@ -87,7 +87,8 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   // Annotate each pattern with its triage state; "active" = open/untriaged.
   for (const p of patterns) p.triageStatus = (triage[p.fingerprint] as ViolationPattern['triageStatus']) ?? 'open'
   const activePatterns = patterns.filter(p => (p.triageStatus ?? 'open') === 'open')
-  const dismissedPatterns = patterns.filter(p => (p.triageStatus ?? 'open') !== 'open')
+  const activeWcagPatterns = activePatterns.filter(isWcagPattern)
+  const dismissedWcagPatterns = patterns.filter(p => isWcagPattern(p) && (p.triageStatus ?? 'open') !== 'open')
 
   // Diff against the previous completed scan of this site.
   const prevPatterns: ViolationPattern[] = prevScan?.patterns ?? []
@@ -116,7 +117,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
   const currentErrorLabel = pluralize(currentTotal, 'issue')
 
   const byImpact: Record<string, ViolationPattern[]> = { critical: [], serious: [], moderate: [], minor: [] }
-  for (const p of activePatterns) {
+  for (const p of activeWcagPatterns) {
     if (byImpact[p.impact]) byImpact[p.impact].push(p)
   }
 
@@ -128,15 +129,14 @@ export default async function ScanDetailPage({ params }: RouteContext) {
     tier4: byImpact.minor,
   }
 
-  // Active WCAG totals exclude best-practice-only findings and triaged patterns
-  // (fixed/won't-fix/false-positive). The violation list below (byTier) still
-  // shows every pattern, with triaged ones de-emphasized.
-  const totalViolations = countOccurrences(patterns, isActiveWcagPattern)
-  const activeComponentsWithIssues = countComponentsWithIssues(patterns, isActiveWcagPattern)
-  const activeIssueTypes = countIssueTypes(patterns, isActiveWcagPattern)
-  const worstTier = patternsToWorstTier(activePatterns.filter(p => !p.isBestPractice))
+  // Active WCAG totals and issue lists exclude best-practice-only findings and
+  // triaged patterns (fixed/won't-fix/false-positive).
+  const totalViolations = countOccurrences(activeWcagPatterns)
+  const activeComponentsWithIssues = countComponentsWithIssues(activeWcagPatterns)
+  const activeIssueTypes = countIssueTypes(activeWcagPatterns)
+  const worstTier = patternsToWorstTier(activeWcagPatterns)
 
-  const severityCounts = getSeverityCounts(patterns)
+  const severityCounts = getSeverityCounts(activeWcagPatterns)
 
   const wcagLevels = { A: 0, AA: 0 }
   for (const p of patterns) {
@@ -405,9 +405,9 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             <h2 className="text-lg font-semibold text-[#1D1D1F]">Component Issues Found</h2>
             <span className="text-sm text-[#3A3A3C]">{activeIssueTypes} issue type{activeIssueTypes !== 1 ? 's' : ''} · {totalViolations} component instance{totalViolations !== 1 ? 's' : ''}</span>
           </div>
-          {activePatterns.length === 0 ? (
+          {activeWcagPatterns.length === 0 ? (
             <div className="bg-white rounded-xl border border-dashed border-[#E5E5EA] p-12 text-center text-[#3A3A3C]">
-              {dismissedPatterns.length > 0 ? 'No active component issues — all issues have been dismissed.' : 'No component issues found — great job!'}
+              {dismissedWcagPatterns.length > 0 ? 'No active component issues — all WCAG issues have been dismissed.' : 'No WCAG component issues found — great job!'}
             </div>
           ) : (
             <div>
@@ -430,13 +430,13 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           )}
 
           {/* Dismissed issues (fixed / won't-fix / false-positive), collapsed by default */}
-          {dismissedPatterns.length > 0 && (
+          {dismissedWcagPatterns.length > 0 && (
             <div className="mt-6">
               <TierSection
                 tier="dismissed"
-                label={`Dismissed (${dismissedPatterns.length})`}
+                label={`Dismissed (${dismissedWcagPatterns.length})`}
                 color={{ text: '#57575A', dot: '#9CA3AF', hex: '#9CA3AF' }}
-                patterns={dismissedPatterns}
+                patterns={dismissedWcagPatterns}
                 siteId={site?.id}
                 defaultOpen={false}
               />
