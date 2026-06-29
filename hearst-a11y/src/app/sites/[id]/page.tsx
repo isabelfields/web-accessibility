@@ -27,6 +27,19 @@ const TIER_JUMP_LABEL: Record<string, string> = {
   tier1: 'T1', tier2: 'T2', tier3: 'T3', tier4: 'T4',
 }
 
+
+function countPageWcagIssues(pageUrl: string, patterns: ViolationPattern[]): number {
+  return patterns
+    .filter(pattern => isWcagPattern(pattern) && (
+      pattern.affectedPages?.includes(pageUrl) ||
+      pattern.nodes?.some(node => node.url === pageUrl)
+    ))
+    .reduce((sum, pattern) => {
+      const pageNodeCount = pattern.nodes?.filter(node => node.url === pageUrl).length ?? 0
+      return sum + (pageNodeCount || pattern.occurrences)
+    }, 0)
+}
+
 async function getSiteData(id: string) {
   const [site] = await sql`SELECT * FROM sites WHERE id = ${id}`
   if (!site) return null
@@ -74,24 +87,27 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   // Annotate triage state; "active" excludes triaged (dismissed) patterns.
   for (const p of patterns) p.triageStatus = (triage[p.fingerprint] as ViolationPattern['triageStatus']) ?? 'open'
   const activePatterns = patterns.filter(p => (p.triageStatus ?? 'open') === 'open')
-  const dismissedPatterns = patterns.filter(p => (p.triageStatus ?? 'open') !== 'open')
+  const activeWcagPatterns = activePatterns.filter(isWcagPattern)
+  const dismissedWcagPatterns = patterns.filter(p => isWcagPattern(p) && (p.triageStatus ?? 'open') !== 'open')
 
   const byTier: Record<string, ViolationPattern[]> = { tier1: [], tier2: [], tier3: [], tier4: [] }
-  for (const p of activePatterns) {
+  for (const p of activeWcagPatterns) {
     byTier[impactToTier(p.impact)].push(p)
   }
-  const worstTier = patternsToWorstTier(activePatterns.filter(p => !p.isBestPractice))
+  const worstTier = patternsToWorstTier(activeWcagPatterns)
 
   // Active WCAG counts exclude best-practice-only findings and triaged patterns.
-  const severityCounts = getSeverityCounts(patterns)
-  const totalViolations = countOccurrences(patterns, isActiveWcagPattern)
-  const activeComponentsWithIssues = countComponentsWithIssues(patterns, isActiveWcagPattern)
-  const activeIssueTypes = countIssueTypes(patterns, isActiveWcagPattern)
+  const severityCounts = getSeverityCounts(activeWcagPatterns)
+  const totalViolations = countOccurrences(activeWcagPatterns)
+  const activeComponentsWithIssues = countComponentsWithIssues(activeWcagPatterns)
+  const activeIssueTypes = countIssueTypes(activeWcagPatterns)
 
-  // component issue trend vs previous scan. Historical scans do not have joined triage
-  // state, so compare WCAG findings while excluding best-practice-only rules.
-  const currentErrors = latestScan ? countOccurrences(patterns, isWcagPattern) : null
-  const prevErrors = prevScan ? countOccurrences((prevScan.patterns ?? []) as ViolationPattern[], isWcagPattern) : null
+  const prevPatterns = (prevScan?.patterns ?? []) as ViolationPattern[]
+  for (const p of prevPatterns) p.triageStatus = (triage[p.fingerprint] as ViolationPattern['triageStatus']) ?? 'open'
+
+  // The badge sits next to the displayed active total, so compare active WCAG totals.
+  const currentErrors = latestScan ? totalViolations : null
+  const prevErrors = prevScan ? countOccurrences(prevPatterns, isActiveWcagPattern) : null
   const errorDelta = (currentErrors !== null && prevErrors !== null) ? currentErrors - prevErrors : null
 
   // Tiers present (for jump nav)
@@ -242,11 +258,11 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           )}
         </div>
 
-        {activePatterns.length === 0 ? (
+        {activeWcagPatterns.length === 0 ? (
           <div style={{ borderRadius: 12, border: '1.5px dashed #D1D1D6', padding: '48px', textAlign: 'center', color: '#57575A', background: '#fff' }}>
             {!latestScan ? 'Run a scan to see component issues.'
-              : dismissedPatterns.length > 0 ? 'No active component issues — all issues have been dismissed.'
-              : 'No component issues found. Great job!'}
+              : dismissedWcagPatterns.length > 0 ? 'No active component issues — all WCAG issues have been dismissed.'
+              : 'No WCAG component issues found. Great job!'}
           </div>
         ) : (
           <div>
@@ -268,13 +284,13 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           </div>
         )}
 
-        {dismissedPatterns.length > 0 && (
+        {dismissedWcagPatterns.length > 0 && (
           <div style={{ marginTop: 24 }}>
             <TierSection
               tier="dismissed"
-              label={`Dismissed (${dismissedPatterns.length})`}
+              label={`Dismissed (${dismissedWcagPatterns.length})`}
               color={{ text: '#57575A', dot: '#9CA3AF', hex: '#9CA3AF' }}
-              patterns={dismissedPatterns}
+              patterns={dismissedWcagPatterns}
               siteId={site.id}
               defaultOpen={false}
             />
@@ -346,6 +362,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
               <tbody>
                 {pages.map((page, i) => {
                   const ps = pageScores.find(s => s.url === page.url)
+                  const pageIssueCount = countPageWcagIssues(page.url, patterns)
                   return (
                     <tr key={i} style={{ borderTop: '1px solid #F0F0F0' }} className="hover:bg-[#F5F5F7] transition-colors">
                       <td style={{ padding: '12px 16px', fontWeight: 600, color: '#1D1D1F' }}>{page.label}</td>
@@ -360,7 +377,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                           {page.templateType}
                         </span>
                       </td>
-                      <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F' }}>{ps ? (ps.violationCount ?? '—') : '—'}</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F' }}>{ps?.score == null ? '—' : pageIssueCount}</td>
                       <td style={{ padding: '12px 16px', textAlign: 'right' }}>
                         {!ps ? <span style={{ color: '#57575A' }}>—</span>
                           : ps.score == null ? <span style={{ fontSize: 11, fontWeight: 600, background: '#FEF2F2', color: '#DC2626', padding: '2px 10px', borderRadius: 20 }}>Failed</span>

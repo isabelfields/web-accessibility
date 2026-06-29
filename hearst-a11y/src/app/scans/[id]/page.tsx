@@ -26,6 +26,19 @@ export const dynamic = 'force-dynamic'
 type RouteContext = { params: Promise<{ id: string }> }
 
 
+
+function countPageWcagIssues(pageUrl: string, patterns: ViolationPattern[]): number {
+  return patterns
+    .filter(pattern => isWcagPattern(pattern) && (
+      pattern.affectedPages?.includes(pageUrl) ||
+      pattern.nodes?.some(node => node.url === pageUrl)
+    ))
+    .reduce((sum, pattern) => {
+      const pageNodeCount = pattern.nodes?.filter(node => node.url === pageUrl).length ?? 0
+      return sum + (pageNodeCount || pattern.occurrences)
+    }, 0)
+}
+
 function getRuleIssueCounts(patterns: ViolationPattern[]): Map<string, number> {
   const counts = new Map<string, number>()
   for (const pattern of patterns) {
@@ -372,28 +385,31 @@ export default async function ScanDetailPage({ params }: RouteContext) {
                     </tr>
                   </thead>
                   <tbody>
-                    {pageScores.map((ps, i) => (
-                      <PageViolationsModal key={i} pageScore={ps} patterns={patterns}>
-                        <tr className={`border-t border-[#E5E5EA] transition-colors ${ps.score != null ? 'hover:bg-[#F5F5F7] cursor-pointer' : ''}`}>
-                          <td className="px-4 py-3 font-medium text-[#1D1D1F]">{ps.label ?? '—'}</td>
-                          <td className="px-4 py-3">
-                            <span className="text-[#1d4ed8] truncate block max-w-sm">{ps.url}</span>
-                            {ps.error && (
-                              <div className="text-xs text-red-600 mt-0.5 truncate max-w-sm" title={ps.error}>
-                                ⚠ {ps.error.length > 80 ? ps.error.slice(0, 80) + '…' : ps.error}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-right text-[#1D1D1F]">{ps.violationCount ?? '—'}</td>
-                          <td className="px-4 py-3 text-right">
-                            {ps.score == null
-                              ? <span className="text-xs font-normal bg-red-100 text-red-700 px-2 py-0.5 rounded-md">Failed</span>
-                              : <span className="text-xs text-[#3A3A3C]">Scanned</span>
-                            }
-                          </td>
-                        </tr>
-                      </PageViolationsModal>
-                    ))}
+                    {pageScores.map((ps, i) => {
+                      const pageIssueCount = countPageWcagIssues(ps.url, patterns)
+                      return (
+                        <PageViolationsModal key={i} pageScore={ps} patterns={patterns}>
+                          <tr className={`border-t border-[#E5E5EA] transition-colors ${ps.score != null ? 'hover:bg-[#F5F5F7] cursor-pointer' : ''}`}>
+                            <td className="px-4 py-3 font-medium text-[#1D1D1F]">{ps.label ?? '—'}</td>
+                            <td className="px-4 py-3">
+                              <span className="text-[#1d4ed8] truncate block max-w-sm">{ps.url}</span>
+                              {ps.error && (
+                                <div className="text-xs text-red-600 mt-0.5 truncate max-w-sm" title={ps.error}>
+                                  ⚠ {ps.error.length > 80 ? ps.error.slice(0, 80) + '…' : ps.error}
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-right text-[#1D1D1F]">{ps.score == null ? '—' : pageIssueCount}</td>
+                            <td className="px-4 py-3 text-right">
+                              {ps.score == null
+                                ? <span className="text-xs font-normal bg-red-100 text-red-700 px-2 py-0.5 rounded-md">Failed</span>
+                                : <span className="text-xs text-[#3A3A3C]">Scanned</span>
+                              }
+                            </td>
+                          </tr>
+                        </PageViolationsModal>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
