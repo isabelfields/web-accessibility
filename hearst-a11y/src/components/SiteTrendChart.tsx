@@ -1,5 +1,6 @@
 'use client'
 
+import { formatChartDate, formatChartDay } from '@/lib/format'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 interface Props {
@@ -25,7 +26,7 @@ export function SiteTrendChart({ points }: Props) {
           tick={{ fontSize: 11, fill: '#57575A' }}
           tickLine={false}
           axisLine={false}
-          tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          tickFormatter={(v) => formatChartDay(v)}
         />
         <YAxis
           domain={[minVal, maxVal]}
@@ -42,8 +43,8 @@ export function SiteTrendChart({ points }: Props) {
             color: '#1C1C1E',
             boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
           }}
-          labelFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-          formatter={(val) => [val, 'issues']}
+          labelFormatter={(v) => formatChartDate(v)}
+          formatter={(val) => [val, 'total issues']}
         />
         <Line
           type="monotone"
