@@ -8,6 +8,8 @@ import { ChartsSection } from '@/components/ChartsSection'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/auth'
 import { formatDateTime } from '@/lib/format'
+import { countComponentsWithIssues, countIssueTypes, countOccurrences, getSeverityCounts, isWcagPattern } from '@/lib/metrics'
+import type { ViolationPattern } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +22,7 @@ async function getData(division?: string, allowedDivisions?: string[]) {
   const recentScansQuery = division
     ? sql`
         SELECT sj.id, sj.root_url, s.name as site_name, s.division,
-               sj.status, sj.score, sj.pages_scanned, sj.raw_violation_count,
+               sj.status, sj.score, sj.pages_scanned, sj.raw_violation_count, sj.patterns,
                sj.started_at, sj.triggered_by
         FROM scan_jobs sj
         JOIN sites s ON s.id = sj.site_id
@@ -30,7 +32,7 @@ async function getData(division?: string, allowedDivisions?: string[]) {
       `
     : sql`
         SELECT sj.id, sj.root_url, s.name as site_name, s.division,
-               sj.status, sj.score, sj.pages_scanned, sj.raw_violation_count,
+               sj.status, sj.score, sj.pages_scanned, sj.raw_violation_count, sj.patterns,
                sj.started_at, sj.triggered_by
         FROM scan_jobs sj
         LEFT JOIN sites s ON s.id = sj.site_id
@@ -50,7 +52,7 @@ async function getData(division?: string, allowedDivisions?: string[]) {
             ORDER BY started_at DESC LIMIT 1
           `
           const [prev] = await sql`
-            SELECT raw_violation_count FROM scan_jobs
+            SELECT raw_violation_count, COALESCE(patterns, '[]'::jsonb) as patterns FROM scan_jobs
             WHERE site_id = ${site.id} AND status = 'complete'
             ORDER BY started_at DESC LIMIT 1 OFFSET 1
           `
@@ -74,30 +76,28 @@ async function getData(division?: string, allowedDivisions?: string[]) {
   const totalPages = sites.reduce((sum: number, s: any) =>
     sum + (Array.isArray(s.pages) ? s.pages.length : 0), 0)
 
-  const totalErrors = sites.reduce((sum: number, s: any) =>
-    sum + (s.latestScan?.raw_violation_count ?? 0), 0)
+  const latestPatternsBySite = sites.map((s: any) => (s.latestScan?.patterns ?? []) as ViolationPattern[])
 
-  // "Rule Violations" = distinct WCAG rules broken (unique patterns), not element count.
-  const totalRulesBroken = sites.reduce((sum: number, s: any) =>
-    sum + (s.latestScan?.unique_pattern_count ?? 0), 0)
+  const totalIssues = latestPatternsBySite.reduce((sum: number, patterns) =>
+    sum + countOccurrences(patterns, isWcagPattern), 0)
+
+  const totalComponentsWithIssues = latestPatternsBySite.reduce((sum: number, patterns) =>
+    sum + countComponentsWithIssues(patterns, isWcagPattern), 0)
+
+  const totalIssueTypes = latestPatternsBySite.reduce((sum: number, patterns) =>
+    sum + countIssueTypes(patterns, isWcagPattern), 0)
 
   const errorsResolved = sites.reduce((sum: number, s: any) => {
-    const latest = s.latestScan?.raw_violation_count ?? 0
-    const prev = s.prevScan?.raw_violation_count ?? latest
+    const latest = countOccurrences((s.latestScan?.patterns ?? []) as ViolationPattern[], isWcagPattern)
+    const prev = countOccurrences((s.prevScan?.patterns ?? s.latestScan?.patterns ?? []) as ViolationPattern[], isWcagPattern)
     return sum + Math.max(0, prev - latest)
   }, 0)
 
-  const severityCounts = { critical: 0, serious: 0, moderate: 0, minor: 0 }
+  const severityCounts = getSeverityCounts(latestPatternsBySite.flat(), isWcagPattern)
   const violationMap = new Map<string, { count: number; impact: string }>()
-
-  for (const site of sites) {
-    const patterns = (site as any).latestScan?.patterns
-    if (!patterns) continue
-    for (const p of patterns as any[]) {
-      const impact = p.impact as keyof typeof severityCounts
-      // Best-practice patterns aren't WCAG failures and don't affect the score,
-      // so they don't count toward the severity breakdown / critical alert.
-      if (!p.isBestPractice && impact in severityCounts) severityCounts[impact] += p.occurrences
+  for (const patterns of latestPatternsBySite) {
+    for (const p of patterns) {
+      if (!isWcagPattern(p)) continue
       const existing = violationMap.get(p.rule)
       if (existing) {
         existing.count += p.occurrences
@@ -114,14 +114,14 @@ async function getData(division?: string, allowedDivisions?: string[]) {
   const scoreTrends = await Promise.all(
     sites.slice(0, 6).map(async (site: any) => {
       const rows = await sql`
-        SELECT raw_violation_count, started_at::date::text as date
+        SELECT raw_violation_count, COALESCE(patterns, '[]'::jsonb) AS patterns, started_at::date::text as date
         FROM scan_jobs
         WHERE site_id = ${site.id} AND status = 'complete'
         ORDER BY started_at DESC LIMIT 10
       `
       return {
         name: site.name,
-        scores: rows.reverse().map((r: any) => ({ date: r.date, score: r.raw_violation_count ?? 0 })),
+        scores: rows.reverse().map((r: any) => ({ date: r.date, score: countOccurrences((r.patterns ?? []) as ViolationPattern[], isWcagPattern) })),
       }
     })
   )
@@ -135,7 +135,7 @@ async function getData(division?: string, allowedDivisions?: string[]) {
     sites,
     scans,
     activeDivisions,
-    stats: { totalPages, totalErrors, errorsResolved, siteCount: sites.length, totalViolations: totalRulesBroken },
+    stats: { totalPages, totalIssues, totalComponentsWithIssues, errorsResolved, siteCount: sites.length, totalIssueTypes },
     severityCounts,
     topViolations,
     scoreTrends,
@@ -181,7 +181,7 @@ export default async function DashboardPage({
     )
   }
 
-  const { sites, scans, activeDivisions, stats, severityCounts, topViolations, scoreTrends, criticalSiteCount } = dashData
+  const { sites, scans, activeDivisions, stats, severityCounts, topViolations, scoreTrends } = dashData
 
   const visibleDivisions = isAdmin
     ? activeDivisions
@@ -193,7 +193,7 @@ export default async function DashboardPage({
     <div style={{ minHeight: '100vh', background: '#F5F5F7' }}>
 
       {/* Top bar */}
-      <div style={{ borderBottom: '1px solid #E5E5EA', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, background: 'rgba(245,245,247,0.92)', backdropFilter: 'blur(8px)' }}>
+      <div style={{ borderBottom: '1px solid #E5E5EA', minHeight: 96, padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, background: 'rgba(245,245,247,0.92)', backdropFilter: 'blur(8px)' }}>
         <div>
           <h1 style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>Dashboard</h1>
           <p style={{ fontSize: 12, color: '#57575A', margin: 0 }}>{effectiveDivision ? `${effectiveDivision} division` : 'All Hearst properties'}</p>
@@ -207,19 +207,8 @@ export default async function DashboardPage({
 
       <div style={{ padding: '24px 32px' }}>
 
-        {/* Alert banner — T1 critical sites */}
-        {criticalSiteCount > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#EFF6FF', border: '1px solid #BFDBFE', borderLeft: '4px solid #2563EB', borderRadius: 10, padding: '12px 20px', marginBottom: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#1D4ED8', fontSize: 14, fontWeight: 500 }}>
-              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
-              <span>{criticalSiteCount} site{criticalSiteCount !== 1 ? 's' : ''} have Tier 1 Critical errors requiring immediate attention</span>
-            </div>
-            <Link href="/sites" style={{ color: '#1D4ED8', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' }}>View sites →</Link>
-          </div>
-        )}
-
         {/* Stat cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 16, marginBottom: 20 }}>
 
           {/* Sites */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
@@ -235,18 +224,25 @@ export default async function DashboardPage({
             <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>across all sites</div>
           </div>
 
-          {/* Components with Issues */}
+          {/* Total Issues */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #007AFF', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Components with Issues</div>
-            <div style={{ fontSize: 40, fontWeight: 800, color: '#007AFF', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalErrors}</div>
-            <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>failing elements on page</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Total Issues</div>
+            <div style={{ fontSize: 40, fontWeight: 800, color: '#007AFF', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalIssues}</div>
+            <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>all WCAG failures across pages</div>
           </div>
 
-          {/* Rule Violations */}
+          {/* Components with Issues */}
+          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #3B82F6', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Components with Issues</div>
+            <div style={{ fontSize: 40, fontWeight: 800, color: '#1D4ED8', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalComponentsWithIssues}</div>
+            <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>deduped affected components</div>
+          </div>
+
+          {/* Issue Types */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #60a5fa', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Rule Violations</div>
-            <div style={{ fontSize: 40, fontWeight: 800, color: '#2563eb', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalViolations}</div>
-            <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>WCAG rules broken across all sites</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Issue Types</div>
+            <div style={{ fontSize: 40, fontWeight: 800, color: '#2563eb', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalIssueTypes}</div>
+            <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>unique WCAG issue types</div>
           </div>
 
           {/* Resolved */}
@@ -257,7 +253,7 @@ export default async function DashboardPage({
           </div>
         </div>
 
-        {/* Charts row + Top WCAG Errors */}
+        {/* Charts row + Top WCAG Issue Types */}
         <ChartsSection severityCounts={severityCounts} topViolations={topViolations} scoreTrends={scoreTrends} />
 
         {/* Site cards */}
@@ -291,7 +287,7 @@ export default async function DashboardPage({
                 {showDivisionCol && <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Division</th>}
                 <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</th>
                 <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pages</th>
-                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>WCAG Errors</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Issues</th>
                 <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Started</th>
                 <th style={{ padding: '10px 8px' }} />
               </tr>
@@ -321,7 +317,7 @@ export default async function DashboardPage({
                       </span>
                     </td>
                     <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F', fontVariantNumeric: 'tabular-nums' }}>{scan.pages_scanned ?? 0}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F', fontVariantNumeric: 'tabular-nums' }}>{scan.raw_violation_count ?? '—'}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', color: '#1D1D1F', fontVariantNumeric: 'tabular-nums' }}>{countOccurrences((scan.patterns ?? []) as ViolationPattern[], isWcagPattern)}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'right', color: '#57575A', fontSize: 12 }}>{formatDateTime(scan.started_at)}</td>
                     <td style={{ padding: '12px 8px', textAlign: 'right', position: 'relative', zIndex: 1 }}>
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity">

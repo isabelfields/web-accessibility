@@ -43,6 +43,7 @@ export interface ViolationPattern {
   isBestPractice?: boolean  // true = best-practice only, excluded from score
   occurrences: number
   affectedPages: string[]
+  pageOccurrences?: Record<string, number> // uncapped issue counts per affected page
   nodes: PatternNode[]   // every failing element, each individually fixable
   sampleHtml?: string    // kept for backwards compat with old scan records
   sampleScreenshot?: string
@@ -69,6 +70,16 @@ export interface PageScanResult {
   skippedReason?: string
 }
 
+export type ScanProgressPhase = 'queued' | 'starting' | 'crawling' | 'scanning' | 'analyzing' | 'saving' | 'complete' | 'failed' | 'cancelled'
+
+export interface ScanProgress {
+  phase: ScanProgressPhase
+  message: string
+  currentUrl?: string
+  currentPage?: number
+  totalPages?: number
+}
+
 export interface ScanJob {
   id: string
   siteId?: string
@@ -87,6 +98,7 @@ export interface ScanJob {
   startedAt: string
   completedAt?: string
   error?: string
+  progress?: ScanProgress
 }
 
 export interface Schedule {
