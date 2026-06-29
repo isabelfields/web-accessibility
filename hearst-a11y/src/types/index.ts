@@ -69,6 +69,16 @@ export interface PageScanResult {
   skippedReason?: string
 }
 
+export type ScanProgressPhase = 'queued' | 'starting' | 'crawling' | 'scanning' | 'analyzing' | 'saving' | 'complete' | 'failed' | 'cancelled'
+
+export interface ScanProgress {
+  phase: ScanProgressPhase
+  message: string
+  currentUrl?: string
+  currentPage?: number
+  totalPages?: number
+}
+
 export interface ScanJob {
   id: string
   siteId?: string
@@ -87,6 +97,7 @@ export interface ScanJob {
   startedAt: string
   completedAt?: string
   error?: string
+  progress?: ScanProgress
 }
 
 export interface Schedule {
