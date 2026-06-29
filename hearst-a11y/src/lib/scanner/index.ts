@@ -5,8 +5,9 @@ import { calculateScore, impactDeduction, isBestPractice } from '@/lib/score'
 import { runKeyboardCheck } from './keyboard'
 import { assertPublicUrl } from '@/lib/net/url-guard'
 import { AXE_TAGS, browserlessWsEndpoint } from '@/lib/constants'
+import { ScanCancelledError, ScanCancellationCheck, throwIfScanCancelled } from './cancel'
 
-async function scanPageList(pages: SitePage[], onProgress?: (progress: ScanProgress) => void): Promise<{
+async function scanPageList(pages: SitePage[], onProgress?: (progress: ScanProgress) => void, shouldCancel?: ScanCancellationCheck): Promise<{
   results: PageScanResult[]
   pageScores: PageScore[]
   pagesScanned: number
@@ -94,54 +95,59 @@ async function scanPageList(pages: SitePage[], onProgress?: (progress: ScanProgr
     }
   }
 
-  for (const [index, page] of pages.entries()) {
-    onProgress?.({
-      phase: 'scanning',
-      message: `Scanning ${page.label || page.url}`,
-      currentUrl: page.url,
-      currentPage: index,
-      totalPages: pages.length,
-    })
-    try {
-      const { pageScore, result } = await scanOnePage(page)
-      pageScores.push(pageScore)
-      results.push(result)
+  try {
+    for (const [index, page] of pages.entries()) {
+      await throwIfScanCancelled(shouldCancel)
       onProgress?.({
         phase: 'scanning',
-        message: `Scanned ${index + 1} of ${pages.length} pages`,
+        message: `Scanning ${page.label || page.url}`,
         currentUrl: page.url,
-        currentPage: index + 1,
+        currentPage: index,
         totalPages: pages.length,
       })
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : String(err)
-      console.error(`[scanner] Failed to scan ${page.url}:`, errorMsg)
-      pageScores.push({
-        url: page.url,
-        label: page.label,
-        score: null,
-        violationCount: null,
-        error: errorMsg,
-      })
-      results.push({
-        url: page.url,
-        domFingerprint: '',
-        violations: [],
-        scannedAt: new Date().toISOString(),
-        skipped: true,
-        skippedReason: errorMsg,
-      })
-      onProgress?.({
-        phase: 'scanning',
-        message: `Skipped ${index + 1} of ${pages.length} pages`,
-        currentUrl: page.url,
-        currentPage: index + 1,
-        totalPages: pages.length,
-      })
+      try {
+        const { pageScore, result } = await scanOnePage(page)
+        pageScores.push(pageScore)
+        results.push(result)
+        onProgress?.({
+          phase: 'scanning',
+          message: `Scanned ${index + 1} of ${pages.length} pages`,
+          currentUrl: page.url,
+          currentPage: index + 1,
+          totalPages: pages.length,
+        })
+      } catch (err) {
+        if (err instanceof ScanCancelledError) throw err
+        const errorMsg = err instanceof Error ? err.message : String(err)
+        console.error(`[scanner] Failed to scan ${page.url}:`, errorMsg)
+        pageScores.push({
+          url: page.url,
+          label: page.label,
+          score: null,
+          violationCount: null,
+          error: errorMsg,
+        })
+        results.push({
+          url: page.url,
+          domFingerprint: '',
+          violations: [],
+          scannedAt: new Date().toISOString(),
+          skipped: true,
+          skippedReason: errorMsg,
+        })
+        onProgress?.({
+          phase: 'scanning',
+          message: `Skipped ${index + 1} of ${pages.length} pages`,
+          currentUrl: page.url,
+          currentPage: index + 1,
+          totalPages: pages.length,
+        })
+      }
     }
+  } finally {
+    await browser.close()
   }
 
-  await browser.close()
   return {
     results,
     pageScores,
@@ -155,9 +161,11 @@ export async function runScan(
   rootUrl: string,
   onProgress?: (update: Partial<ScanJob>) => void,
   pages?: SitePage[],
-  crawl = false
+  crawl = false,
+  shouldCancel?: ScanCancellationCheck
 ): Promise<ScanJob> {
   const startedAt = new Date().toISOString()
+  await throwIfScanCancelled(shouldCancel)
   onProgress?.({ status: 'running', startedAt, progress: { phase: 'starting', message: 'Starting scan…' } })
 
   let pageScores: PageScore[] = []
@@ -168,7 +176,7 @@ export async function runScan(
   if (crawl) {
     // Discover pages by crawling (seeded from sitemap.xml), capped to keep cost down.
     onProgress?.({ progress: { phase: 'crawling', message: 'Discovering pages from sitemap and links…' } })
-    const out = await crawlAndScan(rootUrl)
+    const out = await crawlAndScan(rootUrl, shouldCancel)
     results = out.results
     pagesScanned = out.pagesScanned
     pagesSkipped = out.pagesSkipped
@@ -183,13 +191,14 @@ export async function runScan(
         pagesScanned: progress.currentPage,
         totalPages: progress.totalPages,
       })
-    })
+    }, shouldCancel)
     results = out.results
     pageScores = out.pageScores
     pagesScanned = out.pagesScanned
     pagesSkipped = out.pagesSkipped
   }
 
+  await throwIfScanCancelled(shouldCancel)
   onProgress?.({ pagesScanned, pagesSkipped, totalPages: results.length, progress: { phase: 'analyzing', message: 'Analyzing issue patterns…', currentPage: pagesScanned, totalPages: results.length } })
 
   const scannedResults = results.filter(r => !r.skipped)
@@ -199,6 +208,7 @@ export async function runScan(
   }))
 
   const { patterns, claudeCallCount, estimatedCostUsd } = await deduplicateAndFix(pageViolations)
+  await throwIfScanCancelled(shouldCancel)
   onProgress?.({ progress: { phase: 'saving', message: 'Saving scan results…', currentPage: pagesScanned, totalPages: results.length } })
 
   // raw_violation_count = total failing elements (Σ occurrences across patterns),
