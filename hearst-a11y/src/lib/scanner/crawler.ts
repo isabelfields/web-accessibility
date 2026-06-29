@@ -5,6 +5,7 @@ import { runKeyboardCheck } from './keyboard'
 import { assertPublicUrl } from '@/lib/net/url-guard'
 import { AXE_TAGS, browserlessWsEndpoint, CRAWL_MAX_PAGES } from '@/lib/constants'
 import { fetchSitemapUrls } from './sitemap'
+import { ScanCancelledError, ScanCancellationCheck, throwIfScanCancelled } from './cancel'
 
 const MAX_PAGES = CRAWL_MAX_PAGES
 const PAGE_TIMEOUT = 30_000 // 30s per page
@@ -20,17 +21,19 @@ const SCAN_CONCURRENCY = 3  // parallel pages
  * 4. Run axe-core accessibility audit
  * 5. Extract internal links for the queue
  */
-export async function crawlAndScan(rootUrl: string): Promise<{
+export async function crawlAndScan(rootUrl: string, shouldCancel?: ScanCancellationCheck): Promise<{
   results: PageScanResult[]
   pagesScanned: number
   pagesSkipped: number
 }> {
+  await throwIfScanCancelled(shouldCancel)
   const root = new URL(rootUrl)
   const origin = root.origin
 
   // Seed from the sitemap (best-effort) so we sample distinct templates, not
   // just whatever links off the homepage. Capped to MAX_PAGES.
   const sitemapUrls = await fetchSitemapUrls(rootUrl, MAX_PAGES)
+  await throwIfScanCancelled(shouldCancel)
 
   const visited = new Set<string>()
   const queue: string[] = [...new Set([rootUrl, ...sitemapUrls])]
@@ -42,16 +45,19 @@ export async function crawlAndScan(rootUrl: string): Promise<{
 
   try {
     while (queue.length > 0 && visited.size < MAX_PAGES) {
+      await throwIfScanCancelled(shouldCancel)
       // Process up to SCAN_CONCURRENCY pages at once
       const batch = queue.splice(0, SCAN_CONCURRENCY)
 
       await Promise.all(
         batch.map(async (url) => {
+          await throwIfScanCancelled(shouldCancel)
           if (visited.has(url) || visited.size >= MAX_PAGES) return
           visited.add(url)
 
           let context: Awaited<ReturnType<typeof browser.newContext>> | undefined
           try {
+            await throwIfScanCancelled(shouldCancel)
             // SSRF guard: re-check every URL (incl. crawled links) before rendering.
             await assertPublicUrl(url)
             context = await browser.newContext({
@@ -64,6 +70,7 @@ export async function crawlAndScan(rootUrl: string): Promise<{
               timeout: PAGE_TIMEOUT,
             })
 
+            await throwIfScanCancelled(shouldCancel)
             // Get full rendered HTML for fingerprinting
             const html = await page.content()
             const fingerprint = computeDomFingerprint(html)
@@ -84,6 +91,7 @@ export async function crawlAndScan(rootUrl: string): Promise<{
 
             seenFingerprints.add(fingerprint)
 
+            await throwIfScanCancelled(shouldCancel)
             // Run axe-core via CDP injection
             await page.addScriptTag({
               url: 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.9.1/axe.min.js',
@@ -132,6 +140,7 @@ export async function crawlAndScan(rootUrl: string): Promise<{
             queue.push(...newLinks)
 
           } catch (err) {
+            if (err instanceof ScanCancelledError) throw err
             // Don't fail the whole scan for one bad page
             results.push({
               url,
