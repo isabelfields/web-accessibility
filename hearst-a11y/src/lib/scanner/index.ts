@@ -207,7 +207,7 @@ export async function runScan(
     violations: r.violations,
   }))
 
-  const { patterns, claudeCallCount, estimatedCostUsd } = await deduplicateAndFix(pageViolations)
+  const { patterns, claudeCallCount, estimatedCostUsd } = await deduplicateAndFix(pageViolations, shouldCancel)
   await throwIfScanCancelled(shouldCancel)
   onProgress?.({ progress: { phase: 'saving', message: 'Saving scan results…', currentPage: pagesScanned, totalPages: results.length } })
 

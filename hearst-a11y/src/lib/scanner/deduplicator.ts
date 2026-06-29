@@ -4,6 +4,7 @@ import { stripViolation, normalizeSelector } from './strip-html'
 import { getClaudeSuggestions } from '../claude/suggestions'
 import { isBestPractice } from '@/lib/score'
 import { AI, MAX_NODES_PER_RULE } from '@/lib/constants'
+import { ScanCancellationCheck, throwIfScanCancelled } from './cancel'
 
 /**
  * Takes raw violations from multiple pages and returns deduplicated patterns
@@ -17,7 +18,8 @@ import { AI, MAX_NODES_PER_RULE } from '@/lib/constants'
  * 5. Batch-send unknown violations to Claude in one call per ~20 violations
  */
 export async function deduplicateAndFix(
-  pageViolations: Array<{ url: string; violations: RawViolation[] }>
+  pageViolations: Array<{ url: string; violations: RawViolation[] }>,
+  shouldCancel?: ScanCancellationCheck
 ): Promise<{
   patterns: ViolationPattern[]
   claudeCallCount: number
@@ -67,6 +69,8 @@ export async function deduplicateAndFix(
     }
   }
 
+  await throwIfScanCancelled(shouldCancel)
+
   // Step 3: Split by whether we know the fix
   const fingerprints = [...patternMap.keys()]
   const ruleIds = fingerprints.map(fp => fp.split('::')[0])
@@ -95,6 +99,8 @@ export async function deduplicateAndFix(
     })
   }
 
+  await throwIfScanCancelled(shouldCancel)
+
   // Step 5: Batch-send unknown violations to Claude
   let claudeCallCount = 0
   let totalInputTokens = 0
@@ -105,12 +111,15 @@ export async function deduplicateAndFix(
     const batches = chunk(unknownFingerprints, AI.BATCH_SIZE)
 
     for (const batch of batches) {
+      await throwIfScanCancelled(shouldCancel)
+
       const items = batch.map(fp => {
         const entry = patternMap.get(fp)!
         return { fingerprint: fp, ...entry.stripped }
       })
 
       const result = await getClaudeSuggestions(items)
+      await throwIfScanCancelled(shouldCancel)
       claudeCallCount++
       totalInputTokens += result.inputTokens
       totalOutputTokens += result.outputTokens
