@@ -4,6 +4,7 @@ import { stripViolation, normalizeSelector } from './strip-html'
 import { getClaudeSuggestions } from '../claude/suggestions'
 import { isBestPractice } from '@/lib/score'
 import { AI, MAX_NODES_PER_RULE } from '@/lib/constants'
+import { ScanCancellationCheck, throwIfScanCancelled } from './cancel'
 
 /**
  * Takes raw violations from multiple pages and returns deduplicated patterns
@@ -17,7 +18,8 @@ import { AI, MAX_NODES_PER_RULE } from '@/lib/constants'
  * 5. Batch-send unknown violations to Claude in one call per ~20 violations
  */
 export async function deduplicateAndFix(
-  pageViolations: Array<{ url: string; violations: RawViolation[] }>
+  pageViolations: Array<{ url: string; violations: RawViolation[] }>,
+  shouldCancel?: ScanCancellationCheck
 ): Promise<{
   patterns: ViolationPattern[]
   claudeCallCount: number
@@ -30,6 +32,7 @@ export async function deduplicateAndFix(
     stripped: StrippedViolation
     occurrences: number
     affectedPages: Set<string>
+    pageOccurrences: Map<string, number>
     nodes: PatternNode[]
     isBestPractice: boolean
   }>()
@@ -39,33 +42,37 @@ export async function deduplicateAndFix(
       const stripped = stripViolation(violation)
       const fingerprint = stripped.rule  // one card per rule type
 
-      // Collect each failing node (capped per rule to keep DB size sane)
+      // Count from the raw node list, but only store a capped sample to keep DB size sane.
+      const rawNodeCount = Math.max(1, violation.nodes?.length ?? 0)
       const newNodes: PatternNode[] = (violation.nodes ?? []).slice(0, MAX_NODES_PER_RULE).map(n => ({
         html: n.html ?? '',
         url,
         screenshot: violation.sampleScreenshot,
       }))
-      const nodeCount = Math.max(1, newNodes.length)
       const bestPractice = isBestPractice(violation.tags)
 
       if (patternMap.has(fingerprint)) {
         const existing = patternMap.get(fingerprint)!
-        existing.occurrences += nodeCount
+        existing.occurrences += rawNodeCount
         existing.affectedPages.add(url)
+        existing.pageOccurrences.set(url, (existing.pageOccurrences.get(url) ?? 0) + rawNodeCount)
         // Cap total stored nodes across all pages
         const remaining = MAX_NODES_PER_RULE - existing.nodes.length
         if (remaining > 0) existing.nodes.push(...newNodes.slice(0, remaining))
       } else {
         patternMap.set(fingerprint, {
           stripped,
-          occurrences: nodeCount,
+          occurrences: rawNodeCount,
           affectedPages: new Set([url]),
+          pageOccurrences: new Map([[url, rawNodeCount]]),
           nodes: newNodes,
           isBestPractice: bestPractice,
         })
       }
     }
   }
+
+  await throwIfScanCancelled(shouldCancel)
 
   // Step 3: Split by whether we know the fix
   const fingerprints = [...patternMap.keys()]
@@ -91,9 +98,12 @@ export async function deduplicateAndFix(
       isBestPractice: entry.isBestPractice,
       occurrences: entry.occurrences,
       affectedPages: [...entry.affectedPages],
+      pageOccurrences: Object.fromEntries(entry.pageOccurrences),
       nodes: entry.nodes,
     })
   }
+
+  await throwIfScanCancelled(shouldCancel)
 
   // Step 5: Batch-send unknown violations to Claude
   let claudeCallCount = 0
@@ -105,12 +115,15 @@ export async function deduplicateAndFix(
     const batches = chunk(unknownFingerprints, AI.BATCH_SIZE)
 
     for (const batch of batches) {
+      await throwIfScanCancelled(shouldCancel)
+
       const items = batch.map(fp => {
         const entry = patternMap.get(fp)!
         return { fingerprint: fp, ...entry.stripped }
       })
 
       const result = await getClaudeSuggestions(items)
+      await throwIfScanCancelled(shouldCancel)
       claudeCallCount++
       totalInputTokens += result.inputTokens
       totalOutputTokens += result.outputTokens
@@ -129,6 +142,7 @@ export async function deduplicateAndFix(
           isBestPractice: entry.isBestPractice,
           occurrences: entry.occurrences,
           affectedPages: [...entry.affectedPages],
+          pageOccurrences: Object.fromEntries(entry.pageOccurrences),
           nodes: entry.nodes,
         })
       }

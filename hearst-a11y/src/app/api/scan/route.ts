@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { after, NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
-import { startScan } from '@/lib/scan-job'
+import { queueScan, startScan } from '@/lib/scan-job'
 import { getSessionUser, canAccessDivision, type SessionUser } from '@/lib/auth-helpers'
 import { assertPublicUrl, UrlNotAllowedError } from '@/lib/net/url-guard'
 import { rateLimit } from '@/lib/rate-limit'
@@ -12,6 +12,7 @@ const RequestSchema = z.object({
   siteId: z.string().uuid().optional(),
   scheduleId: z.string().uuid().optional(),
   crawl: z.boolean().optional(),
+  background: z.boolean().optional(),
 }).refine(data => data.url || data.siteId, {
   message: 'Either url or siteId is required',
 })
@@ -56,6 +57,18 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  if (parsed.data.scheduleId) {
+    const [schedule] = await sql`
+      SELECT schedules.site_id, sites.division AS site_division
+      FROM schedules
+      LEFT JOIN sites ON sites.id = schedules.site_id
+      WHERE schedules.id = ${parsed.data.scheduleId}
+    `
+    if (!schedule || (schedule.site_id && !canAccessDivision(user, schedule.site_division))) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+  }
+
   // SSRF guard: validate an ad-hoc URL before kicking off a scan.
   if (parsed.data.url) {
     try {
@@ -68,7 +81,18 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Run scan synchronously within the request (Vercel kills background work after response)
+  if (parsed.data.background) {
+    const queued = await queueScan(parsed.data)
+    if (!queued.ok) return NextResponse.json({ error: queued.error }, { status: 404 })
+
+    after(async () => {
+      const result = await queued.run()
+      if (!result.ok) console.error('[scan] Background scan failed:', result.error)
+    })
+
+    return NextResponse.json({ jobId: queued.jobId, status: queued.status }, { status: 202 })
+  }
+
   const result = await startScan(parsed.data)
 
   if (!result.ok) {
@@ -146,7 +170,10 @@ export async function DELETE(req: NextRequest) {
   }
 
   await sql`
-    UPDATE scan_jobs SET status = 'cancelled', completed_at = NOW()
+    UPDATE scan_jobs SET
+      status = 'cancelled',
+      progress = ${JSON.stringify({ phase: 'cancelled', message: 'Scan cancelled.' })},
+      completed_at = NOW()
     WHERE id = ${jobId} AND status IN ('queued', 'running')
   `
   return NextResponse.json({ cancelled: true })
