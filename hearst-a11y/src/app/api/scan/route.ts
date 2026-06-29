@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { after, NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
-import { startScan } from '@/lib/scan-job'
+import { queueScan, startScan } from '@/lib/scan-job'
 import { getSessionUser, canAccessDivision, type SessionUser } from '@/lib/auth-helpers'
 import { assertPublicUrl, UrlNotAllowedError } from '@/lib/net/url-guard'
 import { rateLimit } from '@/lib/rate-limit'
@@ -12,6 +12,7 @@ const RequestSchema = z.object({
   siteId: z.string().uuid().optional(),
   scheduleId: z.string().uuid().optional(),
   crawl: z.boolean().optional(),
+  background: z.boolean().optional(),
 }).refine(data => data.url || data.siteId, {
   message: 'Either url or siteId is required',
 })
@@ -68,7 +69,18 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Run scan synchronously within the request (Vercel kills background work after response)
+  if (parsed.data.background) {
+    const queued = await queueScan(parsed.data)
+    if (!queued.ok) return NextResponse.json({ error: queued.error }, { status: 404 })
+
+    after(async () => {
+      const result = await queued.run()
+      if (!result.ok) console.error('[scan] Background scan failed:', result.error)
+    })
+
+    return NextResponse.json({ jobId: queued.jobId, status: queued.status }, { status: 202 })
+  }
+
   const result = await startScan(parsed.data)
 
   if (!result.ok) {

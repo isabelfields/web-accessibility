@@ -43,6 +43,7 @@ export interface ViolationPattern {
   isBestPractice?: boolean  // true = best-practice only, excluded from score
   occurrences: number
   affectedPages: string[]
+  pageOccurrences?: Record<string, number> // uncapped issue counts per affected page
   nodes: PatternNode[]   // every failing element, each individually fixable
   sampleHtml?: string    // kept for backwards compat with old scan records
   sampleScreenshot?: string

@@ -81,7 +81,7 @@ export function RunScanButton({ siteId }: { siteId: string }) {
       const res = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId, crawl }),
+        body: JSON.stringify({ siteId, crawl, background: true }),
       })
       if (!res.ok) {
         const data = await res.json()

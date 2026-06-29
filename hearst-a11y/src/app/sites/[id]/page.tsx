@@ -35,8 +35,11 @@ function countPageWcagIssues(pageUrl: string, patterns: ViolationPattern[]): num
       pattern.nodes?.some(node => node.url === pageUrl)
     ))
     .reduce((sum, pattern) => {
+      const pageOccurrenceCount = pattern.pageOccurrences?.[pageUrl]
+      if (pageOccurrenceCount != null) return sum + pageOccurrenceCount
+
       const pageNodeCount = pattern.nodes?.filter(node => node.url === pageUrl).length ?? 0
-      return sum + (pageNodeCount || pattern.occurrences)
+      return sum + (pageNodeCount || 1)
     }, 0)
 }
 

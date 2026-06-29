@@ -32,6 +32,7 @@ export async function deduplicateAndFix(
     stripped: StrippedViolation
     occurrences: number
     affectedPages: Set<string>
+    pageOccurrences: Map<string, number>
     nodes: PatternNode[]
     isBestPractice: boolean
   }>()
@@ -54,6 +55,7 @@ export async function deduplicateAndFix(
         const existing = patternMap.get(fingerprint)!
         existing.occurrences += nodeCount
         existing.affectedPages.add(url)
+        existing.pageOccurrences.set(url, (existing.pageOccurrences.get(url) ?? 0) + nodeCount)
         // Cap total stored nodes across all pages
         const remaining = MAX_NODES_PER_RULE - existing.nodes.length
         if (remaining > 0) existing.nodes.push(...newNodes.slice(0, remaining))
@@ -62,6 +64,7 @@ export async function deduplicateAndFix(
           stripped,
           occurrences: nodeCount,
           affectedPages: new Set([url]),
+          pageOccurrences: new Map([[url, nodeCount]]),
           nodes: newNodes,
           isBestPractice: bestPractice,
         })
@@ -95,6 +98,7 @@ export async function deduplicateAndFix(
       isBestPractice: entry.isBestPractice,
       occurrences: entry.occurrences,
       affectedPages: [...entry.affectedPages],
+      pageOccurrences: Object.fromEntries(entry.pageOccurrences),
       nodes: entry.nodes,
     })
   }
@@ -138,6 +142,7 @@ export async function deduplicateAndFix(
           isBestPractice: entry.isBestPractice,
           occurrences: entry.occurrences,
           affectedPages: [...entry.affectedPages],
+          pageOccurrences: Object.fromEntries(entry.pageOccurrences),
           nodes: entry.nodes,
         })
       }

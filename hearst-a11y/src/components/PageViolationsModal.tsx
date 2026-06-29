@@ -23,8 +23,11 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
     )
   )
   const pageErrorCount = pagePatterns.reduce((sum, pattern) => {
+    const pageOccurrenceCount = pattern.pageOccurrences?.[pageScore.url]
+    if (pageOccurrenceCount != null) return sum + pageOccurrenceCount
+
     const pageNodeCount = pattern.nodes?.filter(node => node.url === pageScore.url).length ?? 0
-    return sum + (pageNodeCount || pattern.occurrences)
+    return sum + (pageNodeCount || 1)
   }, 0)
 
   const hasData = pageScore.score != null
@@ -98,7 +101,7 @@ export function PageViolationsModal({ pageScore, patterns, children }: Props) {
                         ...p,
                         nodes: pageNodes.length > 0 ? pageNodes : p.nodes ?? [],
                         affectedPages: [pageScore.url],
-                        occurrences: pageNodes.length > 0 ? pageNodes.length : p.occurrences,
+                        occurrences: p.pageOccurrences?.[pageScore.url] ?? (pageNodes.length > 0 ? pageNodes.length : 1),
                       }
                     })}
                   />

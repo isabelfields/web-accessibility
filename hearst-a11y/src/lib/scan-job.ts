@@ -16,16 +16,29 @@ export type StartScanResult =
   | { ok: true; jobId: string; status: 'complete' | 'cancelled' }
   | { ok: false; jobId?: string; status: 'failed' | 'not_found'; error: string }
 
+export type QueueScanResult =
+  | { ok: true; jobId: string; status: 'queued'; run: () => Promise<StartScanResult> }
+  | { ok: false; status: 'not_found'; error: string }
+
+interface PreparedScan {
+  rootUrl: string
+  siteId?: string
+  scheduleId?: string
+  pages?: SitePage[]
+  shouldCrawl: boolean
+}
+
 /**
- * Creates a scan_jobs record and runs the scan synchronously, persisting the
- * result. Shared by the /api/scan POST handler and the cron job so scheduled
- * scans run in-process instead of via an authenticated HTTP round-trip.
+ * Creates and/or updates scan_jobs records for manual and scheduled scans.
+ * `startScan` runs synchronously for cron/back-compat callers, while
+ * `queueScan` returns a job id immediately so UI callers can poll/cancel the
+ * in-flight scan before it reaches a terminal state.
  */
 function scanProgress(phase: ScanProgress['phase'], message: string, extra: Partial<ScanProgress> = {}): ScanProgress {
   return { phase, message, ...extra }
 }
 
-export async function startScan(input: StartScanInput): Promise<StartScanResult> {
+async function prepareScan(input: StartScanInput): Promise<PreparedScan | { error: string }> {
   const { url, scheduleId, crawl } = input
   let siteId = input.siteId
 
@@ -39,7 +52,7 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
 
   if (siteId) {
     const [site] = await sql`SELECT * FROM sites WHERE id = ${siteId}`
-    if (!site) return { ok: false, status: 'not_found', error: 'Site not found' }
+    if (!site) return { error: 'Site not found' }
     rootUrl = (site.pages as SitePage[])[0]?.url ?? rootUrl
     pages = site.pages as SitePage[]
   }
@@ -48,17 +61,20 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
   // there's no configured page list (ad-hoc URL / schedule), page-list otherwise.
   const shouldCrawl = crawl ?? (pages == null || pages.length === 0)
 
-  const queuedProgress = scanProgress('queued', 'Queued scan…')
+  return { rootUrl, siteId, scheduleId, pages, shouldCrawl }
+}
 
-  // Create the job record
+async function createScanRecord(scan: PreparedScan): Promise<string> {
+  const queuedProgress = scanProgress('queued', 'Queued scan…')
   const [job] = await sql`
     INSERT INTO scan_jobs (root_url, status, triggered_by, schedule_id, site_id, progress)
-    VALUES (${rootUrl}, 'queued', ${scheduleId ? 'schedule' : 'manual'}, ${scheduleId ?? null}, ${siteId ?? null}, ${JSON.stringify(queuedProgress)})
+    VALUES (${scan.rootUrl}, 'queued', ${scan.scheduleId ? 'schedule' : 'manual'}, ${scan.scheduleId ?? null}, ${scan.siteId ?? null}, ${JSON.stringify(queuedProgress)})
     RETURNING id
   `
+  return job.id
+}
 
-  const jobId = job.id
-
+async function runPreparedScan(jobId: string, scan: PreparedScan): Promise<StartScanResult> {
   try {
     const isCancelled = async () => {
       const [current] = await sql`SELECT status FROM scan_jobs WHERE id = ${jobId}`
@@ -67,20 +83,20 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
 
     await sql`UPDATE scan_jobs SET status = 'running', progress = ${JSON.stringify(scanProgress('starting', 'Starting scan…'))} WHERE id = ${jobId}`
 
-    const result = await runScan(jobId, rootUrl, async (update) => {
+    const result = await runScan(jobId, scan.rootUrl, async (update) => {
       if (update.pagesScanned !== undefined) {
-        await sql`UPDATE scan_jobs SET pages_scanned = ${update.pagesScanned} WHERE id = ${jobId}`
+        await sql`UPDATE scan_jobs SET pages_scanned = ${update.pagesScanned} WHERE id = ${jobId} AND status = 'running'`
       }
       if (update.pagesSkipped !== undefined) {
-        await sql`UPDATE scan_jobs SET pages_skipped = ${update.pagesSkipped} WHERE id = ${jobId}`
+        await sql`UPDATE scan_jobs SET pages_skipped = ${update.pagesSkipped} WHERE id = ${jobId} AND status = 'running'`
       }
       if (update.totalPages !== undefined) {
-        await sql`UPDATE scan_jobs SET total_pages = ${update.totalPages} WHERE id = ${jobId}`
+        await sql`UPDATE scan_jobs SET total_pages = ${update.totalPages} WHERE id = ${jobId} AND status = 'running'`
       }
       if (update.progress !== undefined) {
-        await sql`UPDATE scan_jobs SET progress = ${JSON.stringify(update.progress)} WHERE id = ${jobId}`
+        await sql`UPDATE scan_jobs SET progress = ${JSON.stringify(update.progress)} WHERE id = ${jobId} AND status = 'running'`
       }
-    }, pages, shouldCrawl, isCancelled)
+    }, scan.pages, scan.shouldCrawl, isCancelled)
 
     // Fast path: skip the expensive write if it was already cancelled.
     const [current] = await sql`SELECT status FROM scan_jobs WHERE id = ${jobId}`
@@ -137,4 +153,23 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
     }
     return { ok: false, jobId, status: 'failed', error: message }
   }
+}
+
+export async function queueScan(input: StartScanInput): Promise<QueueScanResult> {
+  const scan = await prepareScan(input)
+  if ('error' in scan) return { ok: false, status: 'not_found', error: scan.error }
+
+  const jobId = await createScanRecord(scan)
+  return {
+    ok: true,
+    jobId,
+    status: 'queued',
+    run: () => runPreparedScan(jobId, scan),
+  }
+}
+
+export async function startScan(input: StartScanInput): Promise<StartScanResult> {
+  const queued = await queueScan(input)
+  if (!queued.ok) return queued
+  return queued.run()
 }

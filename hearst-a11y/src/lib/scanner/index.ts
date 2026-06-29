@@ -7,7 +7,7 @@ import { assertPublicUrl } from '@/lib/net/url-guard'
 import { AXE_TAGS, browserlessWsEndpoint } from '@/lib/constants'
 import { ScanCancelledError, ScanCancellationCheck, throwIfScanCancelled } from './cancel'
 
-async function scanPageList(pages: SitePage[], onProgress?: (progress: ScanProgress) => void, shouldCancel?: ScanCancellationCheck): Promise<{
+async function scanPageList(pages: SitePage[], onProgress?: (progress: ScanProgress) => void | Promise<void>, shouldCancel?: ScanCancellationCheck): Promise<{
   results: PageScanResult[]
   pageScores: PageScore[]
   pagesScanned: number
@@ -98,7 +98,7 @@ async function scanPageList(pages: SitePage[], onProgress?: (progress: ScanProgr
   try {
     for (const [index, page] of pages.entries()) {
       await throwIfScanCancelled(shouldCancel)
-      onProgress?.({
+      await onProgress?.({
         phase: 'scanning',
         message: `Scanning ${page.label || page.url}`,
         currentUrl: page.url,
@@ -109,7 +109,7 @@ async function scanPageList(pages: SitePage[], onProgress?: (progress: ScanProgr
         const { pageScore, result } = await scanOnePage(page)
         pageScores.push(pageScore)
         results.push(result)
-        onProgress?.({
+        await onProgress?.({
           phase: 'scanning',
           message: `Scanned ${index + 1} of ${pages.length} pages`,
           currentUrl: page.url,
@@ -135,7 +135,7 @@ async function scanPageList(pages: SitePage[], onProgress?: (progress: ScanProgr
           skipped: true,
           skippedReason: errorMsg,
         })
-        onProgress?.({
+        await onProgress?.({
           phase: 'scanning',
           message: `Skipped ${index + 1} of ${pages.length} pages`,
           currentUrl: page.url,
@@ -159,14 +159,14 @@ async function scanPageList(pages: SitePage[], onProgress?: (progress: ScanProgr
 export async function runScan(
   jobId: string,
   rootUrl: string,
-  onProgress?: (update: Partial<ScanJob>) => void,
+  onProgress?: (update: Partial<ScanJob>) => void | Promise<void>,
   pages?: SitePage[],
   crawl = false,
   shouldCancel?: ScanCancellationCheck
 ): Promise<ScanJob> {
   const startedAt = new Date().toISOString()
   await throwIfScanCancelled(shouldCancel)
-  onProgress?.({ status: 'running', startedAt, progress: { phase: 'starting', message: 'Starting scan…' } })
+  await onProgress?.({ status: 'running', startedAt, progress: { phase: 'starting', message: 'Starting scan…' } })
 
   let pageScores: PageScore[] = []
   let results: PageScanResult[]
@@ -175,7 +175,7 @@ export async function runScan(
 
   if (crawl) {
     // Discover pages by crawling (seeded from sitemap.xml), capped to keep cost down.
-    onProgress?.({ progress: { phase: 'crawling', message: 'Discovering pages from sitemap and links…' } })
+    await onProgress?.({ progress: { phase: 'crawling', message: 'Discovering pages from sitemap and links…' } })
     const out = await crawlAndScan(rootUrl, shouldCancel)
     results = out.results
     pagesScanned = out.pagesScanned
@@ -185,8 +185,8 @@ export async function runScan(
     const list: SitePage[] = pages && pages.length > 0
       ? pages
       : [{ url: rootUrl, label: rootUrl, templateType: 'other' }]
-    const out = await scanPageList(list, (progress) => {
-      onProgress?.({
+    const out = await scanPageList(list, async (progress) => {
+      await onProgress?.({
         progress,
         pagesScanned: progress.currentPage,
         totalPages: progress.totalPages,
@@ -199,7 +199,7 @@ export async function runScan(
   }
 
   await throwIfScanCancelled(shouldCancel)
-  onProgress?.({ pagesScanned, pagesSkipped, totalPages: results.length, progress: { phase: 'analyzing', message: 'Analyzing issue patterns…', currentPage: pagesScanned, totalPages: results.length } })
+  await onProgress?.({ pagesScanned, pagesSkipped, totalPages: results.length, progress: { phase: 'analyzing', message: 'Analyzing issue patterns…', currentPage: pagesScanned, totalPages: results.length } })
 
   const scannedResults = results.filter(r => !r.skipped)
   const pageViolations = scannedResults.map(r => ({
@@ -209,7 +209,7 @@ export async function runScan(
 
   const { patterns, claudeCallCount, estimatedCostUsd } = await deduplicateAndFix(pageViolations, shouldCancel)
   await throwIfScanCancelled(shouldCancel)
-  onProgress?.({ progress: { phase: 'saving', message: 'Saving scan results…', currentPage: pagesScanned, totalPages: results.length } })
+  await onProgress?.({ progress: { phase: 'saving', message: 'Saving scan results…', currentPage: pagesScanned, totalPages: results.length } })
 
   // raw_violation_count = total failing elements (Σ occurrences across patterns),
   // matching the "Total Violations" figure shown on the scan detail page.
