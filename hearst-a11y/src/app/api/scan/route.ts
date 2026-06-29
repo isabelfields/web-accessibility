@@ -57,6 +57,18 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  if (parsed.data.scheduleId) {
+    const [schedule] = await sql`
+      SELECT schedules.site_id, sites.division AS site_division
+      FROM schedules
+      LEFT JOIN sites ON sites.id = schedules.site_id
+      WHERE schedules.id = ${parsed.data.scheduleId}
+    `
+    if (!schedule || (schedule.site_id && !canAccessDivision(user, schedule.site_division))) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+  }
+
   // SSRF guard: validate an ad-hoc URL before kicking off a scan.
   if (parsed.data.url) {
     try {

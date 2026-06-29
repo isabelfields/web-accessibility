@@ -42,29 +42,29 @@ export async function deduplicateAndFix(
       const stripped = stripViolation(violation)
       const fingerprint = stripped.rule  // one card per rule type
 
-      // Collect each failing node (capped per rule to keep DB size sane)
+      // Count from the raw node list, but only store a capped sample to keep DB size sane.
+      const rawNodeCount = Math.max(1, violation.nodes?.length ?? 0)
       const newNodes: PatternNode[] = (violation.nodes ?? []).slice(0, MAX_NODES_PER_RULE).map(n => ({
         html: n.html ?? '',
         url,
         screenshot: violation.sampleScreenshot,
       }))
-      const nodeCount = Math.max(1, newNodes.length)
       const bestPractice = isBestPractice(violation.tags)
 
       if (patternMap.has(fingerprint)) {
         const existing = patternMap.get(fingerprint)!
-        existing.occurrences += nodeCount
+        existing.occurrences += rawNodeCount
         existing.affectedPages.add(url)
-        existing.pageOccurrences.set(url, (existing.pageOccurrences.get(url) ?? 0) + nodeCount)
+        existing.pageOccurrences.set(url, (existing.pageOccurrences.get(url) ?? 0) + rawNodeCount)
         // Cap total stored nodes across all pages
         const remaining = MAX_NODES_PER_RULE - existing.nodes.length
         if (remaining > 0) existing.nodes.push(...newNodes.slice(0, remaining))
       } else {
         patternMap.set(fingerprint, {
           stripped,
-          occurrences: nodeCount,
+          occurrences: rawNodeCount,
           affectedPages: new Set([url]),
-          pageOccurrences: new Map([[url, nodeCount]]),
+          pageOccurrences: new Map([[url, rawNodeCount]]),
           nodes: newNodes,
           isBestPractice: bestPractice,
         })

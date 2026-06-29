@@ -81,7 +81,15 @@ async function runPreparedScan(jobId: string, scan: PreparedScan): Promise<Start
       return current?.status === 'cancelled'
     }
 
-    await sql`UPDATE scan_jobs SET status = 'running', progress = ${JSON.stringify(scanProgress('starting', 'Starting scan…'))} WHERE id = ${jobId}`
+    const started = await sql`
+      UPDATE scan_jobs
+      SET status = 'running', progress = ${JSON.stringify(scanProgress('starting', 'Starting scan…'))}
+      WHERE id = ${jobId} AND status IN ('queued', 'running')
+      RETURNING id
+    `
+    if (started.length === 0) {
+      return { ok: true, jobId, status: 'cancelled' }
+    }
 
     const result = await runScan(jobId, scan.rootUrl, async (update) => {
       if (update.pagesScanned !== undefined) {
