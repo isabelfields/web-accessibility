@@ -57,7 +57,7 @@ export function AddScheduleForm({ onClose, initialSiteId }: Props) {
     if (!site) return
 
     setSaving(true)
-    const body: any = { url: site.pages[0]?.url ?? '', cadence }
+    const body: any = { siteId, url: site.pages[0]?.url ?? '', cadence }
     if (cadence === 'weekly') body.dayOfWeek = dayOfWeek
     if (cadence === 'monthly') body.dayOfMonth = dayOfMonth
 
