@@ -1,6 +1,7 @@
 import { sql } from '@/lib/db'
 import { runScan } from '@/lib/scanner'
-import { SitePage } from '@/types'
+import { ScanCancelledError } from '@/lib/scanner/cancel'
+import { ScanProgress, SitePage } from '@/types'
 
 export interface StartScanInput {
   url?: string
@@ -20,6 +21,10 @@ export type StartScanResult =
  * result. Shared by the /api/scan POST handler and the cron job so scheduled
  * scans run in-process instead of via an authenticated HTTP round-trip.
  */
+function scanProgress(phase: ScanProgress['phase'], message: string, extra: Partial<ScanProgress> = {}): ScanProgress {
+  return { phase, message, ...extra }
+}
+
 export async function startScan(input: StartScanInput): Promise<StartScanResult> {
   const { url, siteId, scheduleId, crawl } = input
 
@@ -37,23 +42,39 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
   // there's no configured page list (ad-hoc URL / schedule), page-list otherwise.
   const shouldCrawl = crawl ?? (pages == null || pages.length === 0)
 
+  const queuedProgress = scanProgress('queued', 'Queued scan…')
+
   // Create the job record
   const [job] = await sql`
-    INSERT INTO scan_jobs (root_url, status, triggered_by, schedule_id, site_id)
-    VALUES (${rootUrl}, 'queued', ${scheduleId ? 'schedule' : 'manual'}, ${scheduleId ?? null}, ${siteId ?? null})
+    INSERT INTO scan_jobs (root_url, status, triggered_by, schedule_id, site_id, progress)
+    VALUES (${rootUrl}, 'queued', ${scheduleId ? 'schedule' : 'manual'}, ${scheduleId ?? null}, ${siteId ?? null}, ${JSON.stringify(queuedProgress)})
     RETURNING id
   `
 
   const jobId = job.id
 
   try {
-    await sql`UPDATE scan_jobs SET status = 'running' WHERE id = ${jobId}`
+    const isCancelled = async () => {
+      const [current] = await sql`SELECT status FROM scan_jobs WHERE id = ${jobId}`
+      return current?.status === 'cancelled'
+    }
+
+    await sql`UPDATE scan_jobs SET status = 'running', progress = ${JSON.stringify(scanProgress('starting', 'Starting scan…'))} WHERE id = ${jobId}`
 
     const result = await runScan(jobId, rootUrl, async (update) => {
       if (update.pagesScanned !== undefined) {
         await sql`UPDATE scan_jobs SET pages_scanned = ${update.pagesScanned} WHERE id = ${jobId}`
       }
-    }, pages, shouldCrawl)
+      if (update.pagesSkipped !== undefined) {
+        await sql`UPDATE scan_jobs SET pages_skipped = ${update.pagesSkipped} WHERE id = ${jobId}`
+      }
+      if (update.totalPages !== undefined) {
+        await sql`UPDATE scan_jobs SET total_pages = ${update.totalPages} WHERE id = ${jobId}`
+      }
+      if (update.progress !== undefined) {
+        await sql`UPDATE scan_jobs SET progress = ${JSON.stringify(update.progress)} WHERE id = ${jobId}`
+      }
+    }, pages, shouldCrawl, isCancelled)
 
     // Fast path: skip the expensive write if it was already cancelled.
     const [current] = await sql`SELECT status FROM scan_jobs WHERE id = ${jobId}`
@@ -77,6 +98,7 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
         estimated_cost_usd = ${result.estimatedCostUsd},
         patterns = ${JSON.stringify(result.patterns)},
         page_scores = ${JSON.stringify(result.pageScores)},
+        progress = ${JSON.stringify(result.progress ?? scanProgress('complete', 'Scan complete'))},
         completed_at = NOW()
       WHERE id = ${jobId} AND status <> 'cancelled'
       RETURNING id
@@ -86,10 +108,21 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
     }
     return { ok: true, jobId, status: 'complete' }
   } catch (err) {
+    if (err instanceof ScanCancelledError) {
+      await sql`
+        UPDATE scan_jobs SET
+          status = 'cancelled',
+          progress = ${JSON.stringify(scanProgress('cancelled', 'Scan cancelled.'))},
+          completed_at = NOW()
+        WHERE id = ${jobId} AND status <> 'cancelled'
+      `
+      return { ok: true, jobId, status: 'cancelled' }
+    }
+
     const message = err instanceof Error ? err.message : 'Unknown error'
     // Don't clobber a cancellation that landed before/while the scan errored.
     const failed = await sql`
-      UPDATE scan_jobs SET status = 'failed', error = ${message}, completed_at = NOW()
+      UPDATE scan_jobs SET status = 'failed', error = ${message}, progress = ${JSON.stringify(scanProgress('failed', message))}, completed_at = NOW()
       WHERE id = ${jobId} AND status <> 'cancelled'
       RETURNING id
     `
