@@ -4,6 +4,7 @@ import { renderToBuffer, Document, Page, Text, View, StyleSheet } from '@react-p
 import { requireAdmin } from '@/lib/auth-helpers'
 import { safeEqual } from '@/lib/security'
 import type { ViolationPattern, PageScore } from '@/types'
+import { countIssueTypes, countOccurrences, isWcagPattern } from '@/lib/metrics'
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET
 
@@ -85,7 +86,8 @@ export async function GET(
 
   const patterns: ViolationPattern[] = scan.patterns ?? []
   const pageScores: PageScore[] = scan.page_scores ?? []
-  const totalViolations = patterns.reduce((s, p) => s + p.occurrences, 0)
+  const totalViolations = countOccurrences(patterns, isWcagPattern)
+  const issueTypes = countIssueTypes(patterns, isWcagPattern)
 
   const byTier: Record<string, ViolationPattern[]> = { tier1: [], tier2: [], tier3: [], tier4: [] }
   for (const p of patterns) {
@@ -111,12 +113,12 @@ export async function GET(
         {/* Stats */}
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Total Violations</Text>
+            <Text style={styles.statLabel}>Component Issues</Text>
             <Text style={styles.statValue}>{totalViolations}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Issue Types</Text>
-            <Text style={styles.statValue}>{patterns.length}</Text>
+            <Text style={styles.statValue}>{issueTypes}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Pages Scanned</Text>
@@ -125,7 +127,7 @@ export async function GET(
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Tier 1</Text>
             <Text style={[styles.statValue, { color: TIER_HEX.tier1 }]}>
-              {byTier.tier1.reduce((s, p) => s + p.occurrences, 0)}
+              {countOccurrences(byTier.tier1, isWcagPattern)}
             </Text>
           </View>
           <View style={styles.statCard}>
