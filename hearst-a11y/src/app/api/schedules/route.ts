@@ -56,21 +56,42 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  if (!(await getSessionUser())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const sql = neon(process.env.DATABASE_URL!)
-  const schedules = await sql`SELECT * FROM schedules ORDER BY created_at DESC`
+  const rows = await sql`
+    SELECT schedules.*, sites.division AS site_division
+    FROM schedules
+    LEFT JOIN sites ON sites.id = schedules.site_id
+    ORDER BY schedules.created_at DESC
+  `
+  const schedules = rows
+    .filter(schedule => !schedule.site_id || canAccessDivision(user, schedule.site_division))
+    .map(({ site_division, ...schedule }) => schedule)
+
   return NextResponse.json(schedules)
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await getSessionUser())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
   const sql = neon(process.env.DATABASE_URL!)
+  const [schedule] = await sql`
+    SELECT schedules.id, schedules.site_id, sites.division AS site_division
+    FROM schedules
+    LEFT JOIN sites ON sites.id = schedules.site_id
+    WHERE schedules.id = ${id}
+  `
+  if (!schedule || (schedule.site_id && !canAccessDivision(user, schedule.site_division))) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
   await sql`DELETE FROM schedules WHERE id = ${id}`
   return NextResponse.json({ deleted: true })
 }
