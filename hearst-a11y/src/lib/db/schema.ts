@@ -26,6 +26,7 @@ export const scanJobs = pgTable('scan_jobs', {
 export const schedules = pgTable('schedules', {
   id: uuid('id').primaryKey().defaultRandom(),
   rootUrl: text('root_url').notNull(),
+  siteId: uuid('site_id'),
   cadence: text('cadence').notNull(), // daily | weekly | monthly
   dayOfWeek: integer('day_of_week'),   // 0-6
   dayOfMonth: integer('day_of_month'), // 1-31
@@ -102,6 +103,7 @@ CREATE TABLE IF NOT EXISTS scan_jobs (
 CREATE TABLE IF NOT EXISTS schedules (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   root_url TEXT NOT NULL,
+  site_id UUID,
   cadence TEXT NOT NULL,
   day_of_week INTEGER,
   day_of_month INTEGER,
@@ -135,6 +137,7 @@ ALTER TABLE scan_jobs ADD COLUMN IF NOT EXISTS score REAL DEFAULT 0;
 ALTER TABLE scan_jobs ADD COLUMN IF NOT EXISTS page_scores JSONB DEFAULT '[]';
 ALTER TABLE scan_jobs ADD COLUMN IF NOT EXISTS progress JSONB;
 ALTER TABLE scan_jobs ADD COLUMN IF NOT EXISTS schedule_id UUID;
+ALTER TABLE schedules ADD COLUMN IF NOT EXISTS site_id UUID;
 ALTER TABLE sites ADD COLUMN IF NOT EXISTS division TEXT;
 ALTER TABLE sites ADD COLUMN IF NOT EXISTS brand TEXT;
 ALTER TABLE sites ADD COLUMN IF NOT EXISTS region TEXT;

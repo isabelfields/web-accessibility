@@ -36,30 +36,15 @@ export function countIssueTypes(patterns: ViolationPattern[], predicate: (patter
 }
 
 
-function normalizeComponentHtml(html: string): string {
-  return html
-    .replace(/\s+/g, ' ')
-    .replace(/\s(?:data-[^=\s]+|id|class)="[^"]*"/g, '')
-    .replace(/\s(?:data-[^=\s]+|id|class)='[^']*'/g, '')
-    .trim()
-    .slice(0, 500)
-}
-
 /**
- * Counts distinct affected components by de-duping repeated failing nodes with
- * the same normalized markup. This separates total issue occurrences from the
- * smaller set of components/templates that likely need a fix.
+ * Counts affected component instances from the uncapped occurrence totals. The
+ * scanner intentionally stores only a capped `pattern.nodes` sample for display,
+ * so using node length here would underreport high-volume component issues.
  */
 export function countComponentsWithIssues(patterns: ViolationPattern[], predicate: (pattern: ViolationPattern) => boolean = isActiveWcagPattern): number {
-  const components = new Set<string>()
-  for (const pattern of patterns) {
-    if (!predicate(pattern)) continue
-    for (const node of pattern.nodes ?? []) {
-      if (node.html) components.add(normalizeComponentHtml(node.html))
-    }
-    if ((pattern.nodes?.length ?? 0) === 0) components.add(pattern.fingerprint)
-  }
-  return components.size
+  return patterns
+    .filter(predicate)
+    .reduce((sum, pattern) => sum + pattern.occurrences, 0)
 }
 
 export function getSeverityCounts(patterns: ViolationPattern[], predicate: (pattern: ViolationPattern) => boolean = isActiveWcagPattern): SeverityCounts {

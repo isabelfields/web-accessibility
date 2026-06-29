@@ -1,5 +1,6 @@
 import { sql } from '@/lib/db'
 import { runScan } from '@/lib/scanner'
+import { ScanCancelledError } from '@/lib/scanner/cancel'
 import { ScanProgress, SitePage } from '@/types'
 
 export interface StartScanInput {
@@ -25,7 +26,13 @@ function scanProgress(phase: ScanProgress['phase'], message: string, extra: Part
 }
 
 export async function startScan(input: StartScanInput): Promise<StartScanResult> {
-  const { url, siteId, scheduleId, crawl } = input
+  const { url, scheduleId, crawl } = input
+  let siteId = input.siteId
+
+  if (!siteId && scheduleId) {
+    const [schedule] = await sql`SELECT site_id FROM schedules WHERE id = ${scheduleId}`
+    siteId = schedule?.site_id ?? undefined
+  }
 
   let rootUrl = url ?? ''
   let pages: SitePage[] | undefined
@@ -53,6 +60,11 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
   const jobId = job.id
 
   try {
+    const isCancelled = async () => {
+      const [current] = await sql`SELECT status FROM scan_jobs WHERE id = ${jobId}`
+      return current?.status === 'cancelled'
+    }
+
     await sql`UPDATE scan_jobs SET status = 'running', progress = ${JSON.stringify(scanProgress('starting', 'Starting scan…'))} WHERE id = ${jobId}`
 
     const result = await runScan(jobId, rootUrl, async (update) => {
@@ -68,7 +80,7 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
       if (update.progress !== undefined) {
         await sql`UPDATE scan_jobs SET progress = ${JSON.stringify(update.progress)} WHERE id = ${jobId}`
       }
-    }, pages, shouldCrawl)
+    }, pages, shouldCrawl, isCancelled)
 
     // Fast path: skip the expensive write if it was already cancelled.
     const [current] = await sql`SELECT status FROM scan_jobs WHERE id = ${jobId}`
@@ -102,6 +114,17 @@ export async function startScan(input: StartScanInput): Promise<StartScanResult>
     }
     return { ok: true, jobId, status: 'complete' }
   } catch (err) {
+    if (err instanceof ScanCancelledError) {
+      await sql`
+        UPDATE scan_jobs SET
+          status = 'cancelled',
+          progress = ${JSON.stringify(scanProgress('cancelled', 'Scan cancelled.'))},
+          completed_at = NOW()
+        WHERE id = ${jobId} AND status <> 'cancelled'
+      `
+      return { ok: true, jobId, status: 'cancelled' }
+    }
+
     const message = err instanceof Error ? err.message : 'Unknown error'
     // Don't clobber a cancellation that landed before/while the scan errored.
     const failed = await sql`
