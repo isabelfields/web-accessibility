@@ -146,7 +146,10 @@ export async function DELETE(req: NextRequest) {
   }
 
   await sql`
-    UPDATE scan_jobs SET status = 'cancelled', completed_at = NOW()
+    UPDATE scan_jobs SET
+      status = 'cancelled',
+      progress = ${JSON.stringify({ phase: 'cancelled', message: 'Scan cancelled.' })},
+      completed_at = NOW()
     WHERE id = ${jobId} AND status IN ('queued', 'running')
   `
   return NextResponse.json({ cancelled: true })
