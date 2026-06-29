@@ -181,7 +181,7 @@ export default async function DashboardPage({
     )
   }
 
-  const { sites, scans, activeDivisions, stats, severityCounts, topViolations, scoreTrends, criticalSiteCount } = dashData
+  const { sites, scans, activeDivisions, stats, severityCounts, topViolations, scoreTrends } = dashData
 
   const visibleDivisions = isAdmin
     ? activeDivisions
@@ -193,7 +193,7 @@ export default async function DashboardPage({
     <div style={{ minHeight: '100vh', background: '#F5F5F7' }}>
 
       {/* Top bar */}
-      <div style={{ borderBottom: '1px solid #E5E5EA', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, background: 'rgba(245,245,247,0.92)', backdropFilter: 'blur(8px)' }}>
+      <div style={{ borderBottom: '1px solid #E5E5EA', minHeight: 96, padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, background: 'rgba(245,245,247,0.92)', backdropFilter: 'blur(8px)' }}>
         <div>
           <h1 style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>Dashboard</h1>
           <p style={{ fontSize: 12, color: '#57575A', margin: 0 }}>{effectiveDivision ? `${effectiveDivision} division` : 'All Hearst properties'}</p>
@@ -206,17 +206,6 @@ export default async function DashboardPage({
       </div>
 
       <div style={{ padding: '24px 32px' }}>
-
-        {/* Alert banner — T1 critical sites */}
-        {criticalSiteCount > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#EFF6FF', border: '1px solid #BFDBFE', borderLeft: '4px solid #2563EB', borderRadius: 10, padding: '12px 20px', marginBottom: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#1D4ED8', fontSize: 14, fontWeight: 500 }}>
-              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
-              <span>{criticalSiteCount} site{criticalSiteCount !== 1 ? 's' : ''} have Tier 1 Critical errors requiring immediate attention</span>
-            </div>
-            <Link href="/sites" style={{ color: '#1D4ED8', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' }}>View sites →</Link>
-          </div>
-        )}
 
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 16, marginBottom: 20 }}>

@@ -25,6 +25,27 @@ export const dynamic = 'force-dynamic'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
+
+function getRuleIssueCounts(patterns: ViolationPattern[]): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const pattern of patterns) {
+    if (!isWcagPattern(pattern)) continue
+    counts.set(pattern.rule, (counts.get(pattern.rule) ?? 0) + pattern.occurrences)
+  }
+  return counts
+}
+
+function getRuleDeltas(current: ViolationPattern[], previous: ViolationPattern[]) {
+  const currentCounts = getRuleIssueCounts(current)
+  const previousCounts = getRuleIssueCounts(previous)
+  const rules = new Set([...currentCounts.keys(), ...previousCounts.keys()])
+  return [...rules].map(rule => {
+    const currentCount = currentCounts.get(rule) ?? 0
+    const previousCount = previousCounts.get(rule) ?? 0
+    return { rule, currentCount, previousCount, delta: currentCount - previousCount }
+  })
+}
+
 async function getScan(id: string) {
   const [scan] = await sql`SELECT * FROM scan_jobs WHERE id = ${id}`
   if (!scan) return null
@@ -70,18 +91,29 @@ export default async function ScanDetailPage({ params }: RouteContext) {
 
   // Diff against the previous completed scan of this site.
   const prevPatterns: ViolationPattern[] = prevScan?.patterns ?? []
-  const prevFingerprints = new Set(prevPatterns.map(p => p.fingerprint))
-  const currentFingerprints = new Set(patterns.map(p => p.fingerprint))
-  for (const p of patterns) p.isNew = prevScan ? !prevFingerprints.has(p.fingerprint) : false
-  const newCount = patterns.filter(p => p.isNew).length
-  const resolvedPatterns = prevPatterns.filter(p => !currentFingerprints.has(p.fingerprint))
-  const carriedOver = patterns.length - newCount
-  const prevTotal = countOccurrences(prevPatterns, isWcagPattern)
-  const currentTotal = countOccurrences(patterns, isWcagPattern)
+  const wcagPatterns = patterns.filter(isWcagPattern)
+  const prevWcagPatterns = prevPatterns.filter(isWcagPattern)
+  const prevFingerprints = new Set(prevWcagPatterns.map(p => p.fingerprint))
+  const currentFingerprints = new Set(wcagPatterns.map(p => p.fingerprint))
+  for (const p of patterns) p.isNew = prevScan && isWcagPattern(p) ? !prevFingerprints.has(p.fingerprint) : false
+  const newPatterns = wcagPatterns.filter(p => p.isNew)
+  const resolvedPatterns = prevWcagPatterns.filter(p => !currentFingerprints.has(p.fingerprint))
+  const carriedOver = wcagPatterns.length - newPatterns.length
+  const prevTotal = countOccurrences(prevWcagPatterns)
+  const currentTotal = countOccurrences(wcagPatterns)
   const errorDelta = currentTotal - prevTotal
+  const prevComponentTotal = countComponentsWithIssues(prevWcagPatterns, isWcagPattern)
+  const currentComponentTotal = countComponentsWithIssues(wcagPatterns, isWcagPattern)
+  const componentDelta = currentComponentTotal - prevComponentTotal
+  const prevIssueTypeTotal = countIssueTypes(prevWcagPatterns)
+  const currentIssueTypeTotal = countIssueTypes(wcagPatterns)
+  const issueTypeDelta = currentIssueTypeTotal - prevIssueTypeTotal
+  const ruleDeltas = prevScan ? getRuleDeltas(wcagPatterns, prevWcagPatterns) : []
+  const biggestIncreases = ruleDeltas.filter(item => item.delta > 0).sort((a, b) => b.delta - a.delta).slice(0, 4)
+  const biggestDecreases = ruleDeltas.filter(item => item.delta < 0).sort((a, b) => a.delta - b.delta).slice(0, 4)
   const hasMoreErrors = prevScan != null && errorDelta > 0
   const hasFewerErrors = prevScan != null && errorDelta < 0
-  const currentErrorLabel = pluralize(currentTotal, 'error')
+  const currentErrorLabel = pluralize(currentTotal, 'issue')
 
   const byImpact: Record<string, ViolationPattern[]> = { critical: [], serious: [], moderate: [], minor: [] }
   for (const p of activePatterns) {
@@ -230,24 +262,95 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             </div>
           </div>
 
-          {/* Change since last scan */}
+          {/* What changed since last scan */}
           {prevScan && (
             <div className="mb-8 rounded-lg bg-white border border-[#E5E5EA] p-5">
-              <div className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider mb-3">Change since last scan</div>
-              <div className="flex flex-wrap gap-6 text-sm">
-                <div><span className="text-lg font-bold text-red-600 tabular-nums">{newCount}</span> <span className="text-[#3A3A3C]">new issue type{newCount !== 1 ? 's' : ''}</span></div>
-                <div><span className="text-lg font-bold text-emerald-600 tabular-nums">{resolvedPatterns.length}</span> <span className="text-[#3A3A3C]">resolved</span></div>
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div>
+                  <div className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">What changed since last scan</div>
+                  <div className="text-xs text-[#3A3A3C] mt-1">Compared with {formatDateTime(prevScan.started_at)}</div>
+                </div>
+                <div className={`text-xs font-semibold px-2 py-1 rounded-full ${errorDelta > 0 ? 'bg-red-100 text-red-700' : errorDelta < 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-[#F5F5F7] text-[#3A3A3C]'}`}>
+                  {errorDelta === 0 ? 'No total issue change' : `${formatSignedDelta(errorDelta)} total issues`}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+                <div className="rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] p-3">
+                  <div className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Total Issues</div>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-[#1D1D1F] tabular-nums">{currentTotal}</span>
+                    <span className={`text-xs font-semibold ${errorDelta > 0 ? 'text-red-600' : errorDelta < 0 ? 'text-emerald-600' : 'text-[#3A3A3C]'}`}>{formatSignedDelta(errorDelta)}</span>
+                  </div>
+                  <div className="text-xs text-[#3A3A3C] mt-1">was {prevTotal}</div>
+                </div>
+                <div className="rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] p-3">
+                  <div className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Components with Issues</div>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-[#1D1D1F] tabular-nums">{currentComponentTotal}</span>
+                    <span className={`text-xs font-semibold ${componentDelta > 0 ? 'text-red-600' : componentDelta < 0 ? 'text-emerald-600' : 'text-[#3A3A3C]'}`}>{formatSignedDelta(componentDelta)}</span>
+                  </div>
+                  <div className="text-xs text-[#3A3A3C] mt-1">was {prevComponentTotal}</div>
+                </div>
+                <div className="rounded-lg border border-[#E5E5EA] bg-[#F9F9FB] p-3">
+                  <div className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Issue Types</div>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-[#1D1D1F] tabular-nums">{currentIssueTypeTotal}</span>
+                    <span className={`text-xs font-semibold ${issueTypeDelta > 0 ? 'text-red-600' : issueTypeDelta < 0 ? 'text-emerald-600' : 'text-[#3A3A3C]'}`}>{formatSignedDelta(issueTypeDelta)}</span>
+                  </div>
+                  <div className="text-xs text-[#3A3A3C] mt-1">was {prevIssueTypeTotal}</div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-6 text-sm mb-4">
+                <div><span className="text-lg font-bold text-red-600 tabular-nums">{newPatterns.length}</span> <span className="text-[#3A3A3C]">new issue type{newPatterns.length !== 1 ? 's' : ''}</span></div>
+                <div><span className="text-lg font-bold text-emerald-600 tabular-nums">{resolvedPatterns.length}</span> <span className="text-[#3A3A3C]">resolved issue type{resolvedPatterns.length !== 1 ? 's' : ''}</span></div>
                 <div><span className="text-lg font-bold text-[#1D1D1F] tabular-nums">{carriedOver}</span> <span className="text-[#3A3A3C]">carried over</span></div>
               </div>
-              {resolvedPatterns.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-[#F0F0F0]">
-                  <div className="text-xs font-semibold text-[#57575A] mb-1.5">Resolved rules</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {resolvedPatterns.map(p => (
-                      <span key={p.fingerprint} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">
-                        {p.rule}
-                      </span>
-                    ))}
+
+              {(newPatterns.length > 0 || resolvedPatterns.length > 0 || biggestIncreases.length > 0 || biggestDecreases.length > 0) && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-4 border-t border-[#F0F0F0]">
+                  <div>
+                    <div className="text-xs font-semibold text-[#57575A] mb-2">Biggest increases</div>
+                    {biggestIncreases.length > 0 ? (
+                      <div className="space-y-1.5">
+                        {biggestIncreases.map(item => (
+                          <div key={item.rule} className="flex justify-between gap-3 text-xs">
+                            <span className="font-medium text-[#1D1D1F] truncate">{item.rule}</span>
+                            <span className="text-red-600 font-semibold tabular-nums">+{item.delta}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : <div className="text-xs text-[#3A3A3C]">No rule counts increased.</div>}
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-[#57575A] mb-2">Biggest improvements</div>
+                    {biggestDecreases.length > 0 ? (
+                      <div className="space-y-1.5">
+                        {biggestDecreases.map(item => (
+                          <div key={item.rule} className="flex justify-between gap-3 text-xs">
+                            <span className="font-medium text-[#1D1D1F] truncate">{item.rule}</span>
+                            <span className="text-emerald-600 font-semibold tabular-nums">{item.delta}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : <div className="text-xs text-[#3A3A3C]">No rule counts decreased.</div>}
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-[#57575A] mb-2">New issue types</div>
+                    {newPatterns.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {newPatterns.slice(0, 8).map(p => <span key={p.fingerprint} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-red-50 text-red-700">{p.rule}</span>)}
+                      </div>
+                    ) : <div className="text-xs text-[#3A3A3C]">No new issue types.</div>}
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-[#57575A] mb-2">Resolved issue types</div>
+                    {resolvedPatterns.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {resolvedPatterns.slice(0, 8).map(p => <span key={p.fingerprint} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">{p.rule}</span>)}
+                      </div>
+                    ) : <div className="text-xs text-[#3A3A3C]">No issue types resolved.</div>}
                   </div>
                 </div>
               )}

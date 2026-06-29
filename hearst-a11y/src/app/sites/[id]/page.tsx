@@ -110,7 +110,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
     <div style={{ minHeight: '100vh', background: '#F5F5F7' }}>
 
       {/* Sticky top bar */}
-      <div style={{ borderBottom: '1px solid #E5E5EA', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, background: 'rgba(245,245,247,0.92)', backdropFilter: 'blur(8px)' }}>
+      <div style={{ borderBottom: '1px solid #E5E5EA', minHeight: 96, padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, background: 'rgba(245,245,247,0.92)', backdropFilter: 'blur(8px)' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, marginBottom: 2 }}>
             <Link href="/sites" style={{ color: '#007AFF', fontWeight: 500 }}>Sites</Link>
