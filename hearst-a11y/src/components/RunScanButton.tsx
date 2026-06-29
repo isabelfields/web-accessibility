@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { AddScheduleForm } from './AddScheduleForm'
+import type { ScanProgress } from '@/types'
 
 export function RunScanButton({ siteId }: { siteId: string }) {
   const router = useRouter()
@@ -13,6 +14,7 @@ export function RunScanButton({ siteId }: { siteId: string }) {
   const [crawl, setCrawl] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [showSchedule, setShowSchedule] = useState(false)
+  const [progress, setProgress] = useState<ScanProgress | null>(null)
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -49,6 +51,7 @@ export function RunScanButton({ siteId }: { siteId: string }) {
         const res = await fetch(`/api/scan?jobId=${id}`)
         if (!res.ok) return
         const job = await res.json()
+        if (job.progress) setProgress(job.progress)
         if (job.status === 'complete' || job.status === 'failed' || job.status === 'cancelled') {
           stopPolling()
           setLoading(false)
@@ -60,7 +63,7 @@ export function RunScanButton({ siteId }: { siteId: string }) {
           } else {
             setMessage(`Scan failed: ${job.error ?? 'Unknown error'}`)
           }
-          timeoutRef.current = setTimeout(() => { router.refresh(); setMessage(null) }, 2000)
+          timeoutRef.current = setTimeout(() => { router.refresh(); setMessage(null); setProgress(null) }, 2000)
         }
       } catch {
         stopPolling()
@@ -83,15 +86,18 @@ export function RunScanButton({ siteId }: { siteId: string }) {
       if (!res.ok) {
         const data = await res.json()
         setMessage(`Error: ${data.error ?? 'Unknown error'}`)
+        setProgress(null)
         setLoading(false)
         return
       }
       const data = await res.json()
       setJobId(data.jobId)
+      setProgress({ phase: crawl ? 'crawling' : 'queued', message: crawl ? 'Preparing crawl…' : 'Queued scan…' })
       setMessage(crawl ? 'Crawling…' : 'Scan running…')
       pollStatus(data.jobId)
     } catch {
       setMessage('Network error. Please try again.')
+      setProgress(null)
       setLoading(false)
     }
   }
@@ -101,6 +107,7 @@ export function RunScanButton({ siteId }: { siteId: string }) {
     setCancelling(true)
     try {
       await fetch(`/api/scan?jobId=${jobId}`, { method: 'DELETE' })
+      setProgress({ phase: 'cancelled', message: 'Cancelling…' })
       setMessage('Cancelling…')
     } catch {
       setMessage('Failed to cancel.')
@@ -108,6 +115,13 @@ export function RunScanButton({ siteId }: { siteId: string }) {
       setCancelling(false)
     }
   }
+
+  const progressPercent = progress?.currentPage != null && progress.totalPages
+    ? Math.min(100, Math.max(0, Math.round((progress.currentPage / progress.totalPages) * 100)))
+    : null
+  const progressCount = progress?.currentPage != null && progress.totalPages
+    ? `${progress.currentPage}/${progress.totalPages}`
+    : null
 
   return (
     <div className="flex items-center gap-3">
@@ -195,10 +209,18 @@ export function RunScanButton({ siteId }: { siteId: string }) {
         </button>
       )}
 
-      {message && (
-        <span className={`text-sm ${message.startsWith('Error') || message.startsWith('Scan failed') ? 'text-red-600' : message.startsWith('Scan complete') ? 'text-green-600' : 'text-gray-500'}`}>
-          {message}
-        </span>
+      {(message || progress) && (
+        <div className="min-w-48 text-sm">
+          <div className={`${message?.startsWith('Error') || message?.startsWith('Scan failed') ? 'text-red-600' : message?.startsWith('Scan complete') ? 'text-green-600' : 'text-gray-500'}`}>
+            {progress?.message ?? message}
+            {progressCount ? <span className="ml-1 text-[#6E6E73]">({progressCount})</span> : null}
+          </div>
+          {loading && progressPercent != null && (
+            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-[#E5E5EA]" aria-label="Scan progress">
+              <div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${progressPercent}%` }} />
+            </div>
+          )}
+        </div>
       )}
 
       {showSchedule && (
