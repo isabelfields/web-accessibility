@@ -1,11 +1,11 @@
 import { after, NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { sql } from '@/lib/db'
 import { queueScan, startScan } from '@/lib/scan-job'
 import { getSessionUser, canAccessDivision, type SessionUser } from '@/lib/auth-helpers'
 import { assertPublicUrl, UrlNotAllowedError } from '@/lib/net/url-guard'
 import { rateLimit } from '@/lib/rate-limit'
 import { SCAN_LIMITS } from '@/lib/constants'
+import { sql } from '@/lib/db'
 
 const RequestSchema = z.object({
   url: z.string().url().optional(),
@@ -30,15 +30,6 @@ export async function POST(req: NextRequest) {
   // Soft per-user burst limit (best-effort, in-memory).
   if (user.id && !rateLimit(`scan:${user.id}`, SCAN_LIMITS.PER_USER_MAX, SCAN_LIMITS.PER_USER_WINDOW_MS)) {
     return NextResponse.json({ error: 'Too many scans — please wait a few minutes.' }, { status: 429 })
-  }
-
-  // Hard global concurrency cap (DB-backed) to bound paid Browserless/OpenAI usage.
-  const [{ active }] = await sql`
-    SELECT COUNT(*)::int AS active FROM scan_jobs
-    WHERE status IN ('queued', 'running') AND started_at > NOW() - INTERVAL '15 minutes'
-  `
-  if (active >= SCAN_LIMITS.MAX_CONCURRENT) {
-    return NextResponse.json({ error: 'Too many scans running right now — try again shortly.' }, { status: 429 })
   }
 
   const body = await req.json()
@@ -83,7 +74,12 @@ export async function POST(req: NextRequest) {
 
   if (parsed.data.background) {
     const queued = await queueScan(parsed.data)
-    if (!queued.ok) return NextResponse.json({ error: queued.error }, { status: 404 })
+    if (!queued.ok) {
+      return NextResponse.json(
+        { error: queued.error },
+        { status: queued.status === 'queue_full' ? 429 : 404 }
+      )
+    }
 
     after(async () => {
       const result = await queued.run()
@@ -98,6 +94,9 @@ export async function POST(req: NextRequest) {
   if (!result.ok) {
     if (result.status === 'not_found') {
       return NextResponse.json({ error: result.error }, { status: 404 })
+    }
+    if (result.status === 'queue_full') {
+      return NextResponse.json({ error: result.error }, { status: 429 })
     }
     return NextResponse.json({ jobId: result.jobId, status: 'failed' }, { status: 500 })
   }

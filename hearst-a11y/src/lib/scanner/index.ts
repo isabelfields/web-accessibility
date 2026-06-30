@@ -1,4 +1,5 @@
 import { ScanJob, SitePage, PageScanResult, RawViolation, PageScore, ScanProgress } from '@/types'
+import type { Page } from 'playwright'
 import { crawlAndScan } from './crawler'
 import { deduplicateAndFix } from './deduplicator'
 import { calculateScore, impactDeduction, isBestPractice } from '@/lib/score'
@@ -6,6 +7,21 @@ import { runKeyboardCheck } from './keyboard'
 import { assertPublicUrl } from '@/lib/net/url-guard'
 import { AXE_TAGS, browserlessWsEndpoint } from '@/lib/constants'
 import { ScanCancelledError, ScanCancellationCheck, throwIfScanCancelled } from './cancel'
+
+async function guardPageNavigation(page: Page) {
+  await page.route('**/*', async (route) => {
+    const request = route.request()
+    if (request.isNavigationRequest() || request.resourceType() === 'document') {
+      try {
+        await assertPublicUrl(request.url())
+      } catch {
+        await route.abort('blockedbyclient')
+        return
+      }
+    }
+    await route.continue()
+  })
+}
 
 async function scanPageList(pages: SitePage[], onProgress?: (progress: ScanProgress) => void | Promise<void>, shouldCancel?: ScanCancellationCheck): Promise<{
   results: PageScanResult[]
@@ -27,7 +43,9 @@ async function scanPageList(pages: SitePage[], onProgress?: (progress: ScanProgr
       await assertPublicUrl(page.url)
       ctx = await browser.newContext()
       const pw = await ctx.newPage()
+      await guardPageNavigation(pw)
       await pw.goto(page.url, { waitUntil: 'domcontentloaded', timeout: 20000 })
+      await assertPublicUrl(pw.url())
 
       const axeResults = await new AxeBuilder({ page: pw })
         .withTags(AXE_TAGS)
