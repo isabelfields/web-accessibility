@@ -259,7 +259,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
           {/* How to fix */}
           {pattern.fixSuggestion && conciseFix && (
-            <div className="mx-5 mt-4 mb-4 border-l-4 border-blue-500 bg-white px-3 py-2.5 shadow-sm ring-1 ring-blue-100">
+            <div className="mx-5 mt-4 mb-4 rounded-lg border-l-4 border-blue-500 bg-white px-3 py-2.5 shadow-sm ring-1 ring-blue-100">
               <div className="text-[11px] font-bold text-blue-700 mb-1 uppercase tracking-wide">Fix</div>
               <p className="text-xs text-slate-900 leading-5">{conciseFix}</p>
               {hasMoreFixCopy && (
