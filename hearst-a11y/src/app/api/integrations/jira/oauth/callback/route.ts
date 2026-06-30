@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth-helpers'
 import { sql } from '@/lib/db'
-import { chooseJiraResource, encryptToken, exchangeJiraCode, getJiraResources } from '@/lib/jira'
+import { chooseJiraResource, encryptToken, exchangeJiraCode, getJiraResources, jiraUserKey } from '@/lib/jira'
 
 function redirectToApp(req: NextRequest, status: 'connected' | 'error', message?: string) {
   const url = new URL('/sites', req.url)
@@ -12,7 +12,8 @@ function redirectToApp(req: NextRequest, status: 'connected' | 'error', message?
 
 export async function GET(req: NextRequest) {
   const user = await getSessionUser()
-  if (!user?.id || user.id === '1') return redirectToApp(req, 'error', 'Sign in with an invited user before connecting Jira.')
+  const userKey = jiraUserKey(user ?? {})
+  if (!userKey) return redirectToApp(req, 'error', 'Sign in before connecting Jira.')
 
   const url = new URL(req.url)
   const code = url.searchParams.get('code')
@@ -27,13 +28,15 @@ export async function GET(req: NextRequest) {
     if (!resource) return redirectToApp(req, 'error', 'No accessible Jira site matched this app configuration.')
 
     await sql`
-      UPDATE users SET
-        jira_access_token = ${encryptToken(tokens.accessToken)},
-        jira_refresh_token = ${tokens.refreshToken ? encryptToken(tokens.refreshToken) : null},
-        jira_cloud_id = ${resource.id},
-        jira_site_url = ${resource.url},
-        jira_token_expires_at = ${tokens.expiresAt.toISOString()}
-      WHERE id = ${user.id}
+      INSERT INTO jira_connections (user_key, access_token, refresh_token, cloud_id, site_url, token_expires_at, updated_at)
+      VALUES (${userKey}, ${encryptToken(tokens.accessToken)}, ${tokens.refreshToken ? encryptToken(tokens.refreshToken) : null}, ${resource.id}, ${resource.url}, ${tokens.expiresAt.toISOString()}, NOW())
+      ON CONFLICT (user_key) DO UPDATE SET
+        access_token = EXCLUDED.access_token,
+        refresh_token = EXCLUDED.refresh_token,
+        cloud_id = EXCLUDED.cloud_id,
+        site_url = EXCLUDED.site_url,
+        token_expires_at = EXCLUDED.token_expires_at,
+        updated_at = NOW()
     `
 
     const res = redirectToApp(req, 'connected')

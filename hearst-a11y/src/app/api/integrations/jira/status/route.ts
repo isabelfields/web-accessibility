@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth-helpers'
 import { sql } from '@/lib/db'
-import { jiraOAuthConfigured } from '@/lib/jira'
+import { jiraOAuthConfigured, jiraUserKey } from '@/lib/jira'
 
 export async function GET() {
   const user = await getSessionUser()
-  if (!user?.id || user.id === '1') return NextResponse.json({ connected: false, configured: jiraOAuthConfigured() })
+  const userKey = jiraUserKey(user ?? {})
+  if (!userKey) return NextResponse.json({ connected: false, configured: jiraOAuthConfigured() })
 
-  const [row] = await sql`SELECT jira_site_url FROM users WHERE id = ${user.id}`
-  return NextResponse.json({ connected: Boolean(row?.jira_site_url), configured: jiraOAuthConfigured(), siteUrl: row?.jira_site_url ?? null })
+  const [row] = await sql`SELECT site_url FROM jira_connections WHERE user_key = ${userKey}`
+  return NextResponse.json({ connected: Boolean(row?.site_url), configured: jiraOAuthConfigured(), siteUrl: row?.site_url ?? null })
 }

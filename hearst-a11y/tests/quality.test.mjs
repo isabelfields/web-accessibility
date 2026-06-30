@@ -51,6 +51,7 @@ test('Jira integration exposes per-user OAuth configuration, routes, and violati
   }
 
   assert.match(route, /jira_auth_required/)
+  assert.match(route, /jira_connections/)
   assert.match(route, /Bearer/)
   assert.match(route, /canAccessDivision/)
   assert.match(card, /Create Jira ticket/)

@@ -17,6 +17,13 @@ export interface JiraResource {
   avatarUrl?: string
 }
 
+export function jiraUserKey(user: { id?: string; email?: string | null }): string | null {
+  if (user.id && user.id !== '1') return `user:${user.id}`
+  if (user.email) return `email:${user.email.toLowerCase()}`
+  if (user.id) return `user:${user.id}`
+  return null
+}
+
 const ATLASSIAN_AUTH_URL = 'https://auth.atlassian.com/authorize'
 const ATLASSIAN_TOKEN_URL = 'https://auth.atlassian.com/oauth/token'
 const ATLASSIAN_RESOURCES_URL = 'https://api.atlassian.com/oauth/token/accessible-resources'

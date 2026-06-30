@@ -79,6 +79,17 @@ export const violationTriage = pgTable('violation_triage', {
   updatedAt: timestamp('updated_at').defaultNow(),
 })
 
+export const jiraConnections = pgTable('jira_connections', {
+  userKey: text('user_key').primaryKey(),
+  accessToken: text('access_token').notNull(),
+  refreshToken: text('refresh_token'),
+  cloudId: text('cloud_id').notNull(),
+  siteUrl: text('site_url').notNull(),
+  accountId: text('account_id'),
+  tokenExpiresAt: timestamp('token_expires_at').notNull(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
 // Migration SQL — run this in your Neon/Supabase SQL editor
 export const MIGRATION_SQL = `
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -166,6 +177,17 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS jira_cloud_id TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS jira_site_url TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS jira_account_id TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS jira_token_expires_at TIMESTAMPTZ;
+
+CREATE TABLE IF NOT EXISTS jira_connections (
+  user_key TEXT PRIMARY KEY,
+  access_token TEXT NOT NULL,
+  refresh_token TEXT,
+  cloud_id TEXT NOT NULL,
+  site_url TEXT NOT NULL,
+  account_id TEXT,
+  token_expires_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
 CREATE TABLE IF NOT EXISTS violation_triage (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

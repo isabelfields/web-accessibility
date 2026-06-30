@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSessionUser, canAccessDivision } from '@/lib/auth-helpers'
 import { sql } from '@/lib/db'
-import { decryptToken, encryptToken, jiraIssueApiUrl, refreshJiraToken } from '@/lib/jira'
+import { decryptToken, encryptToken, jiraIssueApiUrl, jiraUserKey, refreshJiraToken } from '@/lib/jira'
 
 const PatternSchema = z.object({
   fingerprint: z.string().min(1),
@@ -78,7 +78,7 @@ function issueSummary(pattern: z.infer<typeof PatternSchema>, siteName?: string)
 
 async function authorizeSite(siteId: string | undefined) {
   const user = await getSessionUser()
-  if (!user?.id || user.id === '1') return { error: 'Connect Jira with an invited user account before creating tickets.', status: 401 as const }
+  if (!user) return { error: 'Unauthorized', status: 401 as const }
   if (!siteId) return { user }
 
   const [site] = await sql`SELECT name, division FROM sites WHERE id = ${siteId}`
@@ -98,32 +98,36 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Jira project is not configured. Ask an admin to set JIRA_PROJECT_KEY.' }, { status: 503 })
   }
 
+  const userKey = jiraUserKey(auth.user)
+  if (!userKey) return NextResponse.json({ error: 'Connect your Jira account before creating tickets.', code: 'jira_auth_required' }, { status: 401 })
+
   const [connection] = await sql`
-    SELECT jira_access_token, jira_refresh_token, jira_cloud_id, jira_site_url, jira_token_expires_at
-    FROM users WHERE id = ${auth.user.id}
+    SELECT access_token, refresh_token, cloud_id, site_url, token_expires_at
+    FROM jira_connections WHERE user_key = ${userKey}
   `
-  if (!connection?.jira_access_token || !connection?.jira_cloud_id || !connection?.jira_site_url) {
+  if (!connection?.access_token || !connection?.cloud_id || !connection?.site_url) {
     return NextResponse.json({ error: 'Connect your Jira account before creating tickets.', code: 'jira_auth_required' }, { status: 401 })
   }
 
-  let accessToken = decryptToken(connection.jira_access_token)
-  if (connection.jira_token_expires_at && new Date(connection.jira_token_expires_at).getTime() <= Date.now()) {
-    if (!connection.jira_refresh_token) {
+  let accessToken = decryptToken(connection.access_token)
+  if (connection.token_expires_at && new Date(connection.token_expires_at).getTime() <= Date.now()) {
+    if (!connection.refresh_token) {
       return NextResponse.json({ error: 'Reconnect your Jira account before creating tickets.', code: 'jira_auth_required' }, { status: 401 })
     }
-    const refreshed = await refreshJiraToken(decryptToken(connection.jira_refresh_token))
+    const refreshed = await refreshJiraToken(decryptToken(connection.refresh_token))
     accessToken = refreshed.accessToken
     await sql`
-      UPDATE users SET
-        jira_access_token = ${encryptToken(refreshed.accessToken)},
-        jira_refresh_token = ${refreshed.refreshToken ? encryptToken(refreshed.refreshToken) : connection.jira_refresh_token},
-        jira_token_expires_at = ${refreshed.expiresAt.toISOString()}
-      WHERE id = ${auth.user.id}
+      UPDATE jira_connections SET
+        access_token = ${encryptToken(refreshed.accessToken)},
+        refresh_token = ${refreshed.refreshToken ? encryptToken(refreshed.refreshToken) : connection.refresh_token},
+        token_expires_at = ${refreshed.expiresAt.toISOString()},
+        updated_at = NOW()
+      WHERE user_key = ${userKey}
     `
   }
 
   const siteName = parsed.data.siteName ?? auth.site?.name
-  const res = await fetch(jiraIssueApiUrl({ cloudId: connection.jira_cloud_id }), {
+  const res = await fetch(jiraIssueApiUrl({ cloudId: connection.cloud_id }), {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -147,5 +151,5 @@ export async function POST(req: NextRequest) {
   }
 
   const key = typeof data.key === 'string' ? data.key : undefined
-  return NextResponse.json({ key, url: key ? `${connection.jira_site_url}/browse/${key}` : undefined })
+  return NextResponse.json({ key, url: key ? `${connection.site_url}/browse/${key}` : undefined })
 }
