@@ -2,6 +2,7 @@ import { sql } from '@/lib/db'
 import { runScan } from '@/lib/scanner'
 import { ScanCancelledError } from '@/lib/scanner/cancel'
 import { ScanProgress, SitePage } from '@/types'
+import { SCAN_LIMITS } from '@/lib/constants'
 
 export interface StartScanInput {
   url?: string
@@ -14,11 +15,11 @@ export interface StartScanInput {
 
 export type StartScanResult =
   | { ok: true; jobId: string; status: 'complete' | 'cancelled' }
-  | { ok: false; jobId?: string; status: 'failed' | 'not_found'; error: string }
+  | { ok: false; jobId?: string; status: 'failed' | 'not_found' | 'queue_full'; error: string }
 
 export type QueueScanResult =
   | { ok: true; jobId: string; status: 'queued'; run: () => Promise<StartScanResult> }
-  | { ok: false; status: 'not_found'; error: string }
+  | { ok: false; status: 'not_found' | 'queue_full'; error: string }
 
 interface PreparedScan {
   rootUrl: string
@@ -64,14 +65,29 @@ async function prepareScan(input: StartScanInput): Promise<PreparedScan | { erro
   return { rootUrl, siteId, scheduleId, pages, shouldCrawl }
 }
 
-async function createScanRecord(scan: PreparedScan): Promise<string> {
+async function createScanRecord(scan: PreparedScan): Promise<string | null> {
   const queuedProgress = scanProgress('queued', 'Queued scan…')
-  const [job] = await sql`
-    INSERT INTO scan_jobs (root_url, status, triggered_by, schedule_id, site_id, progress)
-    VALUES (${scan.rootUrl}, 'queued', ${scan.scheduleId ? 'schedule' : 'manual'}, ${scan.scheduleId ?? null}, ${scan.siteId ?? null}, ${JSON.stringify(queuedProgress)})
-    RETURNING id
+  const [{ locked }] = await sql`
+    SELECT pg_try_advisory_lock(hashtext('hearst_a11y_scan_queue_limit')) AS locked
   `
-  return job.id
+  if (!locked) return null
+
+  try {
+    const [{ active }] = await sql`
+      SELECT COUNT(*)::int AS active FROM scan_jobs
+      WHERE status IN ('queued', 'running') AND started_at > NOW() - INTERVAL '15 minutes'
+    `
+    if (active >= SCAN_LIMITS.MAX_CONCURRENT) return null
+
+    const [job] = await sql`
+      INSERT INTO scan_jobs (root_url, status, triggered_by, schedule_id, site_id, progress)
+      VALUES (${scan.rootUrl}, 'queued', ${scan.scheduleId ? 'schedule' : 'manual'}, ${scan.scheduleId ?? null}, ${scan.siteId ?? null}, ${JSON.stringify(queuedProgress)})
+      RETURNING id
+    `
+    return job.id
+  } finally {
+    await sql`SELECT pg_advisory_unlock(hashtext('hearst_a11y_scan_queue_limit'))`
+  }
 }
 
 async function runPreparedScan(jobId: string, scan: PreparedScan): Promise<StartScanResult> {
@@ -168,6 +184,13 @@ export async function queueScan(input: StartScanInput): Promise<QueueScanResult>
   if ('error' in scan) return { ok: false, status: 'not_found', error: scan.error }
 
   const jobId = await createScanRecord(scan)
+  if (!jobId) {
+    return {
+      ok: false,
+      status: 'queue_full',
+      error: 'Too many scans running right now — try again shortly.',
+    }
+  }
   return {
     ok: true,
     jobId,
