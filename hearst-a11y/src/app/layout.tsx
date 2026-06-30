@@ -55,6 +55,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <div className="pt-4 pb-1 px-3">
                     <span className="text-[10px] font-semibold text-[#57575A] uppercase tracking-widest">Admin</span>
                   </div>
+                  <Link href="/admin/resolutions" className={navLink}>
+                    <svg className="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 17l6-6 4 4 7-7m0 0h-5m5 0v5" />
+                    </svg>
+                    Resolutions
+                  </Link>
                   <Link href="/admin/users" className={navLink}>
                     <svg className="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
