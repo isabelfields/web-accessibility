@@ -24,7 +24,7 @@ export const authOptions: NextAuthOptions = {
           email === process.env.ADMIN_USERNAME.trim().toLowerCase() &&
           safeEqual(password, process.env.ADMIN_PASSWORD)
         ) {
-          return { id: '1', name: 'Admin', role: 'admin' as const, allowedDivisions: [] }
+          return { id: '1', name: 'Admin', email, role: 'admin' as const, allowedDivisions: [] }
         }
 
         // Invited users: look up by email and verify their password hash.

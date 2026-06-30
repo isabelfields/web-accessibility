@@ -41,25 +41,37 @@ async function getData(division?: string, allowedDivisions?: string[]) {
       `
 
   const [allSites, recentScans] = await Promise.all([
-    sql`SELECT * FROM sites ORDER BY created_at DESC`.then(async (sites) => {
-      return Promise.all(
-        sites.map(async (site) => {
-          const [latest] = await sql`
-            SELECT status, started_at, unique_pattern_count, raw_violation_count,
-                   COALESCE(patterns, '[]'::jsonb) as patterns
-            FROM scan_jobs
-            WHERE site_id = ${site.id} AND status = 'complete'
-            ORDER BY started_at DESC LIMIT 1
-          `
-          const [prev] = await sql`
-            SELECT raw_violation_count, COALESCE(patterns, '[]'::jsonb) as patterns FROM scan_jobs
-            WHERE site_id = ${site.id} AND status = 'complete'
-            ORDER BY started_at DESC LIMIT 1 OFFSET 1
-          `
-          return { ...site, latestScan: latest ?? null, prevScan: prev ?? null }
-        })
+    sql`
+      WITH ranked_scans AS (
+        SELECT
+          site_id,
+          status,
+          started_at,
+          unique_pattern_count,
+          raw_violation_count,
+          COALESCE(patterns, '[]'::jsonb) AS patterns,
+          ROW_NUMBER() OVER (PARTITION BY site_id ORDER BY started_at DESC) AS rn
+        FROM scan_jobs
+        WHERE status = 'complete'
       )
-    }),
+      SELECT
+        s.*,
+        CASE WHEN latest.site_id IS NULL THEN NULL ELSE jsonb_build_object(
+          'status', latest.status,
+          'started_at', latest.started_at,
+          'unique_pattern_count', latest.unique_pattern_count,
+          'raw_violation_count', latest.raw_violation_count,
+          'patterns', latest.patterns
+        ) END AS "latestScan",
+        CASE WHEN previous.site_id IS NULL THEN NULL ELSE jsonb_build_object(
+          'raw_violation_count', previous.raw_violation_count,
+          'patterns', previous.patterns
+        ) END AS "prevScan"
+      FROM sites s
+      LEFT JOIN ranked_scans latest ON latest.site_id = s.id AND latest.rn = 1
+      LEFT JOIN ranked_scans previous ON previous.site_id = s.id AND previous.rn = 2
+      ORDER BY s.created_at DESC
+    `,
     recentScansQuery,
   ])
 
