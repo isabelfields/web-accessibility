@@ -356,27 +356,24 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
             </div>
           )}
 
-          {/* Triage */}
-          {siteId && (
-            <div className="px-5 py-3 border-t border-blue-100 bg-white flex flex-wrap items-center gap-3">
-              <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-semibold text-[#3A3A3C] uppercase tracking-wider">Status</label>
-              <select
-                id={`triage-${pattern.fingerprint}`}
-                value={triage}
-                disabled={savingTriage}
-                onChange={e => changeTriage(e.target.value as TriageStatus)}
-                className="text-xs border border-[#E5E5EA] rounded-md px-2 py-1 bg-white text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {TRIAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-              <span className="text-[11px] text-[#3A3A3C]">Triaged issues are excluded from active counts; the rule still appears here.</span>
-            </div>
-          )}
-
           {/* Footer */}
-          <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex flex-wrap items-center justify-between gap-2 bg-[#F5F5F7]">
-            <span className="text-[11px] font-mono text-[#3A3A3C]">{pattern.rule}</span>
-            <div className="flex flex-wrap items-center justify-end gap-3">
+          <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex flex-nowrap items-center justify-between gap-3 overflow-x-auto bg-[#F5F5F7]">
+            {siteId && (
+              <div className="flex shrink-0 items-center gap-3">
+                <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-semibold text-[#3A3A3C] uppercase tracking-wider">Status</label>
+                <select
+                  id={`triage-${pattern.fingerprint}`}
+                  value={triage}
+                  disabled={savingTriage}
+                  onChange={e => changeTriage(e.target.value as TriageStatus)}
+                  className="text-xs border border-[#E5E5EA] rounded-md px-2 py-1 bg-white text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  {TRIAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+                <span className="text-[11px] text-[#3A3A3C]">Triaged issues are excluded from active counts; the rule still appears here.</span>
+              </div>
+            )}
+            <div className="ml-auto flex shrink-0 flex-nowrap items-center justify-end gap-3">
               {jiraResult?.error && (
                 <span className="text-xs text-red-600 max-w-sm">{jiraResult.error}</span>
               )}
