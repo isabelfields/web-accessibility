@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
   const config = jiraConfig()
   if (!config) {
     return NextResponse.json(
-      { error: 'Jira integration is not configured. Set JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN, and JIRA_PROJECT_KEY.' },
+      { error: 'Jira is not configured yet. Ask an admin to connect a Jira service account.' },
       { status: 503 }
     )
   }

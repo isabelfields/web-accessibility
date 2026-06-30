@@ -108,12 +108,12 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setJiraResult({ error: data.error ?? 'Could not create Jira issue.' })
+        setJiraResult({ error: data.error ?? 'Could not create Jira ticket.' })
         return
       }
       setJiraResult({ key: data.key, url: data.url })
     } catch {
-      setJiraResult({ error: 'Could not create Jira issue.' })
+      setJiraResult({ error: 'Could not create Jira ticket.' })
     } finally {
       setCreatingJira(false)
     }
@@ -274,7 +274,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
             <span className="text-[11px] font-mono text-[#3A3A3C]">{pattern.rule}</span>
             <div className="flex flex-wrap items-center justify-end gap-3">
               {jiraResult?.error && (
-                <span className="text-xs text-red-600">{jiraResult.error}</span>
+                <span className="text-xs text-red-600 max-w-sm">{jiraResult.error}</span>
               )}
               {jiraResult?.url && (
                 <a href={jiraResult.url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-emerald-700 hover:underline">
@@ -285,7 +285,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                 type="button"
                 onClick={createJiraIssue}
                 disabled={creatingJira}
-                className="text-xs font-medium text-[#007AFF] hover:underline disabled:opacity-50 disabled:no-underline"
+                className="inline-flex items-center gap-1 rounded-md border border-[#007AFF] bg-[#007AFF] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#0066D6] disabled:cursor-not-allowed disabled:border-[#A1A1A6] disabled:bg-[#A1A1A6]"
               >
                 {creatingJira ? 'Creating Jira…' : 'Create Jira ticket'}
               </button>

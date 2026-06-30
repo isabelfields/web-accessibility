@@ -122,3 +122,18 @@ POST /api/schedules
 Vercel runs `/api/cron` daily at 02:00 UTC (the Hobby plan only allows daily crons).
 It checks for due schedules and runs their scans in-process. The cron endpoint is
 protected by `CRON_SECRET`.
+
+## Jira integration
+
+Violation cards include a **Create Jira ticket** action when the Jira integration is configured.
+The recommended production setup is a shared Jira service account/bot:
+
+1. Create a Jira user such as `accessibility-bot@example.com`.
+2. Give that user permission to create issues in the target Jira project.
+3. Create a Jira API token for that service account.
+4. Set `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, `JIRA_PROJECT_KEY`, and optionally `JIRA_ISSUE_TYPE`.
+
+With this setup, individual app users do not need to provide Jira credentials. Tickets are created by the bot, while the ticket description carries scan and violation context.
+
+If your organization requires tickets to be created as each signed-in user's own Jira identity, implement Atlassian OAuth 2.0 (3LO) and store encrypted per-user refresh tokens. Avoid asking users to paste personal Jira API tokens into this app; OAuth gives revocation, consent, and least-privilege scopes.
+

@@ -53,6 +53,8 @@ test('Jira integration exposes configuration, API route, and violation-card acti
 
   assert.ok(route.includes('/rest/api/3/issue'))
   assert.match(route, /canAccessDivision/)
+  assert.match(route, /service account/)
   assert.match(card, /Create Jira ticket/)
+  assert.match(card, /bg-\[#007AFF\]/)
   assert.ok(card.includes('/api/integrations/jira/issues'))
 })
