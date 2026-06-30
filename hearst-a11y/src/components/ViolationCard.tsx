@@ -160,10 +160,11 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
   }
 
   function buildJiraPayload(): JiraIssuePayload {
+    const normalizedProjectKey = jiraProjectKey.trim().toUpperCase()
     return {
       siteId,
       scanUrl: window.location.href,
-      projectKey: jiraProjectKey || undefined,
+      projectKey: normalizedProjectKey || undefined,
       pattern: {
         fingerprint: pattern.fingerprint,
         rule: pattern.rule,
@@ -180,6 +181,11 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
   function redirectToJiraLogin(payload: JiraIssuePayload) {
     window.localStorage.setItem(PENDING_JIRA_TICKET_KEY, JSON.stringify(payload))
     window.location.href = `/api/integrations/jira/oauth/start?returnTo=${encodeURIComponent(window.location.href)}`
+  }
+
+  function changeJiraProjectKey(value: string) {
+    setJiraProjectKey(value.toUpperCase())
+    setJiraResult(current => current?.needsProject ? null : current)
   }
 
   async function submitJiraIssue(payload: JiraIssuePayload, options = { redirectOnAuth: true }) {
@@ -388,7 +394,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                 {jiraProjects.length > 0 ? (
                   <select
                     value={jiraProjectKey}
-                    onChange={e => setJiraProjectKey(e.target.value)}
+                    onChange={e => changeJiraProjectKey(e.target.value)}
                     aria-label="Jira project"
                     className={`max-w-[180px] rounded-md border px-2 py-1 text-xs font-semibold text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       jiraResult?.needsProject ? 'border-red-400 bg-red-50' : 'border-[#D1D1D6] bg-white'
@@ -401,7 +407,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                 ) : (
                   <input
                     value={jiraProjectKey}
-                    onChange={e => setJiraProjectKey(e.target.value.toUpperCase())}
+                    onChange={e => changeJiraProjectKey(e.target.value)}
                     placeholder={loadingJiraProjects ? 'Loading…' : 'A11Y'}
                     aria-label="Jira project key"
                     className={`w-24 rounded-md border px-2 py-1 text-xs font-semibold uppercase text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
@@ -419,7 +425,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                 type="button"
                 onClick={createJiraIssue}
                 disabled={creatingJira}
-                className="inline-flex items-center gap-1 rounded-md border border-[#007AFF] bg-[#007AFF] px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#0066D6] disabled:cursor-not-allowed disabled:border-[#A1A1A6] disabled:bg-[#A1A1A6]"
+                className="inline-flex items-center gap-1 rounded-md border border-[#007AFF] bg-[#007AFF] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#0066D6] disabled:cursor-not-allowed disabled:border-[#A1A1A6] disabled:bg-[#A1A1A6]"
               >
                 {creatingJira ? 'Creating Jira…' : 'Create Jira ticket'}
               </button>
