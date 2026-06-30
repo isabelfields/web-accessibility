@@ -122,3 +122,30 @@ POST /api/schedules
 Vercel runs `/api/cron` daily at 02:00 UTC (the Hobby plan only allows daily crons).
 It checks for due schedules and runs their scans in-process. The cron endpoint is
 protected by `CRON_SECRET`.
+
+## Jira integration
+
+Violation cards include a **Create Jira ticket** action when Jira OAuth is configured.
+Each app user connects their own Jira account through Atlassian OAuth 2.0 (3LO),
+so tickets are created with that user's Jira permissions instead of a shared bot.
+
+1. Create an Atlassian OAuth 2.0 (3LO) app.
+2. Add this callback URL: `https://<app>/api/integrations/jira/oauth/callback`
+   (or `http://localhost:3000/api/integrations/jira/oauth/callback` locally).
+3. Enable the scopes `read:jira-user`, `read:jira-work`, `write:jira-work`, and `offline_access`.
+4. Set `JIRA_CLIENT_ID`, `JIRA_CLIENT_SECRET`, and `JIRA_REDIRECT_URI`.
+   Optionally set `JIRA_CLOUD_ID`/`JIRA_BASE_URL` to force a Jira site,
+   `JIRA_ISSUE_TYPE` to change the issue type, and `JIRA_PROJECT_KEY` as a
+   default project.
+5. Users can click **Create Jira ticket** directly. If they are not already
+   connected, the app sends them to Jira login/consent and then returns to the
+   same scan to finish creating the pending ticket.
+6. The app stores encrypted per-user Jira refresh tokens in the
+   `jira_connections` table, so future tickets can be created without logging in
+   again until Jira authorization expires or is revoked.
+7. After Jira is connected, the violation card loads the user's visible Jira
+   projects and shows a project dropdown. Users can still type a project key
+   fallback if project discovery is unavailable.
+
+Do not ask users to paste personal Jira API tokens into this app; OAuth provides
+consent, revocation, and scoped access for each signed-in user.
