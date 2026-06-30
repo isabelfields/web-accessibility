@@ -61,6 +61,8 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
   const [showAll, setShowAll] = useState(false)
   const [triage, setTriage] = useState<TriageStatus>(pattern.triageStatus ?? 'open')
   const [savingTriage, setSavingTriage] = useState(false)
+  const [creatingJira, setCreatingJira] = useState(false)
+  const [jiraResult, setJiraResult] = useState<{ key?: string; url?: string; error?: string } | null>(null)
 
   async function changeTriage(status: TriageStatus) {
     if (!siteId) return
@@ -79,6 +81,41 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
       setTriage(previous)
     } finally {
       setSavingTriage(false)
+    }
+  }
+
+  async function createJiraIssue() {
+    setCreatingJira(true)
+    setJiraResult(null)
+    try {
+      const res = await fetch('/api/integrations/jira/issues', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId,
+          scanUrl: window.location.href,
+          pattern: {
+            fingerprint: pattern.fingerprint,
+            rule: pattern.rule,
+            impact: pattern.impact,
+            description: pattern.description,
+            fixSuggestion: pattern.fixSuggestion,
+            occurrences: pattern.occurrences,
+            affectedPages: pattern.affectedPages ?? [],
+            sampleHtml: pattern.sampleHtml ?? pattern.nodes?.[0]?.html,
+          },
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setJiraResult({ error: data.error ?? 'Could not create Jira issue.' })
+        return
+      }
+      setJiraResult({ key: data.key, url: data.url })
+    } catch {
+      setJiraResult({ error: 'Could not create Jira issue.' })
+    } finally {
+      setCreatingJira(false)
     }
   }
 
@@ -233,19 +270,36 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
           )}
 
           {/* Footer */}
-          <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex items-center justify-between bg-[#F5F5F7]">
+          <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex flex-wrap items-center justify-between gap-2 bg-[#F5F5F7]">
             <span className="text-[11px] font-mono text-[#3A3A3C]">{pattern.rule}</span>
-            <a
-              href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}?application=axeAPI`}
-              target="_blank" rel="noopener noreferrer"
-              className="text-xs font-medium text-[#007AFF] hover:underline"
-            >
-              View WCAG guidance →
-            </a>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {jiraResult?.error && (
+                <span className="text-xs text-red-600">{jiraResult.error}</span>
+              )}
+              {jiraResult?.url && (
+                <a href={jiraResult.url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-emerald-700 hover:underline">
+                  Open {jiraResult.key ?? 'Jira issue'} →
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={createJiraIssue}
+                disabled={creatingJira}
+                className="text-xs font-medium text-[#007AFF] hover:underline disabled:opacity-50 disabled:no-underline"
+              >
+                {creatingJira ? 'Creating Jira…' : 'Create Jira ticket'}
+              </button>
+              <a
+                href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}?application=axeAPI`}
+                target="_blank" rel="noopener noreferrer"
+                className="text-xs font-medium text-[#007AFF] hover:underline"
+              >
+                View WCAG guidance →
+              </a>
+            </div>
           </div>
         </div>
       )}
     </div>
   )
 }
-
