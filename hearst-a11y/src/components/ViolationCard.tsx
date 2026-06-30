@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ViolationPattern, TriageStatus } from '@/types'
 import { impactToTier, TIER_COLOR, TIER_LABEL } from '@/lib/tiers'
@@ -54,6 +54,28 @@ function truncateHtml(html: string, max = 120) {
 }
 
 const SHOW_LIMIT = 5
+const PENDING_JIRA_TICKET_KEY = 'pendingJiraTicket'
+
+interface JiraIssuePayload {
+  siteId?: string
+  scanUrl: string
+  projectKey?: string
+  pattern: {
+    fingerprint: string
+    rule: string
+    impact: string
+    description: string
+    fixSuggestion?: string
+    occurrences: number
+    affectedPages: string[]
+    sampleHtml?: string
+  }
+}
+
+interface JiraProject {
+  key: string
+  name: string
+}
 
 export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; siteId?: string }) {
   const router = useRouter()
@@ -61,6 +83,53 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
   const [showAll, setShowAll] = useState(false)
   const [triage, setTriage] = useState<TriageStatus>(pattern.triageStatus ?? 'open')
   const [savingTriage, setSavingTriage] = useState(false)
+  const [creatingJira, setCreatingJira] = useState(false)
+  const [jiraResult, setJiraResult] = useState<{ key?: string; url?: string; error?: string; needsAuth?: boolean; needsProject?: boolean } | null>(null)
+  const [jiraProjectKey, setJiraProjectKey] = useState('')
+  const [jiraProjects, setJiraProjects] = useState<JiraProject[]>([])
+  const [loadingJiraProjects, setLoadingJiraProjects] = useState(false)
+
+  useEffect(() => {
+    const storedProjectKey = window.localStorage.getItem('jiraProjectKey') ?? ''
+    setJiraProjectKey(storedProjectKey)
+
+    const params = new URLSearchParams(window.location.search)
+    const pendingRaw = window.localStorage.getItem(PENDING_JIRA_TICKET_KEY)
+    if (params.get('jira') !== 'connected' || !pendingRaw) return
+
+    try {
+      const pending = JSON.parse(pendingRaw) as JiraIssuePayload
+      if (pending.pattern.fingerprint !== pattern.fingerprint) return
+      window.localStorage.removeItem(PENDING_JIRA_TICKET_KEY)
+      setOpen(true)
+      setJiraProjectKey(pending.projectKey ?? storedProjectKey)
+      void submitJiraIssue(pending, { redirectOnAuth: false })
+    } catch {
+      window.localStorage.removeItem(PENDING_JIRA_TICKET_KEY)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pattern.fingerprint])
+
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    async function loadJiraProjects() {
+      setLoadingJiraProjects(true)
+      try {
+        const res = await fetch('/api/integrations/jira/projects')
+        if (!res.ok) return
+        const data = await res.json().catch(() => ({}))
+        if (cancelled || !Array.isArray(data.projects)) return
+        setJiraProjects(data.projects)
+        const stored = window.localStorage.getItem('jiraProjectKey')
+        if (!stored && data.projects[0]?.key) setJiraProjectKey(data.projects[0].key)
+      } finally {
+        if (!cancelled) setLoadingJiraProjects(false)
+      }
+    }
+    void loadJiraProjects()
+    return () => { cancelled = true }
+  }, [open])
 
   async function changeTriage(status: TriageStatus) {
     if (!siteId) return
@@ -80,6 +149,64 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
     } finally {
       setSavingTriage(false)
     }
+  }
+
+  function buildJiraPayload(): JiraIssuePayload {
+    return {
+      siteId,
+      scanUrl: window.location.href,
+      projectKey: jiraProjectKey || undefined,
+      pattern: {
+        fingerprint: pattern.fingerprint,
+        rule: pattern.rule,
+        impact: pattern.impact,
+        description: pattern.description,
+        fixSuggestion: pattern.fixSuggestion,
+        occurrences: pattern.occurrences,
+        affectedPages: pattern.affectedPages ?? [],
+        sampleHtml: pattern.sampleHtml ?? pattern.nodes?.[0]?.html,
+      },
+    }
+  }
+
+  function redirectToJiraLogin(payload: JiraIssuePayload) {
+    window.localStorage.setItem(PENDING_JIRA_TICKET_KEY, JSON.stringify(payload))
+    window.location.href = `/api/integrations/jira/oauth/start?returnTo=${encodeURIComponent(window.location.href)}`
+  }
+
+  async function submitJiraIssue(payload: JiraIssuePayload, options = { redirectOnAuth: true }) {
+    setCreatingJira(true)
+    setJiraResult(null)
+    try {
+      const res = await fetch('/api/integrations/jira/issues', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        if (data.code === 'jira_auth_required' && options.redirectOnAuth) {
+          redirectToJiraLogin(payload)
+          return
+        }
+        setJiraResult({
+          error: data.error ?? 'Could not create Jira ticket.',
+          needsAuth: data.code === 'jira_auth_required',
+          needsProject: data.code === 'jira_project_required',
+        })
+        return
+      }
+      if (payload.projectKey) window.localStorage.setItem('jiraProjectKey', payload.projectKey.toUpperCase())
+      setJiraResult({ key: data.key, url: data.url })
+    } catch {
+      setJiraResult({ error: 'Could not create Jira ticket.' })
+    } finally {
+      setCreatingJira(false)
+    }
+  }
+
+  async function createJiraIssue() {
+    await submitJiraIssue(buildJiraPayload())
   }
 
   const triaged = triage !== 'open'
@@ -233,19 +360,72 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
           )}
 
           {/* Footer */}
-          <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex items-center justify-between bg-[#F5F5F7]">
+          <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex flex-wrap items-center justify-between gap-2 bg-[#F5F5F7]">
             <span className="text-[11px] font-mono text-[#3A3A3C]">{pattern.rule}</span>
-            <a
-              href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}?application=axeAPI`}
-              target="_blank" rel="noopener noreferrer"
-              className="text-xs font-medium text-[#007AFF] hover:underline"
-            >
-              View WCAG guidance →
-            </a>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {jiraResult?.error && (
+                <span className="text-xs text-red-600 max-w-sm">{jiraResult.error}</span>
+              )}
+              {jiraResult?.needsAuth && (
+                <button
+                  type="button"
+                  onClick={() => redirectToJiraLogin(buildJiraPayload())}
+                  className="inline-flex items-center rounded-md border border-[#007AFF] bg-white px-3 py-1.5 text-xs font-semibold text-[#007AFF] shadow-sm hover:bg-blue-50"
+                >
+                  Connect Jira
+                </button>
+              )}
+              <label className="flex items-center gap-1 text-xs font-medium text-[#3A3A3C]">
+                Project
+                {jiraProjects.length > 0 ? (
+                  <select
+                    value={jiraProjectKey}
+                    onChange={e => setJiraProjectKey(e.target.value)}
+                    aria-label="Jira project"
+                    className={`max-w-[180px] rounded-md border px-2 py-1 text-xs font-semibold text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      jiraResult?.needsProject ? 'border-red-400 bg-red-50' : 'border-[#D1D1D6] bg-white'
+                    }`}
+                  >
+                    {jiraProjects.map(project => (
+                      <option key={project.key} value={project.key}>{project.key} — {project.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    value={jiraProjectKey}
+                    onChange={e => setJiraProjectKey(e.target.value.toUpperCase())}
+                    placeholder={loadingJiraProjects ? 'Loading…' : 'A11Y'}
+                    aria-label="Jira project key"
+                    className={`w-24 rounded-md border px-2 py-1 text-xs font-semibold uppercase text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      jiraResult?.needsProject ? 'border-red-400 bg-red-50' : 'border-[#D1D1D6] bg-white'
+                    }`}
+                  />
+                )}
+              </label>
+              {jiraResult?.url && (
+                <a href={jiraResult.url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-emerald-700 hover:underline">
+                  Open {jiraResult.key ?? 'Jira issue'} →
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={createJiraIssue}
+                disabled={creatingJira}
+                className="inline-flex items-center gap-1 rounded-md border border-[#007AFF] bg-[#007AFF] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#0066D6] disabled:cursor-not-allowed disabled:border-[#A1A1A6] disabled:bg-[#A1A1A6]"
+              >
+                {creatingJira ? 'Creating Jira…' : 'Create Jira ticket'}
+              </button>
+              <a
+                href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}?application=axeAPI`}
+                target="_blank" rel="noopener noreferrer"
+                className="text-xs font-medium text-[#007AFF] hover:underline"
+              >
+                View WCAG guidance →
+              </a>
+            </div>
           </div>
         </div>
       )}
     </div>
   )
 }
-
