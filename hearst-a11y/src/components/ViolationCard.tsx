@@ -62,7 +62,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
   const [triage, setTriage] = useState<TriageStatus>(pattern.triageStatus ?? 'open')
   const [savingTriage, setSavingTriage] = useState(false)
   const [creatingJira, setCreatingJira] = useState(false)
-  const [jiraResult, setJiraResult] = useState<{ key?: string; url?: string; error?: string } | null>(null)
+  const [jiraResult, setJiraResult] = useState<{ key?: string; url?: string; error?: string; needsAuth?: boolean } | null>(null)
 
   async function changeTriage(status: TriageStatus) {
     if (!siteId) return
@@ -108,7 +108,10 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setJiraResult({ error: data.error ?? 'Could not create Jira ticket.' })
+        setJiraResult({
+          error: data.error ?? 'Could not create Jira ticket.',
+          needsAuth: data.code === 'jira_auth_required',
+        })
         return
       }
       setJiraResult({ key: data.key, url: data.url })
@@ -275,6 +278,14 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
             <div className="flex flex-wrap items-center justify-end gap-3">
               {jiraResult?.error && (
                 <span className="text-xs text-red-600 max-w-sm">{jiraResult.error}</span>
+              )}
+              {jiraResult?.needsAuth && (
+                <a
+                  href="/api/integrations/jira/oauth/start"
+                  className="inline-flex items-center rounded-md border border-[#007AFF] bg-white px-3 py-1.5 text-xs font-semibold text-[#007AFF] shadow-sm hover:bg-blue-50"
+                >
+                  Connect Jira
+                </a>
               )}
               {jiraResult?.url && (
                 <a href={jiraResult.url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-emerald-700 hover:underline">

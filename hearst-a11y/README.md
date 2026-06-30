@@ -125,15 +125,19 @@ protected by `CRON_SECRET`.
 
 ## Jira integration
 
-Violation cards include a **Create Jira ticket** action when the Jira integration is configured.
-The recommended production setup is a shared Jira service account/bot:
+Violation cards include a **Create Jira ticket** action when Jira OAuth is configured.
+Each app user connects their own Jira account through Atlassian OAuth 2.0 (3LO),
+so tickets are created with that user's Jira permissions instead of a shared bot.
 
-1. Create a Jira user such as `accessibility-bot@example.com`.
-2. Give that user permission to create issues in the target Jira project.
-3. Create a Jira API token for that service account.
-4. Set `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, `JIRA_PROJECT_KEY`, and optionally `JIRA_ISSUE_TYPE`.
+1. Create an Atlassian OAuth 2.0 (3LO) app.
+2. Add this callback URL: `https://<app>/api/integrations/jira/oauth/callback`
+   (or `http://localhost:3000/api/integrations/jira/oauth/callback` locally).
+3. Enable the scopes `read:jira-user`, `write:jira-work`, and `offline_access`.
+4. Set `JIRA_CLIENT_ID`, `JIRA_CLIENT_SECRET`, `JIRA_REDIRECT_URI`,
+   `JIRA_PROJECT_KEY`, and optionally `JIRA_CLOUD_ID`, `JIRA_BASE_URL`, and
+   `JIRA_ISSUE_TYPE`.
+5. Each user clicks **Connect Jira** the first time they create a ticket. The app
+   stores encrypted per-user Jira refresh tokens in the `users` table.
 
-With this setup, individual app users do not need to provide Jira credentials. Tickets are created by the bot, while the ticket description carries scan and violation context.
-
-If your organization requires tickets to be created as each signed-in user's own Jira identity, implement Atlassian OAuth 2.0 (3LO) and store encrypted per-user refresh tokens. Avoid asking users to paste personal Jira API tokens into this app; OAuth gives revocation, consent, and least-privilege scopes.
-
+Do not ask users to paste personal Jira API tokens into this app; OAuth provides
+consent, revocation, and scoped access for each signed-in user.

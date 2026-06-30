@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSessionUser, canAccessDivision } from '@/lib/auth-helpers'
 import { sql } from '@/lib/db'
+import { decryptToken, encryptToken, jiraIssueApiUrl, refreshJiraToken } from '@/lib/jira'
 
 const PatternSchema = z.object({
   fingerprint: z.string().min(1),
@@ -27,16 +28,14 @@ type JiraAdfCodeBlock = { type: 'codeBlock'; attrs?: { language?: string }; cont
 type JiraAdfNode = JiraAdfParagraph | JiraAdfCodeBlock
 type JiraAdfDocument = { type: 'doc'; version: 1; content: JiraAdfNode[] }
 
-function jiraConfig() {
-  const baseUrl = process.env.JIRA_BASE_URL?.replace(/\/$/, '')
-  const email = process.env.JIRA_EMAIL
-  const apiToken = process.env.JIRA_API_TOKEN
-  const projectKey = process.env.JIRA_PROJECT_KEY
-  const issueType = process.env.JIRA_ISSUE_TYPE || 'Bug'
-
-  if (!baseUrl || !email || !apiToken || !projectKey) return null
-  return { baseUrl, email, apiToken, projectKey, issueType }
+function jiraProjectKey(): string | null {
+  return process.env.JIRA_PROJECT_KEY ?? null
 }
+
+function jiraIssueType(): string {
+  return process.env.JIRA_ISSUE_TYPE || 'Bug'
+}
+
 
 function paragraph(text: string): JiraAdfParagraph {
   return { type: 'paragraph', content: [{ type: 'text', text }] }
@@ -79,7 +78,7 @@ function issueSummary(pattern: z.infer<typeof PatternSchema>, siteName?: string)
 
 async function authorizeSite(siteId: string | undefined) {
   const user = await getSessionUser()
-  if (!user) return { error: 'Unauthorized', status: 401 as const }
+  if (!user?.id || user.id === '1') return { error: 'Connect Jira with an invited user account before creating tickets.', status: 401 as const }
   if (!siteId) return { user }
 
   const [site] = await sql`SELECT name, division FROM sites WHERE id = ${siteId}`
@@ -94,26 +93,47 @@ export async function POST(req: NextRequest) {
   const auth = await authorizeSite(parsed.data.siteId)
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-  const config = jiraConfig()
-  if (!config) {
-    return NextResponse.json(
-      { error: 'Jira is not configured yet. Ask an admin to connect a Jira service account.' },
-      { status: 503 }
-    )
+  const projectKey = jiraProjectKey()
+  if (!projectKey) {
+    return NextResponse.json({ error: 'Jira project is not configured. Ask an admin to set JIRA_PROJECT_KEY.' }, { status: 503 })
+  }
+
+  const [connection] = await sql`
+    SELECT jira_access_token, jira_refresh_token, jira_cloud_id, jira_site_url, jira_token_expires_at
+    FROM users WHERE id = ${auth.user.id}
+  `
+  if (!connection?.jira_access_token || !connection?.jira_cloud_id || !connection?.jira_site_url) {
+    return NextResponse.json({ error: 'Connect your Jira account before creating tickets.', code: 'jira_auth_required' }, { status: 401 })
+  }
+
+  let accessToken = decryptToken(connection.jira_access_token)
+  if (connection.jira_token_expires_at && new Date(connection.jira_token_expires_at).getTime() <= Date.now()) {
+    if (!connection.jira_refresh_token) {
+      return NextResponse.json({ error: 'Reconnect your Jira account before creating tickets.', code: 'jira_auth_required' }, { status: 401 })
+    }
+    const refreshed = await refreshJiraToken(decryptToken(connection.jira_refresh_token))
+    accessToken = refreshed.accessToken
+    await sql`
+      UPDATE users SET
+        jira_access_token = ${encryptToken(refreshed.accessToken)},
+        jira_refresh_token = ${refreshed.refreshToken ? encryptToken(refreshed.refreshToken) : connection.jira_refresh_token},
+        jira_token_expires_at = ${refreshed.expiresAt.toISOString()}
+      WHERE id = ${auth.user.id}
+    `
   }
 
   const siteName = parsed.data.siteName ?? auth.site?.name
-  const res = await fetch(`${config.baseUrl}/rest/api/3/issue`, {
+  const res = await fetch(jiraIssueApiUrl({ cloudId: connection.jira_cloud_id }), {
     method: 'POST',
     headers: {
-      Authorization: `Basic ${Buffer.from(`${config.email}:${config.apiToken}`).toString('base64')}`,
+      Authorization: `Bearer ${accessToken}`,
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       fields: {
-        project: { key: config.projectKey },
-        issuetype: { name: config.issueType },
+        project: { key: projectKey },
+        issuetype: { name: jiraIssueType() },
         summary: issueSummary(parsed.data.pattern, siteName),
         description: jiraDescription({ ...parsed.data, siteName }),
         labels: ['accessibility', 'a11y-scanner', parsed.data.pattern.rule.replace(/[^A-Za-z0-9_-]/g, '-')],
@@ -127,5 +147,5 @@ export async function POST(req: NextRequest) {
   }
 
   const key = typeof data.key === 'string' ? data.key : undefined
-  return NextResponse.json({ key, url: key ? `${config.baseUrl}/browse/${key}` : undefined })
+  return NextResponse.json({ key, url: key ? `${connection.jira_site_url}/browse/${key}` : undefined })
 }

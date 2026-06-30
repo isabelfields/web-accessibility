@@ -41,20 +41,29 @@ test('dashboard uses a ranked scan query instead of per-site latest scan queries
   assert.doesNotMatch(dashboard, /sites\.map\(async \(site\)/)
 })
 
-test('Jira integration exposes configuration, API route, and violation-card action', async () => {
+test('Jira integration exposes per-user OAuth configuration, routes, and violation-card action', async () => {
   const env = await read('.env.example')
   const route = await read('src/app/api/integrations/jira/issues/route.ts')
   const card = await read('src/components/ViolationCard.tsx')
 
-  for (const name of ['JIRA_BASE_URL', 'JIRA_EMAIL', 'JIRA_API_TOKEN', 'JIRA_PROJECT_KEY']) {
+  for (const name of ['JIRA_CLIENT_ID', 'JIRA_CLIENT_SECRET', 'JIRA_REDIRECT_URI', 'JIRA_PROJECT_KEY']) {
     assert.match(env, new RegExp(name))
-    assert.match(route, new RegExp(`process\\.env\\.${name}`))
   }
 
-  assert.ok(route.includes('/rest/api/3/issue'))
+  assert.match(route, /jira_auth_required/)
+  assert.match(route, /Bearer/)
   assert.match(route, /canAccessDivision/)
-  assert.match(route, /service account/)
   assert.match(card, /Create Jira ticket/)
+  assert.match(card, /Connect Jira/)
   assert.match(card, /bg-\[#007AFF\]/)
   assert.ok(card.includes('/api/integrations/jira/issues'))
+
+  for (const path of [
+    'src/app/api/integrations/jira/oauth/start/route.ts',
+    'src/app/api/integrations/jira/oauth/callback/route.ts',
+    'src/app/api/integrations/jira/status/route.ts',
+    'src/app/api/integrations/jira/disconnect/route.ts',
+  ]) {
+    await read(path)
+  }
 })

@@ -58,6 +58,12 @@ export const users = pgTable('users', {
   inviteToken: text('invite_token'),
   inviteExpiresAt: timestamp('invite_expires_at'),
   invitedBy: text('invited_by'),
+  jiraAccessToken: text('jira_access_token'),
+  jiraRefreshToken: text('jira_refresh_token'),
+  jiraCloudId: text('jira_cloud_id'),
+  jiraSiteUrl: text('jira_site_url'),
+  jiraAccountId: text('jira_account_id'),
+  jiraTokenExpiresAt: timestamp('jira_token_expires_at'),
   createdAt: timestamp('created_at').defaultNow(),
 })
 
@@ -153,6 +159,13 @@ CREATE TABLE IF NOT EXISTS users (
   invited_by TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS jira_access_token TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS jira_refresh_token TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS jira_cloud_id TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS jira_site_url TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS jira_account_id TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS jira_token_expires_at TIMESTAMPTZ;
 
 CREATE TABLE IF NOT EXISTS violation_triage (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
