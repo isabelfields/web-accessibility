@@ -165,4 +165,55 @@ CREATE TABLE IF NOT EXISTS violation_triage (
   UNIQUE (site_id, fingerprint)
 );
 CREATE INDEX IF NOT EXISTS violation_triage_site ON violation_triage(site_id);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'scan_jobs_status_check') THEN
+    ALTER TABLE scan_jobs
+      ADD CONSTRAINT scan_jobs_status_check
+      CHECK (status IN ('queued', 'running', 'complete', 'failed', 'cancelled'));
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'scan_jobs_site_fk') THEN
+    ALTER TABLE scan_jobs
+      ADD CONSTRAINT scan_jobs_site_fk
+      FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE SET NULL;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'scan_jobs_schedule_fk') THEN
+    ALTER TABLE scan_jobs
+      ADD CONSTRAINT scan_jobs_schedule_fk
+      FOREIGN KEY (schedule_id) REFERENCES schedules(id) ON DELETE SET NULL;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'schedules_cadence_check') THEN
+    ALTER TABLE schedules
+      ADD CONSTRAINT schedules_cadence_check
+      CHECK (cadence IN ('daily', 'weekly', 'monthly'));
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'schedules_site_fk') THEN
+    ALTER TABLE schedules
+      ADD CONSTRAINT schedules_site_fk
+      FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'users_role_check') THEN
+    ALTER TABLE users
+      ADD CONSTRAINT users_role_check
+      CHECK (role IN ('admin', 'user'));
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'violation_triage_status_check') THEN
+    ALTER TABLE violation_triage
+      ADD CONSTRAINT violation_triage_status_check
+      CHECK (status IN ('open', 'fixed', 'wontfix', 'false_positive'));
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'violation_triage_site_fk') THEN
+    ALTER TABLE violation_triage
+      ADD CONSTRAINT violation_triage_site_fk
+      FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 `
