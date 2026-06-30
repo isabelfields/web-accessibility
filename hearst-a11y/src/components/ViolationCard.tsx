@@ -408,8 +408,9 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                   <input
                     value={jiraProjectKey}
                     onChange={e => changeJiraProjectKey(e.target.value)}
-                    placeholder={loadingJiraProjects ? 'Loading…' : 'A11Y'}
+                    placeholder={loadingJiraProjects ? 'Loading…' : 'Enter key'}
                     aria-label="Jira project key"
+                    title="Type your Jira project key, for example A11Y"
                     className={`w-24 rounded-md border px-2 py-1 text-xs font-semibold uppercase text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       jiraResult?.needsProject ? 'border-red-400 bg-red-50' : 'border-[#D1D1D6] bg-white'
                     }`}

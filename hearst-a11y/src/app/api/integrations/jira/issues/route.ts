@@ -94,14 +94,6 @@ export async function POST(req: NextRequest) {
   const auth = await authorizeSite(parsed.data.siteId)
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-  const projectKey = jiraProjectKey(parsed.data.projectKey)
-  if (!projectKey) {
-    return NextResponse.json(
-      { error: 'Enter the Jira project key for this ticket.', code: 'jira_project_required' },
-      { status: 400 }
-    )
-  }
-
   const userKey = jiraUserKey(auth.user)
   if (!userKey) return NextResponse.json({ error: 'Connect your Jira account before creating tickets.', code: 'jira_auth_required' }, { status: 401 })
 
@@ -111,6 +103,14 @@ export async function POST(req: NextRequest) {
   `
   if (!connection?.access_token || !connection?.cloud_id || !connection?.site_url) {
     return NextResponse.json({ error: 'Connect your Jira account before creating tickets.', code: 'jira_auth_required' }, { status: 401 })
+  }
+
+  const projectKey = jiraProjectKey(parsed.data.projectKey)
+  if (!projectKey) {
+    return NextResponse.json(
+      { error: 'Choose a Jira project or enter its project key before creating the ticket.', code: 'jira_project_required' },
+      { status: 400 }
+    )
   }
 
   let accessToken = decryptToken(connection.access_token)
