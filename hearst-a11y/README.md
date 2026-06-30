@@ -132,7 +132,7 @@ so tickets are created with that user's Jira permissions instead of a shared bot
 1. Create an Atlassian OAuth 2.0 (3LO) app.
 2. Add this callback URL: `https://<app>/api/integrations/jira/oauth/callback`
    (or `http://localhost:3000/api/integrations/jira/oauth/callback` locally).
-3. Enable the scopes `read:jira-user`, `write:jira-work`, and `offline_access`.
+3. Enable the scopes `read:jira-user`, `read:jira-work`, `write:jira-work`, and `offline_access`.
 4. Set `JIRA_CLIENT_ID`, `JIRA_CLIENT_SECRET`, and `JIRA_REDIRECT_URI`.
    Optionally set `JIRA_CLOUD_ID`/`JIRA_BASE_URL` to force a Jira site,
    `JIRA_ISSUE_TYPE` to change the issue type, and `JIRA_PROJECT_KEY` as a
@@ -143,8 +143,9 @@ so tickets are created with that user's Jira permissions instead of a shared bot
 6. The app stores encrypted per-user Jira refresh tokens in the
    `jira_connections` table, so future tickets can be created without logging in
    again until Jira authorization expires or is revoked.
-7. Users can enter their own Jira project key in the violation card when creating
-   a ticket, so different users/teams can route issues to different Jira projects.
+7. After Jira is connected, the violation card loads the user's visible Jira
+   projects and shows a project dropdown. Users can still type a project key
+   fallback if project discovery is unavailable.
 
 Do not ask users to paste personal Jira API tokens into this app; OAuth provides
 consent, revocation, and scoped access for each signed-in user.

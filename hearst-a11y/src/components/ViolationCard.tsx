@@ -80,6 +80,11 @@ interface JiraIssuePayload {
   }
 }
 
+interface JiraProject {
+  key: string
+  name: string
+}
+
 export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; siteId?: string }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -89,6 +94,8 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
   const [creatingJira, setCreatingJira] = useState(false)
   const [jiraResult, setJiraResult] = useState<{ key?: string; url?: string; error?: string; needsAuth?: boolean; needsProject?: boolean } | null>(null)
   const [jiraProjectKey, setJiraProjectKey] = useState('')
+  const [jiraProjects, setJiraProjects] = useState<JiraProject[]>([])
+  const [loadingJiraProjects, setLoadingJiraProjects] = useState(false)
 
   useEffect(() => {
     const storedProjectKey = window.localStorage.getItem('jiraProjectKey') ?? ''
@@ -110,6 +117,27 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pattern.fingerprint])
+
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    async function loadJiraProjects() {
+      setLoadingJiraProjects(true)
+      try {
+        const res = await fetch('/api/integrations/jira/projects')
+        if (!res.ok) return
+        const data = await res.json().catch(() => ({}))
+        if (cancelled || !Array.isArray(data.projects)) return
+        setJiraProjects(data.projects)
+        const stored = window.localStorage.getItem('jiraProjectKey')
+        if (!stored && data.projects[0]?.key) setJiraProjectKey(data.projects[0].key)
+      } finally {
+        if (!cancelled) setLoadingJiraProjects(false)
+      }
+    }
+    void loadJiraProjects()
+    return () => { cancelled = true }
+  }, [open])
 
   async function changeTriage(status: TriageStatus) {
     if (!siteId) return
@@ -322,24 +350,27 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
             </div>
           )}
 
-          {/* Actions */}
-          <div className="px-5 py-2.5 border-t border-blue-100 flex flex-wrap items-center justify-between gap-2 bg-white">
-            {siteId && (
-              <div className="flex items-center gap-2">
-                <label htmlFor={`triage-${pattern.fingerprint}`} className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Status</label>
-                <select
-                  id={`triage-${pattern.fingerprint}`}
-                  value={triage}
-                  disabled={savingTriage}
-                  onChange={e => changeTriage(e.target.value as TriageStatus)}
-                  title="Triaged issues are excluded from active counts; the rule still appears here."
-                  className="text-xs border border-[#D1D1D6] rounded-md px-2 py-1 bg-white text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                >
-                  {TRIAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </div>
-            )}
-            <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          {/* Triage */}
+          {siteId && (
+            <div className="px-5 py-3 border-t border-blue-100 bg-white flex flex-wrap items-center gap-3">
+              <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-semibold text-[#3A3A3C] uppercase tracking-wider">Status</label>
+              <select
+                id={`triage-${pattern.fingerprint}`}
+                value={triage}
+                disabled={savingTriage}
+                onChange={e => changeTriage(e.target.value as TriageStatus)}
+                className="text-xs border border-[#E5E5EA] rounded-md px-2 py-1 bg-white text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+              >
+                {TRIAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+              <span className="text-[11px] text-[#3A3A3C]">Triaged issues are excluded from active counts; the rule still appears here.</span>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex flex-wrap items-center justify-between gap-2 bg-[#F5F5F7]">
+            <span className="text-[11px] font-mono text-[#3A3A3C]">{pattern.rule}</span>
+            <div className="flex flex-wrap items-center justify-end gap-3">
               {jiraResult?.error && (
                 <span className="text-xs text-red-600 max-w-sm">{jiraResult.error}</span>
               )}
@@ -354,15 +385,30 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
               )}
               <label className="flex items-center gap-1 text-xs font-medium text-[#3A3A3C]">
                 Project
-                <input
-                  value={jiraProjectKey}
-                  onChange={e => setJiraProjectKey(e.target.value.toUpperCase())}
-                  placeholder="A11Y"
-                  aria-label="Jira project key"
-                  className={`w-20 rounded-md border px-2 py-1 text-xs font-semibold uppercase text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    jiraResult?.needsProject ? 'border-red-400 bg-red-50' : 'border-[#D1D1D6] bg-white'
-                  }`}
-                />
+                {jiraProjects.length > 0 ? (
+                  <select
+                    value={jiraProjectKey}
+                    onChange={e => setJiraProjectKey(e.target.value)}
+                    aria-label="Jira project"
+                    className={`max-w-[180px] rounded-md border px-2 py-1 text-xs font-semibold text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      jiraResult?.needsProject ? 'border-red-400 bg-red-50' : 'border-[#D1D1D6] bg-white'
+                    }`}
+                  >
+                    {jiraProjects.map(project => (
+                      <option key={project.key} value={project.key}>{project.key} — {project.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    value={jiraProjectKey}
+                    onChange={e => setJiraProjectKey(e.target.value.toUpperCase())}
+                    placeholder={loadingJiraProjects ? 'Loading…' : 'A11Y'}
+                    aria-label="Jira project key"
+                    className={`w-24 rounded-md border px-2 py-1 text-xs font-semibold uppercase text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      jiraResult?.needsProject ? 'border-red-400 bg-red-50' : 'border-[#D1D1D6] bg-white'
+                    }`}
+                  />
+                )}
               </label>
               {jiraResult?.url && (
                 <a href={jiraResult.url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-emerald-700 hover:underline">

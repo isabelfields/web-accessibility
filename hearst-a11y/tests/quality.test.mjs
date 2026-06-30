@@ -58,6 +58,7 @@ test('Jira integration exposes per-user OAuth configuration, routes, and violati
   assert.match(card, /Create Jira ticket/)
   assert.match(card, /Connect Jira/)
   assert.match(card, /jiraProjectKey/)
+  assert.match(card, /jiraProjects/)
   assert.match(card, /pendingJiraTicket/)
   assert.match(card, /redirectToJiraLogin/)
   assert.match(card, /bg-\[#007AFF\]/)
@@ -66,6 +67,7 @@ test('Jira integration exposes per-user OAuth configuration, routes, and violati
   for (const path of [
     'src/app/api/integrations/jira/oauth/start/route.ts',
     'src/app/api/integrations/jira/oauth/callback/route.ts',
+    'src/app/api/integrations/jira/projects/route.ts',
     'src/app/api/integrations/jira/status/route.ts',
     'src/app/api/integrations/jira/disconnect/route.ts',
   ]) {

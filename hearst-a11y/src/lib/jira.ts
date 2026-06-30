@@ -27,7 +27,7 @@ export function jiraUserKey(user: { id?: string; email?: string | null }): strin
 const ATLASSIAN_AUTH_URL = 'https://auth.atlassian.com/authorize'
 const ATLASSIAN_TOKEN_URL = 'https://auth.atlassian.com/oauth/token'
 const ATLASSIAN_RESOURCES_URL = 'https://api.atlassian.com/oauth/token/accessible-resources'
-export const JIRA_SCOPES = ['read:jira-user', 'write:jira-work', 'offline_access'] as const
+export const JIRA_SCOPES = ['read:jira-user', 'read:jira-work', 'write:jira-work', 'offline_access'] as const
 
 function requiredEnv(name: string): string {
   const value = process.env[name]
