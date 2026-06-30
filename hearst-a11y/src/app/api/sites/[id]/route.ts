@@ -97,6 +97,17 @@ export async function DELETE(_req: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  await sql`DELETE FROM sites WHERE id = ${id}`
-  return NextResponse.json({ deleted: true })
+  const [deleted] = await sql`
+    WITH deleted_schedules AS (
+      DELETE FROM schedules WHERE site_id = ${id} RETURNING id
+    ),
+    deleted_site AS (
+      DELETE FROM sites WHERE id = ${id} RETURNING id
+    )
+    SELECT
+      EXISTS(SELECT 1 FROM deleted_site) AS deleted,
+      (SELECT COUNT(*)::int FROM deleted_schedules) AS schedules_deleted
+  `
+
+  return NextResponse.json({ deleted: Boolean(deleted?.deleted), schedulesDeleted: deleted?.schedules_deleted ?? 0 })
 }

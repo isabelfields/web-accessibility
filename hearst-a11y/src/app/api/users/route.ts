@@ -52,5 +52,5 @@ export async function POST(req: NextRequest) {
     RETURNING id, email, role, allowed_divisions, created_at
   `
 
-  return NextResponse.json({ ...user, inviteToken: token }, { status: 201 })
+  return NextResponse.json({ ...user, inviteToken: token, invite_token: token }, { status: 201 })
 }
