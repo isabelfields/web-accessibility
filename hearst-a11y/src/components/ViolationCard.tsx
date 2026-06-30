@@ -259,13 +259,13 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
           {/* How to fix */}
           {pattern.fixSuggestion && conciseFix && (
-            <div className="mx-5 mt-5 mb-5 border-l-4 border-blue-500 bg-white px-4 py-3 shadow-sm ring-1 ring-blue-100">
-              <div className="text-xs font-bold text-blue-700 mb-1 uppercase tracking-wide">Fix</div>
-              <p className="text-sm text-slate-900 leading-6">{conciseFix}</p>
+            <div className="mx-5 mt-4 mb-4 border-l-4 border-blue-500 bg-white px-3 py-2.5 shadow-sm ring-1 ring-blue-100">
+              <div className="text-[11px] font-bold text-blue-700 mb-1 uppercase tracking-wide">Fix</div>
+              <p className="text-xs text-slate-900 leading-5">{conciseFix}</p>
               {hasMoreFixCopy && (
-                <details className="mt-2 text-sm text-slate-700">
+                <details className="mt-1.5 text-xs text-slate-700">
                   <summary className="cursor-pointer font-medium text-blue-700 hover:text-blue-900">More detail</summary>
-                  <p className="mt-2 leading-6">{pattern.fixSuggestion}</p>
+                  <p className="mt-1.5 leading-5">{pattern.fixSuggestion}</p>
                 </details>
               )}
             </div>
@@ -273,26 +273,26 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
           {/* Failing elements */}
           {nodes.length > 0 && (
-            <div className="mx-5 mb-5 overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm">
-              <div className="px-4 py-3 flex items-center justify-between bg-white">
+            <div className="mx-5 mb-4 overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm">
+              <div className="px-3 py-2 flex items-center justify-between bg-white">
                 <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Failing elements · {nodes.length}
                 </span>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-xs">
                 <thead>
                   <tr className="border-y border-blue-100 bg-blue-50">
-                    <th className="text-left px-4 py-1.5 text-[11px] font-bold text-slate-700 uppercase tracking-wider w-8">#</th>
-                    <th className="text-left px-3 py-1.5 text-[11px] font-bold text-slate-700 uppercase tracking-wider w-36">Page</th>
-                    <th className="text-left px-3 py-1.5 text-[11px] font-bold text-slate-700 uppercase tracking-wider">Element</th>
+                    <th className="text-left px-3 py-1.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider w-8">#</th>
+                    <th className="text-left px-2.5 py-1.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider w-36">Page</th>
+                    <th className="text-left px-2.5 py-1.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider">Element</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-blue-50">
                   {visibleNodes.map((node, i) => (
                     <tr key={i} className="align-top hover:bg-blue-50/40">
-                      <td className="px-4 py-3 text-slate-700 font-mono">{i + 1}</td>
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2 text-slate-700 font-mono">{i + 1}</td>
+                      <td className="px-2.5 py-2">
                         {node.url ? (
                           <a href={node.url} target="_blank" rel="noopener noreferrer"
                             className="text-blue-700 hover:underline font-mono truncate block max-w-[180px]"
@@ -301,8 +301,8 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                           </a>
                         ) : <span className="text-[#3A3A3C]">—</span>}
                       </td>
-                      <td className="px-3 py-3">
-                        <code className="block max-w-full whitespace-pre-wrap break-words rounded-md border border-blue-100 bg-white px-2 py-1.5 font-mono text-xs leading-5 text-slate-800">
+                      <td className="px-2.5 py-2">
+                        <code className="block max-w-full whitespace-pre-wrap break-words rounded border border-blue-100 bg-white px-1.5 py-1 font-mono text-[11px] leading-4 text-slate-800">
                           {truncateHtml(node.html)}
                         </code>
                       </td>
@@ -314,7 +314,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
               {hiddenCount > 0 && !showAll && (
                 <button
                   onClick={() => setShowAll(true)}
-                  className="w-full text-center text-sm font-medium text-blue-700 hover:text-blue-900 py-3 border-t border-slate-200 hover:bg-blue-50 transition-colors"
+                  className="w-full text-center text-xs font-medium text-blue-700 hover:text-blue-900 py-2 border-t border-blue-100 hover:bg-blue-50 transition-colors"
                 >
                   + {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
                 </button>
@@ -322,27 +322,24 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
             </div>
           )}
 
-          {/* Triage */}
-          {siteId && (
-            <div className="px-5 py-3 border-t border-blue-100 bg-white flex flex-wrap items-center gap-3">
-              <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-semibold text-[#3A3A3C] uppercase tracking-wider">Status</label>
-              <select
-                id={`triage-${pattern.fingerprint}`}
-                value={triage}
-                disabled={savingTriage}
-                onChange={e => changeTriage(e.target.value as TriageStatus)}
-                className="text-xs border border-[#E5E5EA] rounded-md px-2 py-1 bg-white text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {TRIAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-              <span className="text-[11px] text-[#3A3A3C]">Triaged issues are excluded from active counts; the rule still appears here.</span>
-            </div>
-          )}
-
-          {/* Footer */}
-          <div className="px-5 py-3 border-t border-blue-100 flex flex-wrap items-center justify-between gap-3 bg-white">
-            <span className="rounded bg-white px-2 py-1 text-xs font-mono text-slate-700 ring-1 ring-blue-100">{pattern.rule}</span>
-            <div className="flex flex-wrap items-center justify-end gap-3">
+          {/* Actions */}
+          <div className="px-5 py-2.5 border-t border-blue-100 flex flex-wrap items-center justify-between gap-2 bg-white">
+            {siteId && (
+              <div className="flex items-center gap-2">
+                <label htmlFor={`triage-${pattern.fingerprint}`} className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Status</label>
+                <select
+                  id={`triage-${pattern.fingerprint}`}
+                  value={triage}
+                  disabled={savingTriage}
+                  onChange={e => changeTriage(e.target.value as TriageStatus)}
+                  title="Triaged issues are excluded from active counts; the rule still appears here."
+                  className="text-xs border border-[#D1D1D6] rounded-md px-2 py-1 bg-white text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  {TRIAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+            )}
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
               {jiraResult?.error && (
                 <span className="text-xs text-red-600 max-w-sm">{jiraResult.error}</span>
               )}
@@ -376,7 +373,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                 type="button"
                 onClick={createJiraIssue}
                 disabled={creatingJira}
-                className="inline-flex items-center gap-1 rounded-md border border-[#007AFF] bg-[#007AFF] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#0066D6] disabled:cursor-not-allowed disabled:border-[#A1A1A6] disabled:bg-[#A1A1A6]"
+                className="inline-flex items-center gap-1 rounded-md border border-[#007AFF] bg-[#007AFF] px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#0066D6] disabled:cursor-not-allowed disabled:border-[#A1A1A6] disabled:bg-[#A1A1A6]"
               >
                 {creatingJira ? 'Creating Jira…' : 'Create Jira ticket'}
               </button>
