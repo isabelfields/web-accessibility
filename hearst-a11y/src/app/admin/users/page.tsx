@@ -17,6 +17,12 @@ interface AppUser {
   pending: boolean
 }
 
+interface InviteResponse {
+  inviteToken?: string
+  invite_token?: string
+  error?: string
+}
+
 function toggleSelection(values: string[], value: string): string[] {
   return values.includes(value) ? values.filter(item => item !== value) : [...values, value]
 }
@@ -60,14 +66,18 @@ function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
       body: JSON.stringify({ email, role, allowedDivisions: role === 'admin' ? [] : divisions }),
     })
     setLoading(false)
+    const data = await res.json() as InviteResponse
     if (!res.ok) {
-      const data = await res.json()
       setError(data.error ?? 'Failed to create invite')
       return
     }
-    const data = await res.json()
+    const inviteToken = data.inviteToken ?? data.invite_token
+    if (!inviteToken) {
+      setError('Invite was created, but no invite token was returned. Please try again.')
+      return
+    }
     const baseUrl = window.location.origin
-    onCreated(`${baseUrl}/invite/${data.invite_token}`)
+    onCreated(`${baseUrl}/invite/${inviteToken}`)
   }
 
   return (
