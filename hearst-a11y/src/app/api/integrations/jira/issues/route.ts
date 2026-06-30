@@ -19,6 +19,7 @@ const CreateJiraIssueSchema = z.object({
   siteId: z.string().uuid().optional(),
   siteName: z.string().optional(),
   scanUrl: z.string().optional(),
+  projectKey: z.string().trim().min(1).max(32).optional(),
   pattern: PatternSchema,
 })
 
@@ -28,8 +29,8 @@ type JiraAdfCodeBlock = { type: 'codeBlock'; attrs?: { language?: string }; cont
 type JiraAdfNode = JiraAdfParagraph | JiraAdfCodeBlock
 type JiraAdfDocument = { type: 'doc'; version: 1; content: JiraAdfNode[] }
 
-function jiraProjectKey(): string | null {
-  return process.env.JIRA_PROJECT_KEY ?? null
+function jiraProjectKey(inputProjectKey?: string): string | null {
+  return (inputProjectKey ?? process.env.JIRA_PROJECT_KEY)?.trim().toUpperCase() ?? null
 }
 
 function jiraIssueType(): string {
@@ -93,9 +94,12 @@ export async function POST(req: NextRequest) {
   const auth = await authorizeSite(parsed.data.siteId)
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-  const projectKey = jiraProjectKey()
+  const projectKey = jiraProjectKey(parsed.data.projectKey)
   if (!projectKey) {
-    return NextResponse.json({ error: 'Jira project is not configured. Ask an admin to set JIRA_PROJECT_KEY.' }, { status: 503 })
+    return NextResponse.json(
+      { error: 'Enter the Jira project key for this ticket.', code: 'jira_project_required' },
+      { status: 400 }
+    )
   }
 
   const userKey = jiraUserKey(auth.user)

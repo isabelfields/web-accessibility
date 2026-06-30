@@ -4,7 +4,8 @@ import { sql } from '@/lib/db'
 import { chooseJiraResource, encryptToken, exchangeJiraCode, getJiraResources, jiraUserKey } from '@/lib/jira'
 
 function redirectToApp(req: NextRequest, status: 'connected' | 'error', message?: string) {
-  const url = new URL('/sites', req.url)
+  const returnTo = req.cookies.get('jira_oauth_return_to')?.value ?? '/sites'
+  const url = new URL(returnTo, req.url)
   url.searchParams.set('jira', status)
   if (message) url.searchParams.set('message', message)
   return NextResponse.redirect(url)
@@ -41,6 +42,7 @@ export async function GET(req: NextRequest) {
 
     const res = redirectToApp(req, 'connected')
     res.cookies.delete('jira_oauth_state')
+    res.cookies.delete('jira_oauth_return_to')
     return res
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Could not connect Jira.'
