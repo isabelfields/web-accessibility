@@ -53,6 +53,14 @@ function truncateHtml(html: string, max = 120) {
   return single.length > max ? single.slice(0, max) + '…' : single
 }
 
+function firstSentence(text: string, max = 180) {
+  const single = text.replace(/\s+/g, ' ').trim()
+  const sentenceEnd = single.match(/[.!?](?:\s|$)/)
+  const end = sentenceEnd?.index !== undefined ? sentenceEnd.index + 1 : max
+  const concise = single.slice(0, Math.min(end, max)).trim()
+  return single.length > concise.length ? concise.replace(/[.,;:]$/, '') + '…' : concise
+}
+
 const SHOW_LIMIT = 5
 const PENDING_JIRA_TICKET_KEY = 'pendingJiraTicket'
 
@@ -232,15 +240,17 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
   const visibleNodes = showAll ? nodes : nodes.slice(0, SHOW_LIMIT)
   const hiddenCount = nodes.length - SHOW_LIMIT
+  const conciseFix = pattern.fixSuggestion ? firstSentence(pattern.fixSuggestion) : null
+  const hasMoreFixCopy = Boolean(pattern.fixSuggestion && conciseFix && conciseFix !== pattern.fixSuggestion)
 
   return (
-    <div className={`bg-white border border-[#E5E5EA] border-l-[3px] rounded-lg overflow-hidden ${triaged ? 'opacity-60' : ''}`}
+    <div className={`bg-white border border-[#D1D5DB] border-l-4 rounded-xl overflow-hidden shadow-sm ${triaged ? 'opacity-60' : ''}`}
       style={{ borderLeftColor: c.hex }}>
 
       {/* ── Collapsed header row ── */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full text-left px-5 py-3 flex items-center gap-3 hover:bg-[#F5F5F7] transition-colors"
+        className="w-full text-left px-5 py-4 flex items-center gap-3 hover:bg-slate-50 transition-colors"
       >
         <span className={`shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md ${c.bg} ${c.text} ring-1 ring-inset ${c.border}`}>
           {tierLabel}
@@ -279,57 +289,54 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
       {/* ── Expanded body ── */}
       {open && (
-        <div className="border-t border-[#E5E5EA]">
-
-          {/* What it means */}
-          <div className="px-5 pt-4 pb-3">
-            <p className="text-sm text-[#3A3A3C] leading-relaxed">{ruleInfo.what ?? pattern.description}</p>
-          </div>
+        <div className="border-t border-[#D1D5DB] bg-white">
 
           {/* How to fix */}
-          {pattern.fixSuggestion && (
-            <div className="mx-5 mb-4 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 flex gap-3">
-              <svg className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <div className="text-xs font-semibold text-blue-600 mb-0.5 uppercase tracking-wide">How to fix</div>
-                <p className="text-sm text-[#3A3A3C] leading-relaxed">{pattern.fixSuggestion}</p>
-              </div>
+          {pattern.fixSuggestion && conciseFix && (
+            <div className="mx-5 mt-4 mb-4 rounded-lg border-l-4 border-blue-500 bg-white px-3 py-2.5 shadow-sm ring-1 ring-blue-100">
+              <div className="text-[11px] font-bold text-blue-700 mb-1 uppercase tracking-wide">Fix</div>
+              <p className="text-xs text-slate-900 leading-5">{conciseFix}</p>
+              {hasMoreFixCopy && (
+                <details className="mt-1.5 text-xs text-slate-700">
+                  <summary className="cursor-pointer font-medium text-blue-700 hover:text-blue-900">More detail</summary>
+                  <p className="mt-1.5 leading-5">{pattern.fixSuggestion}</p>
+                </details>
+              )}
             </div>
           )}
 
           {/* Failing elements */}
           {nodes.length > 0 && (
-            <div className="border-t border-[#E5E5EA]">
-              <div className="px-5 py-2.5 flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#3A3A3C] uppercase tracking-wider">
+            <div className="mx-5 mb-4 overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm">
+              <div className="px-3 py-2 flex items-center justify-between bg-white">
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Failing elements · {nodes.length}
                 </span>
               </div>
-              <table className="w-full text-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-[#E5E5EA] bg-[#F5F5F7]">
-                    <th className="text-left px-4 py-1.5 text-[10px] font-semibold text-[#3A3A3C] uppercase tracking-wider w-8">#</th>
-                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-[#3A3A3C] uppercase tracking-wider w-36">Page</th>
-                    <th className="text-left px-3 py-1.5 text-[10px] font-semibold text-[#3A3A3C] uppercase tracking-wider">Element</th>
+                  <tr className="border-y border-blue-100 bg-blue-50">
+                    <th className="text-left px-3 py-1.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider w-8">#</th>
+                    <th className="text-left px-2.5 py-1.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider w-36">Page</th>
+                    <th className="text-left px-2.5 py-1.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider">Element</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F5F5F7]">
+                <tbody className="divide-y divide-blue-50">
                   {visibleNodes.map((node, i) => (
-                    <tr key={i} className="hover:bg-[#F5F5F7]">
-                      <td className="px-4 py-2 text-[#3A3A3C] font-mono">{i + 1}</td>
-                      <td className="px-3 py-2">
+                    <tr key={i} className="align-top hover:bg-blue-50/40">
+                      <td className="px-3 py-2 text-slate-700 font-mono">{i + 1}</td>
+                      <td className="px-2.5 py-2">
                         {node.url ? (
                           <a href={node.url} target="_blank" rel="noopener noreferrer"
-                            className="text-[#007AFF] hover:underline font-mono truncate block max-w-[140px]"
+                            className="text-blue-700 hover:underline font-mono truncate block max-w-[180px]"
                             title={node.url}>
                             {pagePath(node.url)}
                           </a>
                         ) : <span className="text-[#3A3A3C]">—</span>}
                       </td>
-                      <td className="px-3 py-2">
-                        <code className="font-mono text-[#3A3A3C] bg-[#F5F5F7] px-1.5 py-0.5 rounded text-[11px] break-all">
+                      <td className="px-2.5 py-2">
+                        <code className="block max-w-full whitespace-pre-wrap break-words rounded border border-blue-100 bg-white px-1.5 py-1 font-mono text-[11px] leading-4 text-slate-800">
                           {truncateHtml(node.html)}
                         </code>
                       </td>
@@ -337,10 +344,11 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                   ))}
                 </tbody>
               </table>
+              </div>
               {hiddenCount > 0 && !showAll && (
                 <button
                   onClick={() => setShowAll(true)}
-                  className="w-full text-center text-xs text-[#3A3A3C] hover:text-[#1D1D1F] py-2 border-t border-[#E5E5EA] hover:bg-[#F5F5F7] transition-colors"
+                  className="w-full text-center text-xs font-medium text-blue-700 hover:text-blue-900 py-2 border-t border-blue-100 hover:bg-blue-50 transition-colors"
                 >
                   + {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
                 </button>
@@ -350,7 +358,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
           {/* Triage */}
           {siteId && (
-            <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex items-center gap-2">
+            <div className="px-5 py-3 border-t border-blue-100 bg-white flex flex-wrap items-center gap-3">
               <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-semibold text-[#3A3A3C] uppercase tracking-wider">Status</label>
               <select
                 id={`triage-${pattern.fingerprint}`}
