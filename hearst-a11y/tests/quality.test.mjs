@@ -40,3 +40,19 @@ test('dashboard uses a ranked scan query instead of per-site latest scan queries
   assert.match(dashboard, /WITH ranked_scans AS/)
   assert.doesNotMatch(dashboard, /sites\.map\(async \(site\)/)
 })
+
+test('Jira integration exposes configuration, API route, and violation-card action', async () => {
+  const env = await read('.env.example')
+  const route = await read('src/app/api/integrations/jira/issues/route.ts')
+  const card = await read('src/components/ViolationCard.tsx')
+
+  for (const name of ['JIRA_BASE_URL', 'JIRA_EMAIL', 'JIRA_API_TOKEN', 'JIRA_PROJECT_KEY']) {
+    assert.match(env, new RegExp(name))
+    assert.match(route, new RegExp(`process\\.env\\.${name}`))
+  }
+
+  assert.ok(route.includes('/rest/api/3/issue'))
+  assert.match(route, /canAccessDivision/)
+  assert.match(card, /Create Jira ticket/)
+  assert.ok(card.includes('/api/integrations/jira/issues'))
+})
