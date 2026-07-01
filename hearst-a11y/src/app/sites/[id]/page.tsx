@@ -78,6 +78,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   if (!data) notFound()
 
   const { site, scans, triage } = data
+  const dashboardTitle = `${site.name} Dashboard`
   const pages: SitePage[] = (site.pages as SitePage[]) ?? []
 
   const completedScans = scans.filter((s: any) => s.status === 'complete')
@@ -136,7 +137,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
             <span style={{ color: '#57575A' }}>/</span>
             <span style={{ color: '#57575A' }}>{site.name}</span>
           </div>
-          <h1 style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>{site.name}</h1>
+          <h1 style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>{dashboardTitle}</h1>
           {latestScan && (
             <p style={{ fontSize: 12, color: '#57575A', margin: 0 }}>
               Last scanned {formatDateTime(latestScan.started_at)}
