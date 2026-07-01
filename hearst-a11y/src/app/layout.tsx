@@ -19,18 +19,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body className="bg-[#F5F5F7] text-[#1D1D1F] antialiased">
-        <div className="flex min-h-screen">
+        <div className="app-layout flex min-h-screen">
           {/* Sidebar */}
-          <aside className="w-56 flex flex-col fixed inset-y-0 left-0 z-10 bg-white border-r border-[#E5E5EA]">
+          <aside className="app-sidebar w-56 flex flex-col fixed inset-y-0 left-0 z-10 bg-white border-r border-[#E5E5EA]">
             {/* Logo */}
-            <div className="h-24 px-5 border-b border-[#E5E5EA] flex flex-col justify-center">
+            <div className="app-sidebar-logo h-24 px-5 border-b border-[#E5E5EA] flex flex-col justify-center">
               <img src="/hearst-logo.svg" alt="Hearst" className="h-6 w-auto" />
               <div className="text-[10px] text-[#57575A] font-semibold tracking-[0.15em] uppercase mt-1.5">
                 Accessibility Monitor
               </div>
             </div>
 
-            <nav className="flex-1 px-3 py-3 space-y-0.5">
+            <nav className="app-nav flex-1 px-3 py-3 space-y-0.5">
               <Link href="/" className={navLink}>
                 <svg className="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zm0 8a1 1 0 011-1h4a1 1 0 011 1v6a1 1 0 01-1 1h-4a1 1 0 01-1-1v-6zM4 14a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1v-5z" />
@@ -77,7 +77,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               )}
             </nav>
 
-            <div className="px-5 py-4 border-t border-[#E5E5EA] space-y-2">
+            <div className="app-sidebar-footer px-5 py-4 border-t border-[#E5E5EA] space-y-2">
               {session?.user?.email && (
                 <div className="text-xs text-[#57575A] truncate" title={session.user.email}>
                   {session.user.email}
@@ -89,7 +89,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
           </aside>
 
-          <main className="flex-1 ml-56 min-h-screen bg-[#F5F5F7]">
+          <main className="app-main flex-1 ml-56 min-h-screen bg-[#F5F5F7]">
             {children}
           </main>
         </div>

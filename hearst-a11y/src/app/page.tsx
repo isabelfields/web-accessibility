@@ -205,7 +205,7 @@ export default async function DashboardPage({
     <div style={{ minHeight: '100vh', background: '#F5F5F7' }}>
 
       {/* Top bar */}
-      <div style={{ borderBottom: '1px solid #E5E5EA', minHeight: 96, padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, background: 'rgba(245,245,247,0.92)', backdropFilter: 'blur(8px)' }}>
+      <div className="app-topbar" style={{ borderBottom: '1px solid #E5E5EA', minHeight: 96, padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, background: 'rgba(245,245,247,0.92)', backdropFilter: 'blur(8px)' }}>
         <div>
           <h1 style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>Dashboard</h1>
           <p style={{ fontSize: 12, color: '#57575A', margin: 0 }}>{effectiveDivision ? `${effectiveDivision} division` : 'All Hearst properties'}</p>
@@ -217,10 +217,10 @@ export default async function DashboardPage({
         )}
       </div>
 
-      <div style={{ padding: '24px 32px' }}>
+      <div className="page-shell" style={{ padding: '24px 32px' }}>
 
         {/* Stat cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 16, marginBottom: 20 }}>
+        <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 16, marginBottom: 20 }}>
 
           {/* Sites */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
@@ -279,7 +279,7 @@ export default async function DashboardPage({
             <Link href="/sites" style={{ color: '#007AFF' }}>Add a site</Link>.
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
+          <div className="site-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
             {sites.map((site: any) => (
               <SiteCard key={site.id} site={site} />
             ))}
@@ -291,7 +291,7 @@ export default async function DashboardPage({
           <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Recent Scans</div>
           <span style={{ fontSize: 12, color: '#57575A' }}>Last 5</span>
         </div>
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+        <div className="table-scroll" style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#F9F9FB', borderBottom: '1px solid #E5E5EA' }}>

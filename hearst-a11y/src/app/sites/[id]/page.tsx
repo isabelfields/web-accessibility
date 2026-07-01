@@ -129,7 +129,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
     <div style={{ minHeight: '100vh', background: '#F5F5F7' }}>
 
       {/* Sticky top bar */}
-      <div style={{ borderBottom: '1px solid #E5E5EA', minHeight: 96, padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, background: 'rgba(245,245,247,0.92)', backdropFilter: 'blur(8px)' }}>
+      <div className="app-topbar" style={{ borderBottom: '1px solid #E5E5EA', minHeight: 96, padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, background: 'rgba(245,245,247,0.92)', backdropFilter: 'blur(8px)' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, marginBottom: 2 }}>
             <Link href="/sites" style={{ color: '#007AFF', fontWeight: 500 }}>Sites</Link>
@@ -149,10 +149,10 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      <div style={{ padding: '24px 32px' }}>
+      <div className="page-shell" style={{ padding: '24px 32px' }}>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 16, marginBottom: 20 }}>
+      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 16, marginBottom: 20 }}>
 
         {/* Priority — navy left accent */}
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #002D82', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
@@ -222,7 +222,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
       {/* Donut + Trend charts row */}
       {(totalViolations > 0 || trendPoints.length >= 2) && (
-        <div style={{ display: 'grid', gridTemplateColumns: totalViolations > 0 && trendPoints.length >= 2 ? '1fr 1fr' : '1fr', gap: 16, marginBottom: 28 }}>
+        <div className="charts-grid" style={{ display: 'grid', gridTemplateColumns: totalViolations > 0 && trendPoints.length >= 2 ? '1fr 1fr' : '1fr', gap: 16, marginBottom: 28 }}>
           {totalViolations > 0 && (
             <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Issues by Tier</div>
@@ -304,7 +304,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
       {/* Scan History */}
       <div style={{ marginBottom: 28 }}>
         <h2 style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', margin: '0 0 16px' }}>Scan History</h2>
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+        <div className="table-scroll" style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#F9F9FB', borderBottom: '1px solid #E5E5EA' }}>
@@ -351,7 +351,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
       {pages.length > 0 && (
         <div>
           <h2 style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', margin: '0 0 16px' }}>Configured Pages</h2>
-          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div className="table-scroll" style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
             <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#F9F9FB', borderBottom: '1px solid #E5E5EA' }}>
