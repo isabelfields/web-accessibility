@@ -83,12 +83,12 @@ export default function SitesPage() {
   const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F5F5F7', padding: '24px 32px' }}>
+    <div className="page-shell" style={{ minHeight: '100vh', background: '#F5F5F7', padding: '24px 32px' }}>
       {showForm && <AddSiteForm onClose={() => { setShowForm(false); load() }} />}
       {editingSite && <EditSiteForm site={editingSite} onClose={() => { setEditingSite(null); load() }} />}
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+      <div className="section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>Sites</h1>
           <p style={{ fontSize: 13, color: '#57575A', margin: '4px 0 0' }}>Manage your monitored web properties</p>
@@ -157,7 +157,7 @@ export default function SitesPage() {
           </button>
         </div>
       ) : (
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+        <div className="table-scroll" style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#F9F9FB', borderBottom: '1px solid #E5E5EA' }}>
