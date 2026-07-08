@@ -8,30 +8,33 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [ssoLoading, setSsoLoading] = useState(false)
   const [invited, setInvited] = useState(false)
 
   useEffect(() => {
-    setInvited(new URLSearchParams(window.location.search).get('invited') === '1')
+    const params = new URLSearchParams(window.location.search)
+    setInvited(params.get('invited') === '1')
+    const urlError = params.get('error')
+    if (urlError) setError(decodeURIComponent(urlError))
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const res = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    })
+    const res = await signIn('credentials', { email, password, redirect: false })
     if (res?.ok) {
-      // Full-page navigation so the freshly-set session cookie is sent with
-      // the request — a soft router.push can race the cookie and get bounced
-      // back to /login by middleware, making it look like login failed.
       window.location.href = '/'
       return
     }
     setLoading(false)
     setError('Invalid email or password.')
+  }
+
+  async function handleSSO() {
+    setSsoLoading(true)
+    setError('')
+    await signIn('boxyhq-saml', { callbackUrl: '/' })
   }
 
   return (
@@ -65,6 +68,7 @@ export default function LoginPage() {
             <input
               id="password"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
@@ -78,6 +82,24 @@ export default function LoginPage() {
             className="w-full py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
             {loading ? 'Signing in…' : 'Sign in'}
+          </button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[#E5E5EA]" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-2 text-xs text-[#A1A1A6]">or</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSSO}
+            disabled={ssoLoading}
+            className="w-full py-2 rounded-lg border border-[#E5E5EA] bg-white text-[#1D1D1F] text-sm font-medium hover:bg-[#F5F5F7] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {ssoLoading ? 'Redirecting…' : 'Sign in with Okta SSO'}
           </button>
         </form>
       </div>
