@@ -54,7 +54,12 @@ export default function SAMLPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ metadataXml: metadataXml || undefined, metadataUrl: metadataUrl || undefined }),
       })
-      if (!res.ok) throw new Error((await res.json()).error ?? res.statusText)
+      if (!res.ok) {
+        const text = await res.text()
+        let msg = res.statusText
+        try { msg = JSON.parse(text).error ?? text } catch { msg = text || res.statusText }
+        throw new Error(msg)
+      }
       setSuccess('SAML connection created successfully.')
       setMetadataXml('')
       setMetadataUrl('')
@@ -75,7 +80,12 @@ export default function SAMLPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientID }),
       })
-      if (!res.ok) throw new Error((await res.json()).error ?? res.statusText)
+      if (!res.ok) {
+        const text = await res.text()
+        let msg = res.statusText
+        try { msg = JSON.parse(text).error ?? text } catch { msg = text || res.statusText }
+        throw new Error(msg)
+      }
       await fetchConnections()
     } catch (e: any) {
       setError(e.message)
