@@ -1,9 +1,9 @@
 import JacksonLib from '@boxyhq/saml-jackson'
-import type { IAPIController, IOAuthController, JacksonOption } from '@boxyhq/saml-jackson'
+import type { IAdminController, IOAuthController, JacksonOption } from '@boxyhq/saml-jackson'
 
 export interface JacksonInstance {
   oauthController: IOAuthController
-  connectionAPIController: IAPIController
+  connectionAPIController: IAdminController
 }
 
 // Module-level singleton — re-used across hot reloads in dev, one per cold start in prod.
