@@ -74,6 +74,7 @@ export default function SAMLPage() {
   async function handleDelete(clientID: string) {
     if (!confirm('Delete this SAML connection? SSO logins will stop working immediately.')) return
     setError('')
+    setSuccess('')
     try {
       const res = await fetch('/api/admin/saml/connections', {
         method: 'DELETE',
@@ -86,6 +87,29 @@ export default function SAMLPage() {
         try { msg = JSON.parse(text).error ?? text } catch { msg = text || res.statusText }
         throw new Error(msg)
       }
+      setSuccess('Connection deleted.')
+      await fetchConnections()
+    } catch (e: any) {
+      setError(e.message)
+    }
+  }
+
+  async function handleFixRedirects(clientID: string) {
+    setError('')
+    setSuccess('')
+    try {
+      const res = await fetch('/api/admin/saml/connections', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientID }),
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        let msg = res.statusText
+        try { msg = JSON.parse(text).error ?? text } catch { msg = text || res.statusText }
+        throw new Error(msg)
+      }
+      setSuccess('Redirect URLs updated. Try SSO login again.')
       await fetchConnections()
     } catch (e: any) {
       setError(e.message)
@@ -188,6 +212,13 @@ export default function SAMLPage() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 11, fontWeight: 600, background: '#ECFDF5', color: '#059669', borderRadius: 6, padding: '3px 8px' }}>Active</span>
+                  <button
+                    onClick={() => handleFixRedirects(c.clientID)}
+                    style={{ fontSize: 12, color: '#7C3AED', background: 'none', border: '1px solid #C4B5FD', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}
+                    title="Re-sync redirect URLs to current NEXTAUTH_URL"
+                  >
+                    Fix URLs
+                  </button>
                   <button
                     onClick={() => handleDelete(c.clientID)}
                     style={{ fontSize: 12, color: '#DC2626', background: 'none', border: '1px solid #FCA5A5', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}

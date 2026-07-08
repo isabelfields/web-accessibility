@@ -15,6 +15,32 @@ export async function GET() {
   return NextResponse.json(connections)
 }
 
+// PATCH: update redirect URLs on an existing connection (fixes stale defaultRedirectUrl)
+export async function PATCH(req: NextRequest) {
+  const admin = await requireAdmin()
+  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { clientID } = await req.json()
+  if (!clientID) return NextResponse.json({ error: 'clientID required' }, { status: 400 })
+
+  const { connectionAPIController } = await getJackson()
+  const ctrl = connectionAPIController as any
+
+  const conns = await ctrl.getAllConnection({ tenant: SAML_TENANT, product: SAML_PRODUCT })
+  const match = (conns as any[]).find((c: any) => c.clientID === clientID)
+  if (!match) return NextResponse.json({ error: 'Connection not found' }, { status: 404 })
+
+  await ctrl.updateSAMLConnection({
+    clientID,
+    clientSecret: match.clientSecret,
+    tenant: SAML_TENANT,
+    product: SAML_PRODUCT,
+    defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/api/auth/callback/boxyhq-saml`,
+    redirectUrl: JSON.stringify([`${process.env.NEXTAUTH_URL}/*`]),
+  })
+  return NextResponse.json({ ok: true })
+}
+
 export async function POST(req: NextRequest) {
   const admin = await requireAdmin()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -56,6 +82,23 @@ export async function DELETE(req: NextRequest) {
 
   const { connectionAPIController } = await getJackson()
   const ctrl = connectionAPIController as any
-  await ctrl.deleteConnections({ clientID, tenant: SAML_TENANT, product: SAML_PRODUCT })
+
+  // Jackson's deleteConnections requires clientSecret alongside clientID.
+  // Fetch the connection first to retrieve its clientSecret.
+  let clientSecret: string | undefined
+  try {
+    const conns = await ctrl.getAllConnection({ tenant: SAML_TENANT, product: SAML_PRODUCT })
+    const match = (conns as any[]).find((c: any) => c.clientID === clientID)
+    clientSecret = match?.clientSecret
+  } catch {
+    // proceed without clientSecret — some Jackson versions don't need it
+  }
+
+  await ctrl.deleteConnections({
+    clientID,
+    ...(clientSecret ? { clientSecret } : {}),
+    tenant: SAML_TENANT,
+    product: SAML_PRODUCT,
+  })
   return NextResponse.json({ ok: true })
 }
