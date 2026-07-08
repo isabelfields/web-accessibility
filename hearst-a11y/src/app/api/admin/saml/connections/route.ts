@@ -7,7 +7,8 @@ export async function GET() {
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { connectionAPIController } = await getJackson()
-  const connections = await connectionAPIController.getConnections({
+  const ctrl = connectionAPIController as any
+  const connections = await ctrl.getAllConnection({
     tenant: SAML_TENANT,
     product: SAML_PRODUCT,
   })
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { connectionAPIController } = await getJackson()
+  const ctrl = connectionAPIController as any
 
   const payload: Record<string, string> = {
     tenant: SAML_TENANT,
@@ -41,7 +43,7 @@ export async function POST(req: NextRequest) {
     payload.metadataUrl = metadataUrl
   }
 
-  const connection = await connectionAPIController.createSAMLConnection(payload as any)
+  const connection = await ctrl.createSAMLConnection(payload)
   return NextResponse.json(connection, { status: 201 })
 }
 
@@ -53,10 +55,7 @@ export async function DELETE(req: NextRequest) {
   if (!clientID) return NextResponse.json({ error: 'clientID required' }, { status: 400 })
 
   const { connectionAPIController } = await getJackson()
-  await connectionAPIController.deleteConnections({
-    clientID,
-    tenant: SAML_TENANT,
-    product: SAML_PRODUCT,
-  })
+  const ctrl = connectionAPIController as any
+  await ctrl.deleteConnections({ clientID, tenant: SAML_TENANT, product: SAML_PRODUCT })
   return NextResponse.json({ ok: true })
 }
