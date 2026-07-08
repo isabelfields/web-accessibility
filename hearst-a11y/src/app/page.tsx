@@ -316,7 +316,7 @@ export default async function DashboardPage({
             <Link href="/sites" style={{ color: '#007AFF' }}>Add a site</Link>.
           </div>
         ) : (
-          <SiteCardGrid sites={sites} divisions={activeDivisions} />
+          <SiteCardGrid sites={sites as any[]} divisions={activeDivisions} />
         )}
 
         {/* Recent scans */}
