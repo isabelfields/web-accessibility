@@ -26,10 +26,14 @@ export async function getJackson(): Promise<JacksonInstance> {
     samlAudience: process.env.NEXTAUTH_URL!,
     // Must match the clientSecret in the NextAuth boxyhq-saml provider.
     clientSecretVerifier: process.env.JACKSON_CLIENT_SECRET || 'jackson-secret',
-    // Required for Jackson to issue tokens — generates and stores RS256 signing keys in the DB.
+    // RS256 signing keys for Jackson to issue tokens. Set JACKSON_PRIVATE_KEY and
+    // JACKSON_PUBLIC_KEY in Vercel env vars (PEM strings, newlines as \n).
     openid: {
-      jwsAlgSupported: ['RS256'],
-      requestObjectSigningAlgValuesSupported: ['RS256'],
+      jwsAlg: 'RS256',
+      jwtSigningKeys: {
+        private: (process.env.JACKSON_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+        public: (process.env.JACKSON_PUBLIC_KEY || '').replace(/\\n/g, '\n'),
+      },
     },
   }
 
