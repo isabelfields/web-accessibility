@@ -83,11 +83,16 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === 'boxyhq-saml') {
         const email = user.email?.trim().toLowerCase()
         if (!email) return '/login?error=SSO+did+not+return+an+email+address.'
-        const [dbUser] = await sql`
-          SELECT id FROM users WHERE LOWER(email) = ${email} LIMIT 1
-        `
-        if (!dbUser) {
-          return '/login?error=Your+account+has+not+been+set+up+yet.+Please+contact+your+administrator.'
+        try {
+          const [dbUser] = await sql`
+            SELECT id FROM users WHERE LOWER(email) = ${email} LIMIT 1
+          `
+          if (!dbUser) {
+            return '/login?error=Your+account+has+not+been+set+up+yet.+Please+contact+your+administrator.'
+          }
+        } catch (err) {
+          console.error('[signIn] DB lookup failed:', err)
+          return '/login?error=An+error+occurred+during+sign+in.+Please+try+again.'
         }
       }
       return true
