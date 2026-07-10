@@ -26,6 +26,8 @@ export async function getJackson(): Promise<JacksonInstance> {
     samlAudience: process.env.NEXTAUTH_URL!,
     // Must match the clientSecret in the NextAuth boxyhq-saml provider.
     clientSecretVerifier: process.env.JACKSON_CLIENT_SECRET || 'jackson-secret',
+    // Required for Jackson to issue tokens — generates and stores RS256 signing keys in the DB.
+    openid: {},
   }
 
   _instance = (await JacksonLib(opts)) as unknown as JacksonInstance
