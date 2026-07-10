@@ -9,6 +9,7 @@ const InviteSchema = z.object({
   email: z.string().email(),
   role: z.enum(['admin', 'user']),
   allowedDivisions: z.array(z.string()).optional(),
+  sso: z.boolean().optional(),
 })
 
 export async function GET() {
@@ -34,21 +35,35 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
-  const { email, role, allowedDivisions } = parsed.data
+  const { email, role, allowedDivisions, sso } = parsed.data
+  const divisions = allowedDivisions ?? []
 
-  const existing = await sql`SELECT id FROM users WHERE email = ${email} LIMIT 1`
+  const existing = await sql`SELECT id FROM users WHERE LOWER(email) = ${email.trim().toLowerCase()} LIMIT 1`
   if (existing.length > 0) {
     return NextResponse.json({ error: 'User already exists' }, { status: 409 })
   }
 
-  // Store only a hash of the token; the plaintext is returned once for the link.
+  if (role === 'user' && divisions.length === 0) {
+    return NextResponse.json({ error: 'Users must be assigned at least one division.' }, { status: 400 })
+  }
+
+  if (sso) {
+    // SSO users are pre-approved with no password — they log in via Okta.
+    const [user] = await sql`
+      INSERT INTO users (email, role, allowed_divisions, invited_by)
+      VALUES (${email.trim().toLowerCase()}, ${role}, ${JSON.stringify(divisions)}, ${admin.email ?? ''})
+      RETURNING id, email, role, allowed_divisions, created_at
+    `
+    return NextResponse.json(user, { status: 201 })
+  }
+
+  // Password users: generate a one-time invite link.
   const token = crypto.randomUUID()
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
-  const divisions = allowedDivisions ?? []
 
   const [user] = await sql`
     INSERT INTO users (email, role, allowed_divisions, invite_token, invite_expires_at, invited_by)
-    VALUES (${email}, ${role}, ${JSON.stringify(divisions)}, ${sha256(token)}, ${expiresAt.toISOString()}, ${admin.email ?? ''})
+    VALUES (${email.trim().toLowerCase()}, ${role}, ${JSON.stringify(divisions)}, ${sha256(token)}, ${expiresAt.toISOString()}, ${admin.email ?? ''})
     RETURNING id, email, role, allowed_divisions, created_at
   `
 

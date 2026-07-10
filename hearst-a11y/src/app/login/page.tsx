@@ -49,6 +49,11 @@ export default function LoginPage() {
             Your account is ready. Sign in with your email and the password you just set.
           </p>
         )}
+        {error && error.toLowerCase().includes('administrator') && (
+          <p role="alert" className="mb-4 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-center">
+            {error}
+          </p>
+        )}
         <form onSubmit={handleSubmit} className="bg-white border border-[#E5E5EA] rounded-xl p-8 space-y-5 shadow-sm">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-[#1D1D1F] mb-1.5">Email</label>
@@ -75,7 +80,9 @@ export default function LoginPage() {
               className="w-full px-3 py-2 rounded-lg border border-[#E5E5EA] bg-white text-[#1D1D1F] placeholder:text-[#A1A1A6] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+          {error && !error.toLowerCase().includes('administrator') && (
+            <p role="alert" className="text-sm text-red-600">{error}</p>
+          )}
           <button
             type="submit"
             disabled={loading}

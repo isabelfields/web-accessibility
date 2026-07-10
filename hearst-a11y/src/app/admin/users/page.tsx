@@ -45,10 +45,11 @@ function DivisionChecklist({ divisions, onToggle, className = '' }: { divisions:
   )
 }
 
-function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (link: string) => void }) {
+function AddUserModal({ onClose, onCreated, onSsoAdded }: { onClose: () => void; onCreated: (link: string) => void; onSsoAdded: () => void }) {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<'admin' | 'user'>('user')
   const [divisions, setDivisions] = useState<string[]>([])
+  const [loginMethod, setLoginMethod] = useState<'sso' | 'password'>('sso')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -63,74 +64,113 @@ function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
     const res = await fetch('/api/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, role, allowedDivisions: role === 'admin' ? [] : divisions }),
+      body: JSON.stringify({
+        email,
+        role,
+        allowedDivisions: role === 'admin' ? [] : divisions,
+        sso: loginMethod === 'sso',
+      }),
     })
     setLoading(false)
     const data = await res.json() as InviteResponse
     if (!res.ok) {
-      setError(data.error ?? 'Failed to create invite')
+      setError(data.error ?? 'Failed to add user')
+      return
+    }
+    if (loginMethod === 'sso') {
+      onSsoAdded()
       return
     }
     const inviteToken = data.inviteToken ?? data.invite_token
     if (!inviteToken) {
-      setError('Invite was created, but no invite token was returned. Please try again.')
+      setError('User was created, but no invite token was returned. Please try again.')
       return
     }
-    const baseUrl = window.location.origin
-    onCreated(`${baseUrl}/invite/${inviteToken}`)
+    onCreated(`${window.location.origin}/invite/${inviteToken}`)
   }
 
+  const canSubmit = !loading && (role === 'admin' || divisions.length > 0)
+
   return (
-    <Modal title="Invite user" onClose={onClose} size="md">
-        <form onSubmit={submit} className="space-y-4 p-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              autoFocus
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-            <select
-              value={role}
-              onChange={e => setRole(e.target.value as 'admin' | 'user')}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="user">User (division-restricted)</option>
-              <option value="admin">Admin (full access)</option>
-            </select>
-          </div>
-          {role === 'user' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Allowed divisions <span className="text-gray-400 font-normal">(select at least one)</span>
-              </label>
-              <DivisionChecklist divisions={divisions} onToggle={toggleDivision} />
-            </div>
-          )}
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <div className="flex gap-2 pt-1">
+    <Modal title="Add user" onClose={onClose} size="md">
+      <form onSubmit={submit} className="space-y-4 p-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Login method</label>
+          <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
             <button
-              type="submit"
-              disabled={loading || (role === 'user' && divisions.length === 0)}
-              className="flex-1 bg-blue-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              type="button"
+              onClick={() => setLoginMethod('sso')}
+              className={`flex-1 py-2 font-medium transition-colors ${loginMethod === 'sso' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
             >
-              {loading ? 'Creating…' : 'Create invite link'}
+              SSO / Okta
             </button>
             <button
               type="button"
-              onClick={onClose}
-              className="flex-1 border border-gray-200 text-sm font-medium py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              onClick={() => setLoginMethod('password')}
+              className={`flex-1 py-2 font-medium transition-colors border-l border-gray-200 ${loginMethod === 'password' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
             >
-              Cancel
+              Email &amp; password
             </button>
           </div>
-        </form>
+          {loginMethod === 'sso' && (
+            <p className="mt-1.5 text-xs text-gray-400">User will log in via Okta. No invite link needed — they can sign in immediately once added.</p>
+          )}
+          {loginMethod === 'password' && (
+            <p className="mt-1.5 text-xs text-gray-400">An invite link will be generated for the user to set their password.</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+            autoFocus
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+          <select
+            value={role}
+            onChange={e => setRole(e.target.value as 'admin' | 'user')}
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="user">User (division-restricted)</option>
+            <option value="admin">Admin (full access)</option>
+          </select>
+        </div>
+
+        {role === 'user' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Allowed divisions <span className="text-gray-400 font-normal">(select at least one)</span>
+            </label>
+            <DivisionChecklist divisions={divisions} onToggle={toggleDivision} />
+          </div>
+        )}
+
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        <div className="flex gap-2 pt-1">
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className="flex-1 bg-blue-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            {loading ? 'Adding…' : loginMethod === 'sso' ? 'Add user' : 'Create invite link'}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 border border-gray-200 text-sm font-medium py-2 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
     </Modal>
   )
 }
@@ -269,14 +309,15 @@ export default function UsersPage() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Invite user
+          Add user
         </button>
       </div>
 
       {showInvite && (
-        <InviteModal
+        <AddUserModal
           onClose={() => setShowInvite(false)}
           onCreated={link => { setShowInvite(false); setInviteLink(link); load() }}
+          onSsoAdded={() => { setShowInvite(false); load() }}
         />
       )}
       {inviteLink && (

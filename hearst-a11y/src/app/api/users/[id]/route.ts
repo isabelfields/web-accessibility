@@ -20,6 +20,19 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
   const { role, allowedDivisions } = parsed.data
+
+  // If setting role to user, divisions must be explicitly provided and non-empty.
+  if (role === 'user' && allowedDivisions !== undefined && allowedDivisions.length === 0) {
+    return NextResponse.json({ error: 'Users must be assigned at least one division.' }, { status: 400 })
+  }
+  // If downgrading an existing admin to user without supplying divisions, check current state.
+  if (role === 'user' && allowedDivisions === undefined) {
+    const [existing] = await sql`SELECT allowed_divisions FROM users WHERE id = ${id} LIMIT 1`
+    if (!existing || (existing.allowed_divisions as string[]).length === 0) {
+      return NextResponse.json({ error: 'Assign at least one division before changing role to user.' }, { status: 400 })
+    }
+  }
+
   const [user] = await sql`
     UPDATE users
     SET role = COALESCE(${role ?? null}, role),

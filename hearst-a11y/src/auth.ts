@@ -79,19 +79,31 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    // JIT provisioning + token seeding.
+    async signIn({ user, account }) {
+      if (account?.provider === 'boxyhq-saml') {
+        const email = user.email?.trim().toLowerCase()
+        if (!email) return '/login?error=SSO+did+not+return+an+email+address.'
+        try {
+          const [dbUser] = await sql`
+            SELECT id FROM users WHERE LOWER(email) = ${email} LIMIT 1
+          `
+          if (!dbUser) {
+            return '/login?error=Your+account+has+not+been+set+up+yet.+Please+contact+your+administrator.'
+          }
+        } catch (err) {
+          console.error('[signIn] DB lookup failed:', err)
+          return '/login?error=An+error+occurred+during+sign+in.+Please+try+again.'
+        }
+      }
+      return true
+    },
+
     async jwt({ token, user, account }) {
       if (user) {
         if (account?.provider === 'boxyhq-saml') {
-          // SAML sign-in: look up (or create) the user in our DB.
           const email = user.email?.trim().toLowerCase()
           if (!email) return token
 
-          await sql`
-            INSERT INTO users (email, role, allowed_divisions)
-            VALUES (${email}, 'user', '[]'::jsonb)
-            ON CONFLICT (email) DO NOTHING
-          `
           const [dbUser] = await sql`
             SELECT id, role, allowed_divisions FROM users WHERE LOWER(email) = ${email} LIMIT 1
           `

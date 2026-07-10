@@ -8,7 +8,7 @@ export async function GET() {
 
   const { connectionAPIController } = await getJackson()
   const ctrl = connectionAPIController as any
-  const connections = await ctrl.getAllConnection({
+  const connections = await ctrl.getConnections({
     tenant: SAML_TENANT,
     product: SAML_PRODUCT,
   })
@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest) {
   const { connectionAPIController } = await getJackson()
   const ctrl = connectionAPIController as any
 
-  const conns = await ctrl.getAllConnection({ tenant: SAML_TENANT, product: SAML_PRODUCT })
+  const conns = await ctrl.getConnections({ tenant: SAML_TENANT, product: SAML_PRODUCT })
   const match = (conns as any[]).find((c: any) => c.clientID === clientID)
   if (!match) return NextResponse.json({ error: 'Connection not found' }, { status: 404 })
 
@@ -87,7 +87,7 @@ export async function DELETE(req: NextRequest) {
   // Fetch the connection first to retrieve its clientSecret.
   let clientSecret: string | undefined
   try {
-    const conns = await ctrl.getAllConnection({ tenant: SAML_TENANT, product: SAML_PRODUCT })
+    const conns = await ctrl.getConnections({ tenant: SAML_TENANT, product: SAML_PRODUCT })
     const match = (conns as any[]).find((c: any) => c.clientID === clientID)
     clientSecret = match?.clientSecret
   } catch {
