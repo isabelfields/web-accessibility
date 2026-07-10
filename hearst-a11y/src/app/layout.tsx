@@ -24,7 +24,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <aside className="app-sidebar w-56 flex flex-col fixed inset-y-0 left-0 z-10 bg-white border-r border-[#E5E5EA]">
             {/* Logo */}
             <div className="app-sidebar-logo h-24 px-5 border-b border-[#E5E5EA] flex flex-col justify-center">
-              <img src="/hearst-logo.svg" alt="Hearst" className="h-6 w-auto" />
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 80" height="24" aria-label="Hearst" fill="#3B7EC8">
+                <text x="0" y="72" fontFamily="Arial Black, Arial, sans-serif" fontWeight="900" fontSize="80" letterSpacing="8">HEARST</text>
+              </svg>
               <div className="text-[10px] text-[#57575A] font-semibold tracking-[0.15em] uppercase mt-1.5">
                 Accessibility Monitor
               </div>
