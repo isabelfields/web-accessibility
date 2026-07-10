@@ -37,6 +37,10 @@ export async function getJackson(): Promise<JacksonInstance> {
     },
   }
 
+  const privateKey = (process.env.JACKSON_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+  const publicKey = (process.env.JACKSON_PUBLIC_KEY || '').replace(/\\n/g, '\n')
+  console.log('[jackson] private key set:', privateKey.length > 0, '| public key set:', publicKey.length > 0)
+
   _instance = (await JacksonLib(opts)) as unknown as JacksonInstance
   return _instance
 }
