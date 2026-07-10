@@ -8,10 +8,12 @@ export async function GET() {
 
   const { connectionAPIController } = await getJackson()
   const ctrl = connectionAPIController as any
-  const connections = await ctrl.getAllConnection({
+  const result = await ctrl.getAllConnection({
     tenant: SAML_TENANT,
     product: SAML_PRODUCT,
   })
+  // Jackson returns either an array or { data: [], pageToken } depending on version.
+  const connections = Array.isArray(result) ? result : (result?.data ?? [])
   return NextResponse.json(connections)
 }
 
