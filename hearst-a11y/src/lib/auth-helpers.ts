@@ -35,6 +35,5 @@ export async function requireAdmin(): Promise<SessionUser | null> {
 export function canAccessDivision(user: SessionUser, division: string | null | undefined): boolean {
   if (user.role === 'admin') return true
   const allowed = user.allowedDivisions ?? []
-  if (allowed.length === 0) return true
-  return division != null && allowed.includes(division)
+  return division != null && allowed.length > 0 && allowed.includes(division)
 }

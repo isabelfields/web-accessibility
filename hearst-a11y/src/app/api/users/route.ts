@@ -43,6 +43,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'User already exists' }, { status: 409 })
   }
 
+  if (role === 'user' && divisions.length === 0) {
+    return NextResponse.json({ error: 'Users must be assigned at least one division.' }, { status: 400 })
+  }
+
   if (sso) {
     // SSO users are pre-approved with no password — they log in via Okta.
     const [user] = await sql`
