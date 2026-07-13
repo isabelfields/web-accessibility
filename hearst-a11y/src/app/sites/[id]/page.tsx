@@ -185,7 +185,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                 background: errorDelta > 0 ? '#FEF2F2' : '#ECFDF5',
                 color: errorDelta > 0 ? '#DC2626' : '#059669',
               }}>
-                {formatSignedDelta(errorDelta)}
+                {formatSignedDelta(errorDelta)} issues
               </span>
             )}
           </div>
