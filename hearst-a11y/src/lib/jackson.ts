@@ -23,7 +23,7 @@ export async function getJackson(): Promise<JacksonInstance> {
       // Set JACKSON_DATABASE_URL to your Neon pooler URL if it differs from DATABASE_URL.
       url: (process.env.JACKSON_DATABASE_URL || process.env.DATABASE_URL)!,
     },
-    samlAudience: process.env.NEXTAUTH_URL!,
+    samlAudience: `${process.env.NEXTAUTH_URL}/api/auth/saml/metadata`,
     // Must match the clientSecret in the NextAuth boxyhq-saml provider.
     clientSecretVerifier: process.env.JACKSON_CLIENT_SECRET || 'jackson-secret',
   }
