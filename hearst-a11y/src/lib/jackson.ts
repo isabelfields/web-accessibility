@@ -1,38 +1,40 @@
 import JacksonLib from '@boxyhq/saml-jackson'
 import type { IAdminController, IOAuthController, JacksonOption } from '@boxyhq/saml-jackson'
-import { generateKeyPairSync } from 'crypto'
 
 export interface JacksonInstance {
   oauthController: IOAuthController
   connectionAPIController: IAdminController
 }
 
+// Module-level singleton — re-used across hot reloads in dev, one per cold start in prod.
+let _instance: JacksonInstance | null = null
+let _certs: { privateKey: string; publicKey: string } | null = null
+
 // Jackson requires an RSA key pair to sign the JWTs it issues during the
 // internal OIDC bridge (SAML → OAuth → NextAuth).  Provide JACKSON_PRIVATE_KEY
 // and JACKSON_PUBLIC_KEY (PEM, with literal \n for newlines) in production so
 // the same keys are used across all instances / restarts.  Without them a new
-// pair is generated per process; that works on a single server but causes
-// token-validation failures when the /token and /userinfo requests land on
-// different serverless instances.
-function loadCerts(): { privateKey: string; publicKey: string } {
+// pair is generated on first use; that works on a single server but causes
+// token-validation failures when /token and /userinfo land on different
+// serverless instances.
+async function getCerts(): Promise<{ privateKey: string; publicKey: string }> {
+  if (_certs) return _certs
   const priv = process.env.JACKSON_PRIVATE_KEY
   const pub = process.env.JACKSON_PUBLIC_KEY
   if (priv && pub) {
-    return { privateKey: priv.replace(/\\n/g, '\n'), publicKey: pub.replace(/\\n/g, '\n') }
+    _certs = { privateKey: priv.replace(/\\n/g, '\n'), publicKey: pub.replace(/\\n/g, '\n') }
+    return _certs
   }
+  // Lazy import keeps this Node-only code out of any client bundle analysis.
+  const { generateKeyPairSync } = await import('node:crypto')
   const { privateKey, publicKey } = generateKeyPairSync('rsa', {
     modulusLength: 2048,
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
     publicKeyEncoding: { type: 'spki', format: 'pem' },
   })
-  return { privateKey: privateKey as string, publicKey: publicKey as string }
+  _certs = { privateKey: privateKey as string, publicKey: publicKey as string }
+  return _certs
 }
-
-// Generate / load once per process.
-const _certs = loadCerts()
-
-// Module-level singleton — re-used across hot reloads in dev, one per cold start in prod.
-let _instance: JacksonInstance | null = null
 
 export async function getJackson(): Promise<JacksonInstance> {
   if (_instance) return _instance
@@ -51,7 +53,7 @@ export async function getJackson(): Promise<JacksonInstance> {
     samlAudience: `${process.env.NEXTAUTH_URL}/api/auth/saml/metadata`,
     // Must match the clientSecret in the NextAuth boxyhq-saml provider.
     clientSecretVerifier: process.env.JACKSON_CLIENT_SECRET || 'jackson-secret',
-    certs: _certs,
+    certs: await getCerts(),
   }
 
   _instance = (await JacksonLib(opts)) as unknown as JacksonInstance
