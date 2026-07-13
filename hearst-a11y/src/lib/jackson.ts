@@ -22,25 +22,48 @@ let _jwsKeys: { private: string; public: string } | null = null
 async function getJWSKeys(): Promise<{ private: string; public: string }> {
   if (_jwsKeys) return _jwsKeys
 
-  const pemToB64 = (pem: string) => Buffer.from(pem.replace(/\\n/g, '\n')).toString('base64')
+  // Jackson's loadJWSPrivateKey does Buffer.from(key, 'base64').toString('ascii')
+  // then passes the result to jose.importPKCS8(). So we must supply a base64-encoded
+  // PKCS#8 PEM string. If the env var is already a raw PEM, encode it once.
+  // If it's already base64-encoded (or a PKCS1 key), the diagnostic below will show it.
+  const normalizeToPkcs8B64 = (pem: string): string => {
+    const cleaned = pem.replace(/\\n/g, '\n').trim()
+    // If it already looks like base64 (not a PEM header), pass through as-is.
+    if (!cleaned.startsWith('-----')) {
+      console.log('[jackson] JACKSON_PRIVATE_KEY appears pre-encoded; using as-is')
+      return cleaned
+    }
+    if (!cleaned.includes('BEGIN PRIVATE KEY')) {
+      console.warn('[jackson] WARNING: JACKSON_PRIVATE_KEY is not PKCS#8 (missing "BEGIN PRIVATE KEY"). Got header:', cleaned.split('\n')[0])
+    }
+    return Buffer.from(cleaned).toString('base64')
+  }
 
   const priv = process.env.JACKSON_PRIVATE_KEY
   const pub = process.env.JACKSON_PUBLIC_KEY
+  console.log('[jackson] getJWSKeys: JACKSON_PRIVATE_KEY set?', !!priv, 'JACKSON_PUBLIC_KEY set?', !!pub)
   if (priv && pub) {
-    _jwsKeys = { private: pemToB64(priv), public: pemToB64(pub) }
+    const privB64 = normalizeToPkcs8B64(priv)
+    const decoded = Buffer.from(privB64, 'base64').toString('ascii')
+    console.log('[jackson] decoded private key prefix:', decoded.slice(0, 40))
+    _jwsKeys = { private: privB64, public: normalizeToPkcs8B64(pub) }
     return _jwsKeys
   }
 
   // Lazy import keeps this Node-only module out of client bundle analysis.
+  console.log('[jackson] getJWSKeys: auto-generating RSA-2048 keypair (set JACKSON_PRIVATE_KEY for stability)')
   const { generateKeyPairSync } = await import('node:crypto')
   const { privateKey, publicKey } = generateKeyPairSync('rsa', {
     modulusLength: 2048,
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
     publicKeyEncoding: { type: 'spki', format: 'pem' },
   })
+  const privStr = privateKey as string
+  const pubStr = publicKey as string
+  console.log('[jackson] generated private key prefix:', privStr.slice(0, 40))
   _jwsKeys = {
-    private: Buffer.from(privateKey as string).toString('base64'),
-    public: Buffer.from(publicKey as string).toString('base64'),
+    private: Buffer.from(privStr).toString('base64'),
+    public: Buffer.from(pubStr).toString('base64'),
   }
   return _jwsKeys
 }
