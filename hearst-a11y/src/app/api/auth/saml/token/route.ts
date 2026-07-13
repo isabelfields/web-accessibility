@@ -16,12 +16,14 @@ export async function POST(req: NextRequest) {
         const decoded = Buffer.from(match[1], 'base64').toString('utf8')
         const colonIdx = decoded.indexOf(':')
         if (colonIdx !== -1) {
-          body.client_id = body.client_id || decoded.slice(0, colonIdx)
-          body.client_secret = decoded.slice(colonIdx + 1)
+          // RFC 6749 §2.3.1: client_id and client_secret are URL-encoded in Basic Auth.
+          body.client_id = body.client_id || decodeURIComponent(decoded.slice(0, colonIdx))
+          body.client_secret = decodeURIComponent(decoded.slice(colonIdx + 1))
         }
       }
     }
 
+    console.log('[saml/token] body keys:', Object.keys(body), 'client_id:', body.client_id, 'client_secret length:', body.client_secret?.length)
     const token = await oauthController.token(body as any)
     return NextResponse.json(token)
   } catch (err: any) {
