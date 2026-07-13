@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const token = await oauthController.token(body as any) as Record<string, unknown>
+    const token = await oauthController.token(body as any) as unknown as Record<string, unknown>
     // NextAuth uses type:'oauth' (oauthCallback) which rejects id_token in the response.
     // Strip it so NextAuth falls back to the userinfo endpoint for profile data.
     const { id_token: _dropped, ...rest } = token
