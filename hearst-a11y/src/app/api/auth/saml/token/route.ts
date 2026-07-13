@@ -23,9 +23,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    console.log('[saml/token] body keys:', Object.keys(body), 'client_id:', body.client_id, 'client_secret length:', body.client_secret?.length)
-    const token = await oauthController.token(body as any)
-    return NextResponse.json(token)
+    const token = await oauthController.token(body as any) as Record<string, unknown>
+    // NextAuth uses type:'oauth' (oauthCallback) which rejects id_token in the response.
+    // Strip it so NextAuth falls back to the userinfo endpoint for profile data.
+    const { id_token: _dropped, ...rest } = token
+    return NextResponse.json(rest)
   } catch (err: any) {
     console.error('[saml/token]', err)
     return NextResponse.json({ error: err?.message ?? 'token error' }, { status: 400 })
