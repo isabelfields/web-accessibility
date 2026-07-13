@@ -11,6 +11,12 @@
     },
     "src/app/api/cron/route.ts": {
       "maxDuration": 300
+    },
+    "src/app/api/auth/**": {
+      "includeFiles": "node_modules/jose/**"
+    },
+    "src/app/api/admin/saml/**": {
+      "includeFiles": "node_modules/jose/**"
     }
   }
 }
