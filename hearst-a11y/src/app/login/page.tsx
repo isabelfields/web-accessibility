@@ -41,7 +41,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#F5F5F7]">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center flex flex-col items-center">
-          <img src="/hearst-logo.svg" alt="Hearst" className="h-6 w-auto mb-2" />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 80" fill="#3B7EC8" className="h-6 w-auto mb-2" aria-label="Hearst">
+            <text x="0" y="72" fontFamily="Arial Black, Arial, sans-serif" fontWeight="900" fontSize="80" letterSpacing="8">HEARST</text>
+          </svg>
           <div className="text-sm text-[#57575A]">Sign in to continue</div>
         </div>
         {invited && (
