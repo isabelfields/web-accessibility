@@ -5,7 +5,23 @@ import { getJackson } from '@/lib/jackson'
 export async function POST(req: NextRequest) {
   try {
     const { oauthController } = await getJackson()
-    const body = Object.fromEntries((await req.formData()).entries())
+    const body = Object.fromEntries((await req.formData()).entries()) as Record<string, string>
+
+    // NextAuth sends client credentials in an HTTP Basic Auth header by default.
+    // Jackson's token() expects them in the POST body — extract and inject.
+    if (!body.client_secret) {
+      const authHeader = req.headers.get('authorization') ?? ''
+      const match = authHeader.match(/^Basic (.+)$/)
+      if (match) {
+        const decoded = Buffer.from(match[1], 'base64').toString('utf8')
+        const colonIdx = decoded.indexOf(':')
+        if (colonIdx !== -1) {
+          body.client_id = body.client_id || decoded.slice(0, colonIdx)
+          body.client_secret = decoded.slice(colonIdx + 1)
+        }
+      }
+    }
+
     const token = await oauthController.token(body as any)
     return NextResponse.json(token)
   } catch (err: any) {
