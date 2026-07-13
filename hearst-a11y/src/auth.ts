@@ -87,10 +87,17 @@ export const authOptions: NextAuthOptions = {
           const email = user.email?.trim().toLowerCase()
           if (!email) return token
 
+          // If this email matches the bootstrap admin, grant admin role on JIT provision.
+          const isBootstrapAdmin =
+            !!process.env.ADMIN_USERNAME &&
+            email === process.env.ADMIN_USERNAME.trim().toLowerCase()
+
           await sql`
             INSERT INTO users (email, role, allowed_divisions)
-            VALUES (${email}, 'user', '[]'::jsonb)
-            ON CONFLICT (email) DO NOTHING
+            VALUES (${email}, ${isBootstrapAdmin ? 'admin' : 'user'}, '[]'::jsonb)
+            ON CONFLICT (email) DO UPDATE
+              SET role = 'admin'
+              WHERE users.email = EXCLUDED.email AND ${isBootstrapAdmin}
           `
           const [dbUser] = await sql`
             SELECT id, role, allowed_divisions FROM users WHERE LOWER(email) = ${email} LIMIT 1
