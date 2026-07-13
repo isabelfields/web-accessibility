@@ -85,6 +85,7 @@ export const authOptions: NextAuthOptions = {
         if (account?.provider === 'boxyhq-saml') {
           // SAML sign-in: look up (or create) the user in our DB.
           const email = user.email?.trim().toLowerCase()
+          console.log('[auth/jwt] SSO sign-in, raw email from profile:', user.email, '→ normalized:', email)
           if (!email) return token
 
           // If this email matches the bootstrap admin, grant admin role on JIT provision.
@@ -102,6 +103,7 @@ export const authOptions: NextAuthOptions = {
           const [dbUser] = await sql`
             SELECT id, role, allowed_divisions FROM users WHERE LOWER(email) = ${email} LIMIT 1
           `
+          console.log('[auth/jwt] DB lookup result:', dbUser ? { id: dbUser.id, role: dbUser.role } : 'NOT FOUND')
           if (dbUser) {
             token.id = dbUser.id
             token.role = dbUser.role as 'admin' | 'user'
