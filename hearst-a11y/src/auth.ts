@@ -26,10 +26,12 @@ export const authOptions: NextAuthOptions = {
       // Must match clientSecretVerifier in lib/jackson.ts.
       clientSecret: process.env.JACKSON_CLIENT_SECRET || 'jackson-secret',
       profile(profile: any) {
+        // Jackson SAML userinfo returns email as `sub` (and `id`), not as `email`.
+        const email = profile.email ?? profile.sub ?? profile.id
         return {
-          id: profile.id ?? profile.email,
-          email: profile.email,
-          name: [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.email,
+          id: profile.id ?? email,
+          email,
+          name: [profile.firstName, profile.lastName].filter(Boolean).join(' ') || email,
           role: 'user' as const,
           allowedDivisions: [] as string[],
         }
