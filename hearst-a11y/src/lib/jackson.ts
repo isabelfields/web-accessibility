@@ -6,34 +6,43 @@ export interface JacksonInstance {
   connectionAPIController: IAdminController
 }
 
-// Module-level singleton — re-used across hot reloads in dev, one per cold start in prod.
+// Module-level singletons — re-used across hot reloads in dev, one per cold start in prod.
 let _instance: JacksonInstance | null = null
-let _certs: { privateKey: string; publicKey: string } | null = null
+let _jwsKeys: { private: string; public: string } | null = null
 
-// Jackson requires an RSA key pair to sign the JWTs it issues during the
-// internal OIDC bridge (SAML → OAuth → NextAuth).  Provide JACKSON_PRIVATE_KEY
-// and JACKSON_PUBLIC_KEY (PEM, with literal \n for newlines) in production so
-// the same keys are used across all instances / restarts.  Without them a new
-// pair is generated on first use; that works on a single server but causes
-// token-validation failures when /token and /userinfo land on different
-// serverless instances.
-async function getCerts(): Promise<{ privateKey: string; publicKey: string }> {
-  if (_certs) return _certs
+// Jackson (v1.x) reads JWT signing keys from opts.openid.jwtSigningKeys.
+// The values must be base64-encoded PEM strings — Jackson base64-decodes them
+// before calling jose.importPKCS8 / jose.importSPKI.
+//
+// In production set JACKSON_PRIVATE_KEY and JACKSON_PUBLIC_KEY to the raw PEM
+// content (actual newlines are fine; escaped \n also accepted).  Without those
+// env vars a fresh RSA-2048 pair is generated per process — fine for a single
+// server, but in multi-instance / serverless deployments a /token response
+// signed by instance A can't be verified by instance B's /userinfo.
+async function getJWSKeys(): Promise<{ private: string; public: string }> {
+  if (_jwsKeys) return _jwsKeys
+
+  const pemToB64 = (pem: string) => Buffer.from(pem.replace(/\\n/g, '\n')).toString('base64')
+
   const priv = process.env.JACKSON_PRIVATE_KEY
   const pub = process.env.JACKSON_PUBLIC_KEY
   if (priv && pub) {
-    _certs = { privateKey: priv.replace(/\\n/g, '\n'), publicKey: pub.replace(/\\n/g, '\n') }
-    return _certs
+    _jwsKeys = { private: pemToB64(priv), public: pemToB64(pub) }
+    return _jwsKeys
   }
-  // Lazy import keeps this Node-only code out of any client bundle analysis.
+
+  // Lazy import keeps this Node-only module out of client bundle analysis.
   const { generateKeyPairSync } = await import('node:crypto')
   const { privateKey, publicKey } = generateKeyPairSync('rsa', {
     modulusLength: 2048,
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
     publicKeyEncoding: { type: 'spki', format: 'pem' },
   })
-  _certs = { privateKey: privateKey as string, publicKey: publicKey as string }
-  return _certs
+  _jwsKeys = {
+    private: Buffer.from(privateKey as string).toString('base64'),
+    public: Buffer.from(publicKey as string).toString('base64'),
+  }
+  return _jwsKeys
 }
 
 export async function getJackson(): Promise<JacksonInstance> {
@@ -53,8 +62,11 @@ export async function getJackson(): Promise<JacksonInstance> {
     samlAudience: `${process.env.NEXTAUTH_URL}/api/auth/saml/metadata`,
     // Must match the clientSecret in the NextAuth boxyhq-saml provider.
     clientSecretVerifier: process.env.JACKSON_CLIENT_SECRET || 'jackson-secret',
-    certs: await getCerts(),
-  }
+    openid: {
+      jwsAlg: 'RS256',
+      jwtSigningKeys: await getJWSKeys(),
+    },
+  } as any
 
   _instance = (await JacksonLib(opts)) as unknown as JacksonInstance
   return _instance
