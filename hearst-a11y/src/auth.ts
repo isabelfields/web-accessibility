@@ -85,6 +85,7 @@ export const authOptions: NextAuthOptions = {
         if (account?.provider === 'boxyhq-saml') {
           // SAML sign-in: look up (or create) the user in our DB.
           const email = user.email?.trim().toLowerCase()
+          console.log('[auth/jwt] SSO sign-in, full user object:', JSON.stringify(user))
           console.log('[auth/jwt] SSO sign-in, raw email from profile:', user.email, '→ normalized:', email)
           if (!email) return token
 

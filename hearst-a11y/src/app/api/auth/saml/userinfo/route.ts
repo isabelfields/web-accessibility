@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
     const auth = req.headers.get('authorization') ?? ''
     const token = auth.replace(/^Bearer\s+/i, '')
     const profile = await oauthController.userInfo(token)
+    console.log('[saml/userinfo] profile:', JSON.stringify(profile))
     return NextResponse.json(profile)
   } catch (err: any) {
     console.error('[saml/userinfo]', err)
