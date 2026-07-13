@@ -81,7 +81,7 @@ export function SiteCardGrid({ sites, divisions }: { sites: Site[]; divisions: s
             }}
             aria-label="Sort sites"
           >
-            <option value="worst-tier">Sort: Worst tier</option>
+            <option value="worst-tier">Sort: Most critical tier</option>
             <option value="most-issues">Sort: Most issues</option>
             <option value="fewest-issues">Sort: Fewest issues</option>
             <option value="alpha">Sort: A–Z</option>
