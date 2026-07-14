@@ -1,0 +1,7 @@
+{
+  "name": "jose",
+  "version": "4.15.9",
+  "description": "Vendored jose shim — implements the subset used by @boxyhq/saml-jackson using Node.js built-in crypto",
+  "main": "index.js",
+  "type": "commonjs"
+}

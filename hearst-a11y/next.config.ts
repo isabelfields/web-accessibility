@@ -27,7 +27,7 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ['playwright', '@axe-core/playwright', '@boxyhq/saml-jackson', 'jose'],
+  serverExternalPackages: ['playwright', '@axe-core/playwright', '@boxyhq/saml-jackson'],
   // Lint is available via `npm run lint`; don't fail production builds on it.
   eslint: { ignoreDuringBuilds: true },
   async headers() {
