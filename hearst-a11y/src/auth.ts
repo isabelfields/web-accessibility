@@ -1,3 +1,4 @@
+// jose resolved via local_modules/jose — see local_modules/jose/index.js
 import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import type { NextAuthOptions } from 'next-auth'
