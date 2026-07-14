@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import path from 'path'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -27,11 +28,27 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ['playwright', '@axe-core/playwright', '@boxyhq/saml-jackson'],
-  // Lint is available via `npm run lint`; don't fail production builds on it.
+  // playwright/axe need to be external (native binary deps).
+  // @boxyhq/saml-jackson is intentionally NOT in this list: we need webpack to
+  // bundle it so the patched static require('jose') resolves via the alias below
+  // and gets inlined into .next/ — making Lambda's cached node_modules irrelevant.
+  serverExternalPackages: ['playwright', '@axe-core/playwright'],
   eslint: { ignoreDuringBuilds: true },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }]
+  },
+  webpack(config, { isServer }) {
+    if (isServer) {
+      // Resolve the patched static require('jose') to our vendored shim.
+      // Jackson's utils.js is patched by scripts/install-jose-shim.js (prebuild)
+      // to use require('jose') instead of new Function('return import(pkg)')(),
+      // so webpack can see and bundle this alias at build time.
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        jose: path.resolve(__dirname, 'local_modules/jose/index.js'),
+      }
+    }
+    return config
   },
 }
 
