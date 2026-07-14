@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { HEARST_DIVISIONS, HEARST_BRANDS, HEARST_REGIONS, HearstDivision } from '@/types'
 import { normalizeUrl } from '@/lib/format'
@@ -32,12 +32,18 @@ export function EditSiteForm({ site, onClose }: { site: Site; onClose: () => voi
   const [pages, setPages] = useState<PageRow[]>(site.pages.length > 0 ? site.pages : [emptyPage()])
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const pagesListRef = useRef<HTMLDivElement>(null)
 
   function updatePage(index: number, field: keyof PageRow, value: string) {
     setPages(prev => prev.map((p, i) => i === index ? { ...p, [field]: value } : p))
   }
 
-  function addPage() { setPages(prev => [...prev, emptyPage()]) }
+  function addPage() {
+    setPages(prev => [...prev, emptyPage()])
+    setTimeout(() => {
+      pagesListRef.current?.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }, 0)
+  }
   function removePage(index: number) { setPages(prev => prev.filter((_, i) => i !== index)) }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -118,7 +124,7 @@ export function EditSiteForm({ site, onClose }: { site: Site; onClose: () => voi
               <label className="block text-sm font-medium text-gray-700">Pages to Scan</label>
               <button type="button" onClick={addPage} className="text-sm text-blue-600 hover:text-blue-700 font-medium">+ Add Page</button>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-3" ref={pagesListRef}>
               {pages.map((page, i) => (
                 <div key={i} className="flex gap-2 items-start">
                   <div className="flex-1 grid grid-cols-3 gap-2">
