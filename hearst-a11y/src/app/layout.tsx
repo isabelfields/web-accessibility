@@ -90,7 +90,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   {isAdmin && <span className="ml-1 text-blue-600 font-medium">· admin</span>}
                 </div>
               )}
-              <SignOutButton />
+              {session && <SignOutButton />}
               <div className="text-[10px] text-[#57575A]">© Hearst Communications</div>
             </div>
           </aside>
