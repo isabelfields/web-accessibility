@@ -8,8 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "npm run typecheck && node --test tests/*.test.mjs",
-    "postinstall": "node scripts/install-jose-shim.js"
+    "test": "npm run typecheck && node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@axe-core/playwright": "^4.9.0",
@@ -31,7 +30,6 @@
     "react-dom": "^18.3.0",
     "recharts": "^3.8.1",
     "@boxyhq/saml-jackson": "^1.23.0",
-    "jose": "file:./local_modules/jose",
     "zod": "^3.23.0"
   },
   "devDependencies": {

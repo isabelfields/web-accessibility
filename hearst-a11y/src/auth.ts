@@ -1,4 +1,3 @@
-// jose resolved via local_modules/jose — see local_modules/jose/index.js
 import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import type { NextAuthOptions } from 'next-auth'
@@ -18,7 +17,12 @@ export const authOptions: NextAuthOptions = {
       type: 'oauth',
       authorization: {
         url: `${NEXTAUTH_URL}/api/auth/saml/authorize`,
-        params: { provider: 'saml' },
+        // Explicitly omit 'openid' scope. When openid is absent Jackson skips
+        // JWT id_token generation in its token endpoint, which means it never
+        // calls import('jose'). NextAuth falls back to the userinfo endpoint
+        // instead of parsing an id_token, so the full SSO flow works without
+        // jose being available in node_modules at runtime.
+        params: { provider: 'saml', scope: 'email' },
       },
       token: `${NEXTAUTH_URL}/api/auth/saml/token`,
       userinfo: `${NEXTAUTH_URL}/api/auth/saml/userinfo`,
