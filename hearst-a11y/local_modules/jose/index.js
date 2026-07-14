@@ -195,6 +195,18 @@ async function jwtDecrypt(token, key, _opts) {
   return { payload, protectedHeader }
 }
 
+// ── key export ────────────────────────────────────────────────────────────────
+
+async function exportJWK(key) {
+  // key is our plain object { pem, alg, type } from importPKCS8/importSPKI/generateKeyPair
+  const pem = key && key.pem ? key.pem : (typeof key === 'string' ? key : null)
+  if (!pem) throw new Error('exportJWK: unsupported key type')
+  const nodeKey = key.type === 'private'
+    ? crypto.createPrivateKey(pem)
+    : crypto.createPublicKey(pem)
+  return nodeKey.export({ format: 'jwk' })
+}
+
 // ── utilities ─────────────────────────────────────────────────────────────────
 
 function decodeJwt(token) {
@@ -242,6 +254,7 @@ module.exports = {
   importPKCS8,
   importSPKI,
   importX509,
+  exportJWK,
   jwtVerify,
   jwtDecrypt,
   decodeJwt,
