@@ -197,14 +197,81 @@ async function jwtDecrypt(token, key, _opts) {
 
 // ── key export ────────────────────────────────────────────────────────────────
 
+// Parse one ASN.1 DER TLV (tag-length-value). Returns { tag, data, end }.
+function derTLV(buf, off) {
+  const tag = buf[off++]
+  let len
+  if (buf[off] & 0x80) {
+    const nb = buf[off++] & 0x7f
+    len = 0
+    for (let i = 0; i < nb; i++) len = len * 256 + buf[off++]
+  } else {
+    len = buf[off++]
+  }
+  return { tag, data: buf.slice(off, off + len), end: off + len }
+}
+
+// Strip leading 0x00 sign byte from DER INTEGER data.
+function stripSign(b) { return b[0] === 0 ? b.slice(1) : b }
+
 async function exportJWK(key) {
-  // key is our plain object { pem, alg, type } from importPKCS8/importSPKI/generateKeyPair
+  // key is our plain object { pem, alg, type } from importPKCS8/importSPKI/generateKeyPair.
+  // We parse the DER manually instead of using KeyObject.export({ format: 'jwk' }) because
+  // that API is unsupported on some Lambda Node.js/OpenSSL builds.
   const pem = key && key.pem ? key.pem : (typeof key === 'string' ? key : null)
   if (!pem) throw new Error('exportJWK: unsupported key type')
-  const nodeKey = key.type === 'private'
-    ? crypto.createPrivateKey(pem)
-    : crypto.createPublicKey(pem)
-  return nodeKey.export({ format: 'jwk' })
+  const isPrivate = key.type === 'private' || /PRIVATE/.test(pem)
+
+  // Decode PEM → DER (PEM uses standard base64, not base64url)
+  const der = Buffer.from(pem.replace(/-----[^-]+-----/g, '').replace(/\s+/g, ''), 'base64')
+
+  let rsaDer   // points at the PKCS#1 RSAPrivateKey or RSAPublicKey SEQUENCE
+  if (isPrivate) {
+    // PKCS#8 SEQUENCE { INTEGER version, SEQUENCE algId, OCTET STRING { RSAPrivateKey } }
+    const outer = derTLV(der, 0)
+    let o = 0
+    const ver = derTLV(outer.data, o); o = ver.end
+    const alg = derTLV(outer.data, o); o = alg.end
+    const oct = derTLV(outer.data, o)
+    rsaDer = oct.data
+  } else {
+    // SPKI SEQUENCE { SEQUENCE algId, BIT STRING { 0x00, RSAPublicKey } }
+    const outer = derTLV(der, 0)
+    let o = 0
+    const alg = derTLV(outer.data, o); o = alg.end
+    const bits = derTLV(outer.data, o)
+    rsaDer = bits.data.slice(1) // skip unused-bits byte (always 0x00 for RSA)
+  }
+
+  // Parse RSAPrivateKey or RSAPublicKey (both are PKCS#1 SEQUENCE of INTEGERs)
+  const seq = derTLV(rsaDer, 0)
+  let o = 0
+  if (isPrivate) {
+    const ver = derTLV(seq.data, o); o = ver.end // version
+    const n  = derTLV(seq.data, o); o = n.end
+    const e  = derTLV(seq.data, o); o = e.end
+    const d  = derTLV(seq.data, o); o = d.end
+    const p  = derTLV(seq.data, o); o = p.end
+    const q  = derTLV(seq.data, o); o = q.end
+    const dp = derTLV(seq.data, o); o = dp.end
+    const dq = derTLV(seq.data, o); o = dq.end
+    const qi = derTLV(seq.data, o)
+    return {
+      kty: 'RSA',
+      n:  b64u(stripSign(n.data)),  e:  b64u(stripSign(e.data)),
+      d:  b64u(stripSign(d.data)),  p:  b64u(stripSign(p.data)),
+      q:  b64u(stripSign(q.data)),  dp: b64u(stripSign(dp.data)),
+      dq: b64u(stripSign(dq.data)), qi: b64u(stripSign(qi.data)),
+    }
+  } else {
+    const n = derTLV(seq.data, o); o = n.end
+    const e = derTLV(seq.data, o)
+    return {
+      kty: 'RSA',
+      n: b64u(stripSign(n.data)),
+      e: b64u(stripSign(e.data)),
+    }
+  }
 }
 
 // ── utilities ─────────────────────────────────────────────────────────────────
