@@ -1,5 +1,4 @@
 import type { NextConfig } from 'next'
-import path from 'path'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -28,22 +27,11 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
-  // Keep playwright external (native binary deps); bundle Jackson so webpack can
-  // resolve its dynamic import('jose') via the alias below instead of relying on
-  // a runtime node_modules lookup that fails in Lambda.
-  serverExternalPackages: ['playwright', '@axe-core/playwright'],
+  serverExternalPackages: ['playwright', '@axe-core/playwright', '@boxyhq/saml-jackson'],
   // Lint is available via `npm run lint`; don't fail production builds on it.
   eslint: { ignoreDuringBuilds: true },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }]
-  },
-  webpack(config, { isServer }) {
-    if (isServer) {
-      // Alias jose to our vendored shim so Jackson's dynamic import('jose') is
-      // resolved at build time into the webpack bundle — no runtime package lookup.
-      config.resolve.alias['jose'] = path.resolve(__dirname, 'local_modules/jose/index.js')
-    }
-    return config
   },
 }
 
