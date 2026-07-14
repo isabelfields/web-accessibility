@@ -1,5 +1,6 @@
 import JacksonLib from '@boxyhq/saml-jackson'
 import type { IAdminController, IOAuthController, JacksonOption } from '@boxyhq/saml-jackson'
+import crypto from 'crypto'
 
 export interface JacksonInstance {
   oauthController: IOAuthController
@@ -8,6 +9,31 @@ export interface JacksonInstance {
 
 // Module-level singleton — re-used across hot reloads in dev, one per cold start in prod.
 let _instance: JacksonInstance | null = null
+
+// Cache ephemeral keys at module level so they survive across getJackson() calls
+// within the same process (though they won't survive process restarts).
+let _ephemeralKeys: { private: string; public: string } | null = null
+
+function getOpenidSigningKeys(): { private: string; public: string } {
+  const privateKey = process.env.JACKSON_OPENID_RSA_PRIVATE_KEY
+  const publicKey = process.env.JACKSON_OPENID_RSA_PUBLIC_KEY
+  if (privateKey && publicKey) {
+    return { private: privateKey, public: publicKey }
+  }
+  // Fallback: generate ephemeral RSA keys. Works for single-process deployments;
+  // for multi-instance/serverless, set JACKSON_OPENID_RSA_PRIVATE_KEY and
+  // JACKSON_OPENID_RSA_PUBLIC_KEY env vars (generate once with: openssl genrsa 2048).
+  if (!_ephemeralKeys) {
+    console.warn('[jackson] JACKSON_OPENID_RSA_PRIVATE_KEY not set — using ephemeral RSA keys. SSO sessions will not survive process restarts.')
+    const { privateKey: priv, publicKey: pub } = crypto.generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+    })
+    _ephemeralKeys = { private: priv, public: pub }
+  }
+  return _ephemeralKeys
+}
 
 export async function getJackson(): Promise<JacksonInstance> {
   if (_instance) return _instance
@@ -26,6 +52,11 @@ export async function getJackson(): Promise<JacksonInstance> {
     samlAudience: process.env.NEXTAUTH_URL!,
     // Must match the clientSecret in the NextAuth boxyhq-saml provider.
     clientSecretVerifier: process.env.JACKSON_CLIENT_SECRET || 'jackson-secret',
+    // RSA keys required by Jackson's OIDC bridge to sign id_tokens.
+    openid: {
+      jwtSigningKeys: getOpenidSigningKeys(),
+      allowedClockSkew: 5000,
+    },
   }
 
   _instance = (await JacksonLib(opts)) as unknown as JacksonInstance

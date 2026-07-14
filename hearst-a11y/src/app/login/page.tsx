@@ -41,8 +41,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#F5F5F7]">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="text-xl font-semibold tracking-tight text-[#1D1D1F]">Hearst A11y</div>
-          <div className="text-sm text-[#57575A] mt-1">Sign in to continue</div>
+          <img src="/hearst-logo.svg" alt="Hearst" className="h-7 w-auto mx-auto mb-3" />
+          <div className="text-sm text-[#57575A]">Sign in to continue</div>
         </div>
         {invited && (
           <p className="mb-4 text-sm text-green-700 bg-green-50 border border-green-100 rounded-lg px-3 py-2 text-center">
