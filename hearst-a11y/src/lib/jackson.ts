@@ -55,7 +55,6 @@ export async function getJackson(): Promise<JacksonInstance> {
     // RSA keys required by Jackson's OIDC bridge to sign id_tokens.
     openid: {
       jwtSigningKeys: getOpenidSigningKeys(),
-      allowedClockSkew: 5000,
     },
   }
 
