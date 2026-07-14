@@ -17,12 +17,7 @@ export const authOptions: NextAuthOptions = {
       type: 'oauth',
       authorization: {
         url: `${NEXTAUTH_URL}/api/auth/saml/authorize`,
-        // Explicitly omit 'openid' scope. When openid is absent Jackson skips
-        // JWT id_token generation in its token endpoint, which means it never
-        // calls import('jose'). NextAuth falls back to the userinfo endpoint
-        // instead of parsing an id_token, so the full SSO flow works without
-        // jose being available in node_modules at runtime.
-        params: { provider: 'saml', scope: 'email' },
+        params: { provider: 'saml', scope: 'openid email profile' },
       },
       token: `${NEXTAUTH_URL}/api/auth/saml/token`,
       userinfo: `${NEXTAUTH_URL}/api/auth/saml/userinfo`,
