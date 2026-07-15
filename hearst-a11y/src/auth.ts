@@ -26,9 +26,11 @@ export const authOptions: NextAuthOptions = {
       // Must match clientSecretVerifier in lib/jackson.ts.
       clientSecret: process.env.JACKSON_CLIENT_SECRET || 'jackson-secret',
       profile(profile: any) {
+        // Jackson may return email as profile.id when no separate email claim is configured in Okta.
+        const email = profile.email || profile.id
         return {
-          id: profile.id ?? profile.email,
-          email: profile.email,
+          id: email,
+          email,
           name: [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.email,
           role: 'user' as const,
           allowedDivisions: [] as string[],
@@ -84,12 +86,9 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         if (account?.provider === 'boxyhq-saml') {
           // SAML sign-in: look up (or create) the user in our DB.
-          console.log('[sso/jwt] raw user from profile:', JSON.stringify(user))
-          const email = user.email?.trim().toLowerCase()
-          if (!email) {
-            console.log('[sso/jwt] no email found in SSO profile, skipping DB lookup')
-            return token
-          }
+          // Jackson may return the email as profile.id when no separate email claim is mapped.
+          const email = (user.email || (user as any).id)?.trim().toLowerCase()
+          if (!email) return token
 
           await sql`
             INSERT INTO users (email, role, allowed_divisions)
@@ -99,7 +98,6 @@ export const authOptions: NextAuthOptions = {
           const [dbUser] = await sql`
             SELECT id, role, allowed_divisions FROM users WHERE LOWER(email) = ${email} LIMIT 1
           `
-          console.log('[sso/jwt] DB lookup for email:', email, '→', dbUser ? `role=${dbUser.role}` : 'not found')
           if (dbUser) {
             token.id = dbUser.id
             token.role = dbUser.role as 'admin' | 'user'
