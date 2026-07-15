@@ -32,7 +32,7 @@ export async function getJackson(): Promise<JacksonInstance> {
   // If not set, Jackson auto-generates keys — but older stored keys may be PKCS#1 format
   // which OpenSSL 3.x rejects. Generate with: npm run generate-jackson-certs
   if (process.env.JACKSON_PRIVATE_KEY && process.env.JACKSON_PUBLIC_KEY) {
-    (opts as Record<string, unknown>).certs = {
+    (opts as unknown as Record<string, unknown>).certs = {
       privateKey: process.env.JACKSON_PRIVATE_KEY.replace(/\\n/g, '\n'),
       publicKey: process.env.JACKSON_PUBLIC_KEY.replace(/\\n/g, '\n'),
     }
