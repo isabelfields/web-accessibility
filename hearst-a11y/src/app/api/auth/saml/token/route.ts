@@ -14,8 +14,10 @@ export async function POST(req: NextRequest) {
       const decoded = Buffer.from(authHeader.slice(6), 'base64').toString('utf8')
       const colon = decoded.indexOf(':')
       if (colon !== -1) {
-        body.client_id = body.client_id || decoded.slice(0, colon)
-        body.client_secret = body.client_secret || decoded.slice(colon + 1)
+        // NextAuth URL-encodes client_id/client_secret before base64-encoding them,
+        // so decode them back (e.g. tenant%3Dhearst%26product%3Dhearst-a11y → tenant=hearst&product=hearst-a11y)
+        body.client_id = body.client_id || decodeURIComponent(decoded.slice(0, colon))
+        body.client_secret = body.client_secret || decodeURIComponent(decoded.slice(colon + 1))
       }
     }
 
