@@ -56,10 +56,15 @@ export async function getJackson(): Promise<JacksonInstance> {
   if (process.env.JACKSON_PRIVATE_KEY && process.env.JACKSON_PUBLIC_KEY) {
     const rawPrivate = process.env.JACKSON_PRIVATE_KEY.replace(/\\n/g, '\n')
     const rawPublic = process.env.JACKSON_PUBLIC_KEY.replace(/\\n/g, '\n')
-    const privateKey = createPrivateKey(rawPrivate).export({ type: 'pkcs8', format: 'pem' }) as string
-    const publicKey = createPublicKey(rawPublic).export({ type: 'spki', format: 'pem' }) as string
+    const privateKeyPem = createPrivateKey(rawPrivate).export({ type: 'pkcs8', format: 'pem' }) as string
+    const publicKeyPem = createPublicKey(rawPublic).export({ type: 'spki', format: 'pem' }) as string
+    // Jackson's loadJWSPrivateKey/importJWTPublicKey do Buffer.from(key, 'base64').toString('ascii')
+    // internally, so it expects the keys to be base64-encoded PEM strings, not raw PEM.
     opts.openid = {
-      jwtSigningKeys: { private: privateKey, public: publicKey },
+      jwtSigningKeys: {
+        private: Buffer.from(privateKeyPem).toString('base64'),
+        public: Buffer.from(publicKeyPem).toString('base64'),
+      },
     }
   }
 
