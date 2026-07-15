@@ -84,8 +84,12 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         if (account?.provider === 'boxyhq-saml') {
           // SAML sign-in: look up (or create) the user in our DB.
+          console.log('[sso/jwt] raw user from profile:', JSON.stringify(user))
           const email = user.email?.trim().toLowerCase()
-          if (!email) return token
+          if (!email) {
+            console.log('[sso/jwt] no email found in SSO profile, skipping DB lookup')
+            return token
+          }
 
           await sql`
             INSERT INTO users (email, role, allowed_divisions)
@@ -95,6 +99,7 @@ export const authOptions: NextAuthOptions = {
           const [dbUser] = await sql`
             SELECT id, role, allowed_divisions FROM users WHERE LOWER(email) = ${email} LIMIT 1
           `
+          console.log('[sso/jwt] DB lookup for email:', email, '→', dbUser ? `role=${dbUser.role}` : 'not found')
           if (dbUser) {
             token.id = dbUser.id
             token.role = dbUser.role as 'admin' | 'user'
