@@ -17,10 +17,7 @@ export const authOptions: NextAuthOptions = {
       type: 'oauth',
       authorization: {
         url: `${NEXTAUTH_URL}/api/auth/saml/authorize`,
-        // openid scope triggers Jackson's OIDC flow, which uses the openid.jwtSigningKeys
-        // we configure explicitly (PKCS#8). Without it, Jackson falls back to its DB-stored
-        // signing key which may be in legacy PKCS#1 format, breaking on OpenSSL 3.x / Node 18+.
-        params: { provider: 'saml', scope: 'openid profile email' },
+        params: { provider: 'saml' },
       },
       token: `${NEXTAUTH_URL}/api/auth/saml/token`,
       userinfo: `${NEXTAUTH_URL}/api/auth/saml/userinfo`,
@@ -28,9 +25,6 @@ export const authOptions: NextAuthOptions = {
       clientId: SAML_CLIENT_ID,
       // Must match clientSecretVerifier in lib/jackson.ts.
       clientSecret: process.env.JACKSON_CLIENT_SECRET || 'jackson-secret',
-      // Required when scope includes 'openid': NextAuth validates the iss claim in the
-      // ID token Jackson returns, and it must match this value.
-      issuer: NEXTAUTH_URL,
       profile(profile: any) {
         return {
           id: profile.id ?? profile.email,
