@@ -22,7 +22,11 @@ export async function POST(req: NextRequest) {
     }
 
     const token = await oauthController.token(body as any)
-    return NextResponse.json(token)
+    // Jackson includes id_token when openid.jwtSigningKeys is configured, but the
+    // NextAuth provider uses type:'oauth' (oauthCallback), which rejects responses
+    // containing an id_token. Strip it — NextAuth fetches the profile via userinfo instead.
+    const { id_token: _discarded, ...tokenWithoutIdToken } = token as any
+    return NextResponse.json(tokenWithoutIdToken)
   } catch (err: any) {
     console.error('[saml/token]', err)
     return NextResponse.json({ error: err?.message ?? 'token error' }, { status: 400 })
