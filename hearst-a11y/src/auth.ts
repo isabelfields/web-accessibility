@@ -28,6 +28,9 @@ export const authOptions: NextAuthOptions = {
       clientId: SAML_CLIENT_ID,
       // Must match clientSecretVerifier in lib/jackson.ts.
       clientSecret: process.env.JACKSON_CLIENT_SECRET || 'jackson-secret',
+      // Required when scope includes 'openid': NextAuth validates the iss claim in the
+      // ID token Jackson returns, and it must match this value.
+      issuer: NEXTAUTH_URL,
       profile(profile: any) {
         return {
           id: profile.id ?? profile.email,
