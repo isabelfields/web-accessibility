@@ -28,13 +28,15 @@ export async function getJackson(): Promise<JacksonInstance> {
     clientSecretVerifier: process.env.JACKSON_CLIENT_SECRET || 'jackson-secret',
   }
 
-  // Provide explicit PKCS#8 certs to avoid ERR_OSSL_UNSUPPORTED on Node 18+/OpenSSL 3.x.
-  // If not set, Jackson auto-generates keys — but older stored keys may be PKCS#1 format
+  // Provide explicit PKCS#8 keys for OpenID JWT signing to avoid ERR_OSSL_UNSUPPORTED
+  // on Node 18+/OpenSSL 3.x. Without these, Jackson auto-generates keys in PKCS#1 format
   // which OpenSSL 3.x rejects. Generate with: npm run generate-jackson-certs
   if (process.env.JACKSON_PRIVATE_KEY && process.env.JACKSON_PUBLIC_KEY) {
-    (opts as unknown as Record<string, unknown>).certs = {
-      privateKey: process.env.JACKSON_PRIVATE_KEY.replace(/\\n/g, '\n'),
-      publicKey: process.env.JACKSON_PUBLIC_KEY.replace(/\\n/g, '\n'),
+    opts.openid = {
+      jwtSigningKeys: {
+        private: process.env.JACKSON_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        public: process.env.JACKSON_PUBLIC_KEY.replace(/\\n/g, '\n'),
+      },
     }
   }
 
