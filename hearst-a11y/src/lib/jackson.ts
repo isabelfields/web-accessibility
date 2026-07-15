@@ -1,5 +1,6 @@
 import JacksonLib from '@boxyhq/saml-jackson'
 import type { IAdminController, IOAuthController, JacksonOption } from '@boxyhq/saml-jackson'
+import { createPrivateKey, createPublicKey } from 'crypto'
 
 export interface JacksonInstance {
   oauthController: IOAuthController
@@ -32,11 +33,14 @@ export async function getJackson(): Promise<JacksonInstance> {
   // on Node 18+/OpenSSL 3.x. Without these, Jackson auto-generates keys in PKCS#1 format
   // which OpenSSL 3.x rejects. Generate with: npm run generate-jackson-certs
   if (process.env.JACKSON_PRIVATE_KEY && process.env.JACKSON_PUBLIC_KEY) {
+    const rawPrivate = process.env.JACKSON_PRIVATE_KEY.replace(/\\n/g, '\n')
+    const rawPublic = process.env.JACKSON_PUBLIC_KEY.replace(/\\n/g, '\n')
+    // Normalize to PKCS#8 regardless of whether the stored key is PKCS#1 or PKCS#8.
+    // createPrivateKey accepts both formats; exporting as pkcs8 gives Jackson what it needs.
+    const privateKey = createPrivateKey(rawPrivate).export({ type: 'pkcs8', format: 'pem' }) as string
+    const publicKey = createPublicKey(rawPublic).export({ type: 'spki', format: 'pem' }) as string
     opts.openid = {
-      jwtSigningKeys: {
-        private: process.env.JACKSON_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        public: process.env.JACKSON_PUBLIC_KEY.replace(/\\n/g, '\n'),
-      },
+      jwtSigningKeys: { private: privateKey, public: publicKey },
     }
   }
 
