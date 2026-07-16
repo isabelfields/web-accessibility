@@ -12,7 +12,12 @@ export function ExportPdfButton({ scanId }: { scanId: string }) {
     try {
       const res = await fetch(`/api/scans/${scanId}/export`)
       if (!res.ok) {
-        setError('Export failed.')
+        let msg = `Export failed (${res.status})`
+        try {
+          const body = await res.json()
+          if (body?.error) msg += `: ${body.error}`
+        } catch {}
+        setError(msg)
         return
       }
       const blob = await res.blob()
