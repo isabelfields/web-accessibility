@@ -6,6 +6,7 @@ import { PageViolationsModal } from '@/components/PageViolationsModal'
 import { DeleteScanButton } from '@/components/DeleteScanButton'
 import { SeverityBar } from '@/components/SeverityBar'
 import { ExportPdfButton } from '@/components/ExportPdfButton'
+import { JiraConnectionBadge } from '@/components/JiraConnectionBadge'
 import { patternsToWorstTier, TIER_LABEL, TIER_COLOR } from '@/lib/tiers'
 import { formatDateTime } from '@/lib/format'
 import { countComponentsWithIssues, countIssueTypes, countOccurrences, formatSignedDelta, getSeverityCounts, isActiveWcagPattern, isWcagPattern, pluralize } from '@/lib/metrics'
@@ -210,6 +211,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <JiraConnectionBadge />
           {scan.status === 'complete' && <ExportPdfButton scanId={scan.id} />}
           <DeleteScanButton jobId={scan.id} />
         </div>
