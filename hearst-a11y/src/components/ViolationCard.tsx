@@ -240,9 +240,6 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
   const visibleNodes = showAll ? nodes : nodes.slice(0, SHOW_LIMIT)
   const hiddenCount = nodes.length - SHOW_LIMIT
-  const conciseFix = pattern.fixSuggestion ? firstSentence(pattern.fixSuggestion) : null
-  const hasMoreFixCopy = Boolean(pattern.fixSuggestion && conciseFix && conciseFix !== pattern.fixSuggestion)
-
   return (
     <div className={`bg-white border border-[#D1D5DB] border-l-4 rounded-xl overflow-hidden shadow-sm ${triaged ? 'opacity-60' : ''}`}
       style={{ borderLeftColor: c.hex }}>
@@ -292,16 +289,10 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
         <div className="border-t border-[#D1D5DB] bg-white">
 
           {/* How to fix */}
-          {pattern.fixSuggestion && conciseFix && (
+          {pattern.fixSuggestion && (
             <div className="mx-5 mt-4 mb-4 rounded-lg border-l-4 border-blue-500 bg-white px-3 py-2.5 shadow-sm ring-1 ring-blue-100">
               <div className="text-[11px] font-bold text-blue-700 mb-1 uppercase tracking-wide">Fix</div>
-              <p className="text-xs text-slate-900 leading-5">{conciseFix}</p>
-              {hasMoreFixCopy && (
-                <details className="mt-1.5 text-xs text-slate-700">
-                  <summary className="cursor-pointer font-medium text-blue-700 hover:text-blue-900">More detail</summary>
-                  <p className="mt-1.5 leading-5">{pattern.fixSuggestion}</p>
-                </details>
-              )}
+              <p className="text-xs text-slate-900 leading-5">{pattern.fixSuggestion}</p>
             </div>
           )}
 
