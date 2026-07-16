@@ -253,7 +253,6 @@ export default async function ScanDetailPage({ params }: RouteContext) {
             <div className="rounded-lg bg-white border border-[#E5E5EA] p-6 flex flex-col justify-between">
               <div className="text-[11px] font-semibold text-[#3A3A3C] uppercase tracking-wider mb-3">Components with Issues</div>
               <div className="text-4xl font-bold text-[#1D1D1F] tabular-nums leading-none">{activeComponentsWithIssues}</div>
-              <div className="text-xs text-[#3A3A3C] mt-3">deduped affected components</div>
             </div>
 
             {/* WCAG A / AA */}
