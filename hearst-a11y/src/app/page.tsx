@@ -110,6 +110,10 @@ async function getData(division?: string, allowedDivisions?: string[]) {
     sum + countOccurrences(patterns, isWcagPattern), 0)
   const prevCritical = prevPatternsBySite.reduce((sum: number, patterns: ViolationPattern[]) =>
     sum + patterns.filter((p: ViolationPattern) => isWcagPattern(p) && p.impact === 'critical').reduce((s: number, p: ViolationPattern) => s + p.occurrences, 0), 0)
+  const prevTotalComponentsWithIssues = prevPatternsBySite.reduce((sum: number, patterns: ViolationPattern[]) =>
+    sum + countComponentsWithIssues(patterns, isWcagPattern), 0)
+  const prevTotalIssueTypes = prevPatternsBySite.reduce((sum: number, patterns: ViolationPattern[]) =>
+    sum + countIssueTypes(patterns, isWcagPattern), 0)
 
   const severityCounts = getSeverityCounts(latestPatternsBySite.flat(), isWcagPattern)
   const violationMap = new Map<string, { count: number; impact: string }>()
@@ -153,7 +157,7 @@ async function getData(division?: string, allowedDivisions?: string[]) {
     sites,
     scans,
     activeDivisions,
-    stats: { totalPages, totalIssues, totalComponentsWithIssues, errorsResolved, siteCount: sites.length, totalIssueTypes, prevTotalIssues, prevCritical },
+    stats: { totalPages, totalIssues, totalComponentsWithIssues, errorsResolved, siteCount: sites.length, totalIssueTypes, prevTotalIssues, prevCritical, prevTotalComponentsWithIssues, prevTotalIssueTypes },
     severityCounts,
     topViolations,
     scoreTrends,
@@ -229,6 +233,8 @@ export default async function DashboardPage({
         {(() => {
           const issueDelta = stats.totalIssues - stats.prevTotalIssues
           const critDelta = severityCounts.critical - stats.prevCritical
+          const componentsDelta = stats.totalComponentsWithIssues - stats.prevTotalComponentsWithIssues
+          const issueTypesDelta = stats.totalIssueTypes - stats.prevTotalIssueTypes
           const hasPrevData = stats.prevTotalIssues > 0 || stats.prevCritical > 0
 
           function TrendBadge({ delta, inverse = false }: { delta: number; inverse?: boolean }) {
@@ -281,20 +287,38 @@ export default async function DashboardPage({
               {/* Components with Issues */}
               <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #3B82F6', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Components with Issues</div>
-                <div style={{ fontSize: 40, fontWeight: 800, color: '#1D4ED8', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalComponentsWithIssues}</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 4 }}>
+                  <div style={{ fontSize: 40, fontWeight: 800, color: '#1D4ED8', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalComponentsWithIssues}</div>
+                  <TrendBadge delta={componentsDelta} />
+                </div>
+                <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>
+                  {hasPrevData && componentsDelta !== 0 ? `${componentsDelta > 0 ? '+' : ''}${componentsDelta} vs prev scan` : 'across all sites'}
+                </div>
               </div>
 
               {/* Issue Types */}
               <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #60a5fa', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Issue Types</div>
-                <div style={{ fontSize: 40, fontWeight: 800, color: '#2563eb', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalIssueTypes}</div>
-                <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>unique WCAG issue types</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 4 }}>
+                  <div style={{ fontSize: 40, fontWeight: 800, color: '#2563eb', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.totalIssueTypes}</div>
+                  <TrendBadge delta={issueTypesDelta} />
+                </div>
+                <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>
+                  {hasPrevData && issueTypesDelta !== 0 ? `${issueTypesDelta > 0 ? '+' : ''}${issueTypesDelta} vs prev scan` : 'unique WCAG issue types'}
+                </div>
               </div>
 
               {/* Resolved */}
               <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Resolved</div>
-                <div style={{ fontSize: 40, fontWeight: 800, color: stats.errorsResolved > 0 ? '#059669' : '#1D1D1F', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.errorsResolved}</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 4 }}>
+                  <div style={{ fontSize: 40, fontWeight: 800, color: stats.errorsResolved > 0 ? '#059669' : '#1D1D1F', lineHeight: 1, letterSpacing: '-0.02em' }}>{stats.errorsResolved}</div>
+                  {hasPrevData && stats.errorsResolved > 0 && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: '#059669', background: '#ECFDF5', borderRadius: 6, padding: '2px 6px' }}>
+                      ↑ {stats.errorsResolved}
+                    </span>
+                  )}
+                </div>
                 <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>vs previous scan</div>
               </div>
             </div>
