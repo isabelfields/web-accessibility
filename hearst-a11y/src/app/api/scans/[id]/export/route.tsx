@@ -65,6 +65,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  try {
   // Admin check: accept a valid admin session OR the ADMIN_SECRET header.
   // The secret is header-only (never a query param, which would leak into logs,
   // browser history, and Referer) and compared in constant time.
@@ -209,7 +210,13 @@ export async function GET(
     </Document>
   )
 
-  const buffer = await renderToBuffer(doc)
+  let buffer: Buffer
+  try {
+    buffer = await renderToBuffer(doc)
+  } catch (err: any) {
+    console.error('[export/pdf] renderToBuffer failed:', err)
+    return NextResponse.json({ error: err?.message ?? 'pdf render error' }, { status: 500 })
+  }
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
@@ -217,4 +224,8 @@ export async function GET(
       'Content-Disposition': `attachment; filename="accessibility-report-${id.slice(0, 8)}.pdf"`,
     },
   })
+  } catch (err: any) {
+    console.error('[export/pdf] unhandled error:', err)
+    return NextResponse.json({ error: err?.message ?? 'export error' }, { status: 500 })
+  }
 }
