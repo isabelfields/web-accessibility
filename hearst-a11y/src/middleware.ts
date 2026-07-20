@@ -16,6 +16,6 @@ export default withAuth(
 )
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth|api/cron|api/migrate|api/invite|login|invite).*)'],
-  // /api/auth/saml/callback is already excluded via api/auth above.
+  // Exclude static assets (public folder files with extensions), Next.js internals, and public routes.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.svg|.*\\.png|.*\\.jpg|.*\\.ico|.*\\.webp|.*\\.woff2?|api/auth|api/cron|api/migrate|api/invite|login|invite).*)'],
 }
