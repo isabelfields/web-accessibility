@@ -26,10 +26,12 @@ export const authOptions: NextAuthOptions = {
       // Must match clientSecretVerifier in lib/jackson.ts.
       clientSecret: process.env.JACKSON_CLIENT_SECRET || 'jackson-secret',
       profile(profile: any) {
+        // Jackson may return email as a top-level field or only as the NameID (id).
+        const email = profile.email ?? profile.id
         return {
-          id: profile.id ?? profile.email,
-          email: profile.email,
-          name: [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.email,
+          id: email ?? profile.id,
+          email: email,
+          name: [profile.firstName, profile.lastName].filter(Boolean).join(' ') || email,
           role: 'user' as const,
           allowedDivisions: [] as string[],
         }
@@ -150,7 +152,12 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
   },
   session: { strategy: 'jwt' },
-  secret: process.env.AUTH_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  logger: {
+    error(code, metadata) {
+      console.error('[NextAuth]', code, metadata)
+    },
+  },
 }
 
 export default NextAuth(authOptions)
