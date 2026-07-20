@@ -20,6 +20,7 @@ interface AppUser {
 interface InviteResponse {
   inviteToken?: string
   invite_token?: string
+  sso?: boolean
   error?: string
 }
 
@@ -45,7 +46,25 @@ function DivisionChecklist({ divisions, onToggle, className = '' }: { divisions:
   )
 }
 
-function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (link: string) => void }) {
+function SsoAddedModal({ email, onClose }: { email: string; onClose: () => void }) {
+  return (
+    <Modal title="SSO user added" onClose={onClose} size="md">
+      <div className="p-6">
+        <p className="text-sm text-gray-600 mb-2">
+          <span className="font-medium">{email}</span> has been added.
+        </p>
+        <p className="text-sm text-gray-500 mb-4">
+          This user&apos;s email domain is configured for SSO. They can sign in directly using Okta — no invite link is needed.
+        </p>
+        <button onClick={onClose} className="w-full border border-gray-200 text-sm py-2 rounded-lg hover:bg-gray-50 transition-colors">
+          Done
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+function InviteModal({ onClose, onCreated, onSsoCreated }: { onClose: () => void; onCreated: (link: string) => void; onSsoCreated: (email: string) => void }) {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<'admin' | 'user'>('user')
   const [divisions, setDivisions] = useState<string[]>([])
@@ -69,6 +88,10 @@ function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
     const data = await res.json() as InviteResponse
     if (!res.ok) {
       setError(data.error ?? 'Failed to create invite')
+      return
+    }
+    if (data.sso) {
+      onSsoCreated(email)
       return
     }
     const inviteToken = data.inviteToken ?? data.invite_token
@@ -216,6 +239,7 @@ export default function UsersPage() {
   const [page, setPage] = useState(1)
   const [showInvite, setShowInvite] = useState(false)
   const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [ssoAddedEmail, setSsoAddedEmail] = useState<string | null>(null)
   const [editingUser, setEditingUser] = useState<AppUser | null>(null)
 
   const load = useCallback(async () => {
@@ -277,10 +301,14 @@ export default function UsersPage() {
         <InviteModal
           onClose={() => setShowInvite(false)}
           onCreated={link => { setShowInvite(false); setInviteLink(link); load() }}
+          onSsoCreated={email => { setShowInvite(false); setSsoAddedEmail(email); load() }}
         />
       )}
       {inviteLink && (
         <InviteLinkModal link={inviteLink} onClose={() => setInviteLink(null)} />
+      )}
+      {ssoAddedEmail && (
+        <SsoAddedModal email={ssoAddedEmail} onClose={() => setSsoAddedEmail(null)} />
       )}
       {editingUser && (
         <EditDivisionsModal
