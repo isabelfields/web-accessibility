@@ -9,6 +9,7 @@ const InviteSchema = z.object({
   email: z.string().email(),
   role: z.enum(['admin', 'user']),
   allowedDivisions: z.array(z.string()).optional(),
+  sso: z.boolean().optional(),
 })
 
 export async function GET() {
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
-  const { email, role, allowedDivisions } = parsed.data
+  const { email, role, allowedDivisions, sso } = parsed.data
 
   const existing = await sql`SELECT id FROM users WHERE email = ${email} LIMIT 1`
   if (existing.length > 0) {
@@ -45,9 +46,10 @@ export async function POST(req: NextRequest) {
 
   // SSO users authenticate via Okta and are JIT-provisioned on first sign-in.
   // They don't need (and shouldn't receive) a password-based invite link.
+  // Also fall back to SSO_DOMAIN env var for automatic detection.
   const ssoDomain = process.env.SSO_DOMAIN?.trim().toLowerCase()
   const emailDomain = email.split('@')[1]?.toLowerCase()
-  const isSsoUser = ssoDomain ? emailDomain === ssoDomain : false
+  const isSsoUser = sso === true || (ssoDomain ? emailDomain === ssoDomain : false)
 
   if (isSsoUser) {
     const [user] = await sql`

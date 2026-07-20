@@ -68,6 +68,7 @@ function InviteModal({ onClose, onCreated, onSsoCreated }: { onClose: () => void
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<'admin' | 'user'>('user')
   const [divisions, setDivisions] = useState<string[]>([])
+  const [isSso, setIsSso] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -82,7 +83,7 @@ function InviteModal({ onClose, onCreated, onSsoCreated }: { onClose: () => void
     const res = await fetch('/api/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, role, allowedDivisions: role === 'admin' ? [] : divisions }),
+      body: JSON.stringify({ email, role, allowedDivisions: role === 'admin' ? [] : divisions, sso: isSso }),
     })
     setLoading(false)
     const data = await res.json() as InviteResponse
@@ -136,6 +137,22 @@ function InviteModal({ onClose, onCreated, onSsoCreated }: { onClose: () => void
               <DivisionChecklist divisions={divisions} onToggle={toggleDivision} />
             </div>
           )}
+          <label className="flex items-center gap-3 cursor-pointer select-none">
+            <div className="relative">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={isSso}
+                onChange={e => setIsSso(e.target.checked)}
+              />
+              <div className="w-9 h-5 rounded-full bg-gray-200 peer-checked:bg-blue-600 transition-colors" />
+              <div className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
+            </div>
+            <span className="text-sm text-gray-700">Signs in with Okta SSO</span>
+          </label>
+          {isSso && (
+            <p className="text-xs text-gray-400 -mt-2">No invite link will be sent — they can sign in with Okta immediately.</p>
+          )}
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="flex gap-2 pt-1">
             <button
@@ -143,7 +160,7 @@ function InviteModal({ onClose, onCreated, onSsoCreated }: { onClose: () => void
               disabled={loading || (role === 'user' && divisions.length === 0)}
               className="flex-1 bg-blue-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
-              {loading ? 'Creating…' : 'Create invite link'}
+              {loading ? 'Creating…' : isSso ? 'Add user' : 'Create invite link'}
             </button>
             <button
               type="button"
