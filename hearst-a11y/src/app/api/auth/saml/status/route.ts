@@ -12,10 +12,11 @@ export async function GET() {
   let connections: { clientID: string; entityID: string | undefined; redirectUrl: string | undefined }[] = []
 
   try {
-    const { connectionAPIController } = await getJackson()
+    const { adminController } = await getJackson()
     jacksonOk = true
-    const conns = await (connectionAPIController as any).getAllConnection({ tenant: SAML_TENANT, product: SAML_PRODUCT })
-    connections = (conns as any[]).map(c => ({
+    const result = await (adminController as any).getAllConnection()
+    const conns = Array.isArray(result) ? result : (result?.data ?? [])
+    connections = conns.map((c: any) => ({
       clientID: c.clientID,
       entityID: c.idpMetadata?.entityID,
       redirectUrl: c.redirectUrl,

@@ -3,13 +3,14 @@ import { getJackson, SAML_TENANT, SAML_PRODUCT } from '@/lib/jackson'
 
 // Keep redirect URLs in sync with the current NEXTAUTH_URL on every authorize attempt.
 // This self-heals when the app is redeployed to a new URL (e.g. new Vercel deployment).
-async function syncRedirectUrls(connectionAPIController: any) {
+async function syncRedirectUrls(adminCtrl: any, connectionCtrl: any) {
   try {
     const base = process.env.NEXTAUTH_URL
     if (!base) return
-    const conns = await connectionAPIController.getAllConnection({ tenant: SAML_TENANT, product: SAML_PRODUCT })
-    for (const c of conns as any[]) {
-      await connectionAPIController.updateSAMLConnection({
+    const result = await adminCtrl.getAllConnection()
+    const conns: any[] = Array.isArray(result) ? result : (result?.data ?? [])
+    for (const c of conns) {
+      await connectionCtrl.updateSAMLConnection({
         clientID: c.clientID,
         clientSecret: c.clientSecret,
         tenant: SAML_TENANT,
@@ -25,8 +26,8 @@ async function syncRedirectUrls(connectionAPIController: any) {
 
 export async function GET(req: NextRequest) {
   try {
-    const { oauthController, connectionAPIController } = await getJackson()
-    await syncRedirectUrls(connectionAPIController)
+    const { oauthController, adminController, connectionAPIController } = await getJackson()
+    await syncRedirectUrls(adminController, connectionAPIController)
     const params = Object.fromEntries(req.nextUrl.searchParams.entries())
     const { redirect_url, authorize_form } = await oauthController.authorize(params as any)
 
