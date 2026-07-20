@@ -17,7 +17,9 @@ export const authOptions: NextAuthOptions = {
       type: 'oauth',
       authorization: {
         url: `${NEXTAUTH_URL}/api/auth/saml/authorize`,
-        params: { provider: 'saml' },
+        // No 'openid' scope — Jackson requires JWT signing keys for OIDC flow.
+        // We only need the userinfo endpoint, so plain OAuth2 scope is enough.
+        params: { provider: 'saml', scope: 'email profile' },
       },
       token: `${NEXTAUTH_URL}/api/auth/saml/token`,
       userinfo: `${NEXTAUTH_URL}/api/auth/saml/userinfo`,
