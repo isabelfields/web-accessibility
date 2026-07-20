@@ -85,9 +85,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
             <div className="app-sidebar-footer px-5 py-4 border-t border-[#E5E5EA] space-y-2">
               {session?.user?.email && (
-                <div className="text-xs text-[#57575A] truncate" title={session.user.email}>
-                  {session.user.email}
-                  {isAdmin && <span className="ml-1 text-blue-600 font-medium">· admin</span>}
+                <div className="min-w-0">
+                  <div className="text-xs text-[#57575A] truncate" title={session.user.email}>
+                    {session.user.email}
+                  </div>
+                  {isAdmin && <span className="text-xs text-blue-600 font-medium">Admin</span>}
                 </div>
               )}
               <SignOutButton />
