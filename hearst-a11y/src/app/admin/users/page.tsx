@@ -20,6 +20,7 @@ interface AppUser {
 interface InviteResponse {
   inviteToken?: string
   invite_token?: string
+  sso?: boolean
   error?: string
 }
 
@@ -45,10 +46,29 @@ function DivisionChecklist({ divisions, onToggle, className = '' }: { divisions:
   )
 }
 
-function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (link: string) => void }) {
+function SsoAddedModal({ email, onClose }: { email: string; onClose: () => void }) {
+  return (
+    <Modal title="SSO user added" onClose={onClose} size="md">
+      <div className="p-6">
+        <p className="text-sm text-gray-600 mb-2">
+          <span className="font-medium">{email}</span> has been added.
+        </p>
+        <p className="text-sm text-gray-500 mb-4">
+          This user&apos;s email domain is configured for SSO. They can sign in directly using Okta — no invite link is needed.
+        </p>
+        <button onClick={onClose} className="w-full border border-gray-200 text-sm py-2 rounded-lg hover:bg-gray-50 transition-colors">
+          Done
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+function InviteModal({ onClose, onCreated, onSsoCreated }: { onClose: () => void; onCreated: (link: string) => void; onSsoCreated: (email: string) => void }) {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<'admin' | 'user'>('user')
   const [divisions, setDivisions] = useState<string[]>([])
+  const [isSso, setIsSso] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -63,12 +83,16 @@ function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
     const res = await fetch('/api/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, role, allowedDivisions: role === 'admin' ? [] : divisions }),
+      body: JSON.stringify({ email, role, allowedDivisions: role === 'admin' ? [] : divisions, sso: isSso }),
     })
     setLoading(false)
     const data = await res.json() as InviteResponse
     if (!res.ok) {
       setError(data.error ?? 'Failed to create invite')
+      return
+    }
+    if (data.sso) {
+      onSsoCreated(email)
       return
     }
     const inviteToken = data.inviteToken ?? data.invite_token
@@ -113,6 +137,22 @@ function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
               <DivisionChecklist divisions={divisions} onToggle={toggleDivision} />
             </div>
           )}
+          <label className="flex items-center gap-3 cursor-pointer select-none">
+            <div className="relative">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={isSso}
+                onChange={e => setIsSso(e.target.checked)}
+              />
+              <div className="w-9 h-5 rounded-full bg-gray-200 peer-checked:bg-blue-600 transition-colors" />
+              <div className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
+            </div>
+            <span className="text-sm text-gray-700">Signs in with Okta SSO</span>
+          </label>
+          {isSso && (
+            <p className="text-xs text-gray-400 -mt-2">No invite link will be sent — they can sign in with Okta immediately.</p>
+          )}
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="flex gap-2 pt-1">
             <button
@@ -120,7 +160,7 @@ function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
               disabled={loading || (role === 'user' && divisions.length === 0)}
               className="flex-1 bg-blue-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
-              {loading ? 'Creating…' : 'Create invite link'}
+              {loading ? 'Creating…' : isSso ? 'Add user' : 'Create invite link'}
             </button>
             <button
               type="button"
@@ -216,6 +256,7 @@ export default function UsersPage() {
   const [page, setPage] = useState(1)
   const [showInvite, setShowInvite] = useState(false)
   const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [ssoAddedEmail, setSsoAddedEmail] = useState<string | null>(null)
   const [editingUser, setEditingUser] = useState<AppUser | null>(null)
 
   const load = useCallback(async () => {
@@ -277,10 +318,14 @@ export default function UsersPage() {
         <InviteModal
           onClose={() => setShowInvite(false)}
           onCreated={link => { setShowInvite(false); setInviteLink(link); load() }}
+          onSsoCreated={email => { setShowInvite(false); setSsoAddedEmail(email); load() }}
         />
       )}
       {inviteLink && (
         <InviteLinkModal link={inviteLink} onClose={() => setInviteLink(null)} />
+      )}
+      {ssoAddedEmail && (
+        <SsoAddedModal email={ssoAddedEmail} onClose={() => setSsoAddedEmail(null)} />
       )}
       {editingUser && (
         <EditDivisionsModal

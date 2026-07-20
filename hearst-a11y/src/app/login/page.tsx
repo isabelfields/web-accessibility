@@ -15,7 +15,17 @@ export default function LoginPage() {
     const params = new URLSearchParams(window.location.search)
     setInvited(params.get('invited') === '1')
     const urlError = params.get('error')
-    if (urlError) setError(decodeURIComponent(urlError))
+    if (urlError) {
+      const messages: Record<string, string> = {
+        Callback: 'SSO sign-in failed. Please contact your administrator.',
+        OAuthSignin: 'Could not start SSO sign-in. Please try again.',
+        OAuthCallback: 'SSO sign-in failed. Please contact your administrator.',
+        OAuthCreateAccount: 'Could not create your account. Please contact your administrator.',
+        AccessDenied: 'You do not have access to this application.',
+        Configuration: 'Server configuration error. Please contact your administrator.',
+      }
+      setError(messages[urlError] ?? 'Sign-in failed. Please try again.')
+    }
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
