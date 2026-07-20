@@ -26,10 +26,12 @@ export const authOptions: NextAuthOptions = {
       // Must match clientSecretVerifier in lib/jackson.ts.
       clientSecret: process.env.JACKSON_CLIENT_SECRET || 'jackson-secret',
       profile(profile: any) {
+        // Jackson may return email as a top-level field or only as the NameID (id).
+        const email = profile.email ?? profile.id
         return {
-          id: profile.id ?? profile.email,
-          email: profile.email,
-          name: [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.email,
+          id: email ?? profile.id,
+          email: email,
+          name: [profile.firstName, profile.lastName].filter(Boolean).join(' ') || email,
           role: 'user' as const,
           allowedDivisions: [] as string[],
         }
@@ -87,18 +89,25 @@ export const authOptions: NextAuthOptions = {
           const email = user.email?.trim().toLowerCase()
           if (!email) return token
 
-          await sql`
-            INSERT INTO users (email, role, allowed_divisions)
-            VALUES (${email}, 'user', '[]'::jsonb)
-            ON CONFLICT (email) DO NOTHING
-          `
-          const [dbUser] = await sql`
-            SELECT id, role, allowed_divisions FROM users WHERE LOWER(email) = ${email} LIMIT 1
-          `
-          if (dbUser) {
-            token.id = dbUser.id
-            token.role = dbUser.role as 'admin' | 'user'
-            token.allowedDivisions = (dbUser.allowed_divisions as string[]) ?? []
+          try {
+            await sql`
+              INSERT INTO users (email, role, allowed_divisions)
+              VALUES (${email}, 'user', '[]'::jsonb)
+              ON CONFLICT (email) DO NOTHING
+            `
+            const [dbUser] = await sql`
+              SELECT id, role, allowed_divisions FROM users WHERE LOWER(email) = ${email} LIMIT 1
+            `
+            if (dbUser) {
+              token.id = dbUser.id
+              token.role = dbUser.role as 'admin' | 'user'
+              token.allowedDivisions = (dbUser.allowed_divisions as string[]) ?? []
+            }
+          } catch (err) {
+            // Log but don't block login — user can still access the app with default role.
+            console.error('[auth/jwt] SSO JIT provisioning failed for', email, err)
+            token.role = 'user'
+            token.allowedDivisions = []
           }
         } else {
           // Credentials sign-in: values come from authorize().
@@ -143,7 +152,12 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
   },
   session: { strategy: 'jwt' },
-  secret: process.env.AUTH_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  logger: {
+    error(code, metadata) {
+      console.error('[NextAuth]', code, metadata)
+    },
+  },
 }
 
 export default NextAuth(authOptions)
