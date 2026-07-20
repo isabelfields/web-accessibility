@@ -37,14 +37,19 @@ export function countIssueTypes(patterns: ViolationPattern[], predicate: (patter
 
 
 /**
- * Counts affected component instances from the uncapped occurrence totals. The
- * scanner intentionally stores only a capped `pattern.nodes` sample for display,
- * so using node length here would underreport high-volume component issues.
+ * Counts unique affected elements by deduplicating nodes across patterns.
+ * Two nodes with the same HTML on the same URL are treated as the same element.
+ * Uses the stored nodes sample, so this is an approximate lower bound for large scans.
  */
 export function countComponentsWithIssues(patterns: ViolationPattern[], predicate: (pattern: ViolationPattern) => boolean = isActiveWcagPattern): number {
-  return patterns
-    .filter(predicate)
-    .reduce((sum, pattern) => sum + pattern.occurrences, 0)
+  const seen = new Set<string>()
+  for (const pattern of patterns) {
+    if (!predicate(pattern)) continue
+    for (const node of pattern.nodes) {
+      seen.add(`${node.url}|${node.html}`)
+    }
+  }
+  return seen.size
 }
 
 export function getSeverityCounts(patterns: ViolationPattern[], predicate: (pattern: ViolationPattern) => boolean = isActiveWcagPattern): SeverityCounts {
