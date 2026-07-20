@@ -87,18 +87,25 @@ export const authOptions: NextAuthOptions = {
           const email = user.email?.trim().toLowerCase()
           if (!email) return token
 
-          await sql`
-            INSERT INTO users (email, role, allowed_divisions)
-            VALUES (${email}, 'user', '[]'::jsonb)
-            ON CONFLICT (email) DO NOTHING
-          `
-          const [dbUser] = await sql`
-            SELECT id, role, allowed_divisions FROM users WHERE LOWER(email) = ${email} LIMIT 1
-          `
-          if (dbUser) {
-            token.id = dbUser.id
-            token.role = dbUser.role as 'admin' | 'user'
-            token.allowedDivisions = (dbUser.allowed_divisions as string[]) ?? []
+          try {
+            await sql`
+              INSERT INTO users (email, role, allowed_divisions)
+              VALUES (${email}, 'user', '[]'::jsonb)
+              ON CONFLICT (email) DO NOTHING
+            `
+            const [dbUser] = await sql`
+              SELECT id, role, allowed_divisions FROM users WHERE LOWER(email) = ${email} LIMIT 1
+            `
+            if (dbUser) {
+              token.id = dbUser.id
+              token.role = dbUser.role as 'admin' | 'user'
+              token.allowedDivisions = (dbUser.allowed_divisions as string[]) ?? []
+            }
+          } catch (err) {
+            // Log but don't block login — user can still access the app with default role.
+            console.error('[auth/jwt] SSO JIT provisioning failed for', email, err)
+            token.role = 'user'
+            token.allowedDivisions = []
           }
         } else {
           // Credentials sign-in: values come from authorize().
