@@ -44,12 +44,8 @@ export async function POST(req: NextRequest) {
 
   const divisions = allowedDivisions ?? []
 
-  // SSO users authenticate via Okta and are JIT-provisioned on first sign-in.
-  // They don't need (and shouldn't receive) a password-based invite link.
-  // Also fall back to SSO_DOMAIN env var for automatic detection.
-  const ssoDomain = process.env.SSO_DOMAIN?.trim().toLowerCase()
-  const emailDomain = email.split('@')[1]?.toLowerCase()
-  const isSsoUser = sso === true || (ssoDomain ? emailDomain === ssoDomain : false)
+  // SSO is opt-in via the explicit toggle — never infer it from the email domain.
+  const isSsoUser = sso === true
 
   if (isSsoUser) {
     const [user] = await sql`
