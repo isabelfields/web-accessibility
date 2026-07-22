@@ -84,8 +84,14 @@ export function RunScanButton({ siteId }: { siteId: string }) {
         body: JSON.stringify({ siteId, crawl, background: true }),
       })
       if (!res.ok) {
-        const data = await res.json()
-        setMessage(`Error: ${data.error ?? 'Unknown error'}`)
+        let errMsg = 'Unknown error'
+        try {
+          const data = await res.json()
+          errMsg = data.error ?? errMsg
+        } catch {
+          errMsg = `Server error (${res.status})`
+        }
+        setMessage(`Error: ${errMsg}`)
         setProgress(null)
         setLoading(false)
         return

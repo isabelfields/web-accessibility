@@ -24,6 +24,16 @@ function isRestricted(user: SessionUser): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  try {
+  return await _post(req)
+  } catch (err) {
+    console.error('[scan/POST] Unhandled error:', err)
+    const msg = err instanceof Error ? err.message : 'Internal server error'
+    return NextResponse.json({ error: msg }, { status: 500 })
+  }
+}
+
+async function _post(req: NextRequest) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
