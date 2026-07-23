@@ -192,7 +192,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>
             {errorDelta !== null && errorDelta !== 0
               ? `${errorDelta > 0 ? '+' : ''}${errorDelta} vs prev scan`
-              : 'active WCAG failures'}
+              : 'all WCAG failures across pages'}
           </div>
         </div>
 
@@ -217,11 +217,13 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>{pages.length} configured</div>
         </div>
 
-        {/* Total Scans */}
+        {/* Resolved */}
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Total Scans</div>
-          <div style={{ fontSize: 40, fontWeight: 800, color: '#1D1D1F', letterSpacing: '-0.02em', lineHeight: 1 }}>{scans.length}</div>
-          <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>{completedScans.length} completed</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Resolved</div>
+          <div style={{ fontSize: 40, fontWeight: 800, color: errorDelta !== null && errorDelta < 0 ? '#059669' : '#1D1D1F', letterSpacing: '-0.02em', lineHeight: 1 }}>
+            {errorDelta !== null ? Math.max(0, -errorDelta) : '—'}
+          </div>
+          <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>vs previous scan</div>
         </div>
       </div>
 
