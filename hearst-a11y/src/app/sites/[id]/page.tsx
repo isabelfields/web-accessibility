@@ -185,11 +185,15 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
                 background: errorDelta > 0 ? '#FEF2F2' : '#ECFDF5',
                 color: errorDelta > 0 ? '#DC2626' : '#059669',
               }}>
-                {formatSignedDelta(errorDelta)}
+                {errorDelta < 0 ? '↓' : '↑'} {Math.abs(errorDelta)}
               </span>
             )}
           </div>
-          <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>active WCAG failures</div>
+          <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>
+            {errorDelta !== null && errorDelta !== 0
+              ? `${errorDelta > 0 ? '+' : ''}${errorDelta} vs prev scan`
+              : 'active WCAG failures'}
+          </div>
         </div>
 
         {/* Components with Issues */}
@@ -203,7 +207,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #60a5fa', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Issue Types</div>
           <div style={{ fontSize: 40, fontWeight: 800, color: '#2563eb', letterSpacing: '-0.02em', lineHeight: 1 }}>{activeIssueTypes}</div>
-          <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>unique active issue types</div>
+          <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>unique WCAG issue types</div>
         </div>
 
         {/* Pages Scanned */}
