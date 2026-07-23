@@ -37,6 +37,35 @@ const NEEDS_REVIEW: Record<string, string> = {
   'frame-title':                 'Use a screen reader to navigate into each frame and confirm the announced title describes the frame\'s purpose.',
 }
 
+// Plain-language description of the barrier from the user's perspective.
+// Placed directly below the Fix block in the expanded card.
+const USER_IMPACT: Record<string, string> = {
+  'html-has-lang':               "Screen readers use the declared language to choose the correct pronunciation engine. Without it, words may be read with the wrong accent or mispronounced entirely, making content hard to follow for blind users.",
+  'image-alt':                   "A screen-reader user hears alt text in place of the image. Without it, they may hear only a filename or nothing at all, and cannot tell what the image shows or why it is there.",
+  'color-contrast':              "Users with low vision or color blindness may be unable to read text that does not stand out enough from its background. This affects reading body copy, labels, links, and button text.",
+  'color-contrast-enhanced':     "Users with severe low vision depend on higher contrast levels. Text that meets the standard AA threshold may still be unreadable for this group without enhanced contrast.",
+  'button-name':                 "A screen-reader user navigating by keyboard will hear only the button's accessible name. Without one, they cannot tell what the button does and may be unable to complete the action.",
+  'label':                       "When a form field has no label, a screen-reader user cannot tell what information to enter. They may skip the field, enter the wrong data, or be unable to submit the form.",
+  'link-name':                   "A screen-reader user navigating by links hears link text out of context. A link that says 'click here' or 'read more' gives no information about its destination. A keyboard-only user must tab to the link to reach it; if the link has no accessible name it may not be focusable at all.",
+  'aria-required-attr':          "An ARIA role without its required attributes sends incomplete information to assistive technology. Screen-reader users may receive no announcement, a confusing one, or incorrect state information for the element.",
+  'aria-valid-attr-value':       "An ARIA attribute with an invalid value can cause a screen reader to announce wrong state or skip the element entirely, leaving the user without the context they need.",
+  'aria-required-children':      "An ARIA widget that is missing required child roles will not be understood by assistive technology. Users may hear the container announced but be unable to interact with its items.",
+  'document-title':              "Every browser tab shows the page title. Without a descriptive title, a screen-reader user opening multiple tabs cannot tell which tab to return to, and the history and bookmarks list becomes meaningless.",
+  'frame-title':                 "Screen-reader users can navigate by frames. A frame without a title is announced only as 'frame' with no context. Users cannot tell whether to enter the frame or what they will find inside.",
+  'heading-order':               "Screen-reader users navigate pages by jumping between headings. Headings that skip levels or go out of order break the mental map of the page structure, making it hard to find content quickly.",
+  'landmark-one-main':           "Screen-reader users can jump directly to the main content landmark to skip repeated navigation. Without it, they must tab through every header link on every page load.",
+  'region':                      "Content outside a landmark region is harder for screen-reader users to locate. They cannot jump to unlabeled sections the way they can jump to a named landmark like 'navigation' or 'main'.",
+  'select-name':                 "A screen-reader user hears the dropdown's accessible name when focus moves to it. Without a label, they cannot tell what to select and may complete the form incorrectly.",
+  'tabindex':                    "Keyboard-only users rely on a predictable Tab order to move through a page. Positive tabindex values pull focus out of the natural reading order, sending users to unexpected places and making it hard to find or return to content.",
+  'video-caption':               "Deaf and hard-of-hearing users cannot access spoken dialogue, sound effects, or audio cues without captions. They may miss critical information in tutorials, interviews, or news clips.",
+  'input-image-alt':             "An image used as a button must describe its action, not its appearance. Without alt text, a screen-reader user cannot tell what will happen when they activate it.",
+  'keyboard':                    "Any functionality that is not reachable by keyboard alone is unavailable to users who cannot use a mouse — including many people with motor disabilities and anyone navigating by keyboard, switch device, or voice control.",
+  'focus-visible':               "Keyboard users navigate by moving focus from element to element. When focus has no visible indicator, they lose track of where they are on the page and cannot complete tasks reliably.",
+  'bypass':                      "Keyboard users must tab through every header link before reaching page content — on every page load. A skip link lets them jump past repeated navigation in one keystroke, which is essential for frequent visitors.",
+  'scrollable-region-focusable': "If a scrollable area cannot receive keyboard focus, keyboard users cannot scroll it. Any content below the visible fold of that area is inaccessible to them.",
+  'aria-live-region-text':       "Screen readers announce changes in live regions automatically. If the announcement is missing, unclear, or fires at the wrong time, users relying on audio feedback will miss dynamic updates — such as form errors, status messages, or new search results.",
+}
+
 const WCAG_RULES: Record<string, { name: string; wcag: string; what: string }> = {
   'html-has-lang':           { name: 'Page Language',           wcag: 'WCAG 3.1.1 (A)',   what: "The page must declare its language so screen readers pronounce words correctly." },
   'image-alt':               { name: 'Image Alt Text',           wcag: 'WCAG 1.1.1 (A)',   what: 'Images must have a text description so screen reader users know what the image shows.' },
@@ -326,6 +355,14 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                   <p className="mt-1.5 leading-5">{pattern.fixSuggestion}</p>
                 </details>
               )}
+            </div>
+          )}
+
+          {/* How This Affects Users */}
+          {USER_IMPACT[pattern.rule] && (
+            <div className="mx-5 mb-4 rounded-lg border-l-4 border-slate-400 bg-slate-50 px-3 py-2.5 ring-1 ring-slate-200">
+              <div className="text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wide">How This Affects Users</div>
+              <p className="text-xs text-slate-800 leading-5">{USER_IMPACT[pattern.rule]}</p>
             </div>
           )}
 
