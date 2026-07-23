@@ -200,7 +200,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E5EA', borderLeft: '4px solid #3B82F6', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: '#57575A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Components with Issues</div>
           <div style={{ fontSize: 40, fontWeight: 800, color: '#1D4ED8', letterSpacing: '-0.02em', lineHeight: 1 }}>{latestScan ? activeComponentsWithIssues : '—'}</div>
-          <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>deduped affected components</div>
+          <div style={{ fontSize: 12, color: '#57575A', marginTop: 8 }}>unique affected elements</div>
         </div>
 
         {/* Issue Types */}
