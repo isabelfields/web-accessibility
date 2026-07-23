@@ -18,6 +18,25 @@ const TRIAGE_BADGE: Record<Exclude<TriageStatus, 'open'>, string> = {
   false_positive: 'bg-amber-100 text-amber-700',
 }
 
+// Rules where automated scanning cannot confirm the full context, interaction
+// behavior, or user impact — a human must verify the specific aspect listed.
+const NEEDS_REVIEW: Record<string, string> = {
+  'color-contrast':              'Verify contrast manually: automated tools can miss issues on gradients, text over images, and elements that change color on hover or focus.',
+  'image-alt':                   'Read each alt text and confirm it conveys the image\'s purpose — not just its appearance. Confirm purely decorative images use alt="".',
+  'link-name':                   'Read each link in context. Confirm its purpose is clear from the link text alone, without relying on surrounding sentences.',
+  'button-name':                 'Use a screen reader (NVDA, JAWS, or VoiceOver) to navigate to each button and confirm the announced name accurately describes the action.',
+  'label':                       'Use a screen reader to navigate to each form field and confirm the announced label accurately describes what to enter.',
+  'keyboard':                    'Navigate to each flagged element using Tab, Enter, Space, and arrow keys only. Confirm it is reachable, operable, and focus is clearly visible.',
+  'focus-visible':               'Tab through the page and confirm every focused element shows a clear focus indicator. Test in Chrome, Firefox, and Safari.',
+  'bypass':                      'Navigate with keyboard only. Confirm the skip link appears on first Tab press and moves focus directly to the main content when activated.',
+  'scrollable-region-focusable': 'Use Tab to reach each scrollable area and confirm it can be scrolled using arrow keys.',
+  'tabindex':                    'Tab through the page and confirm focus moves in a logical reading order. Positive tabindex values often break the natural sequence.',
+  'video-caption':               'Open each video and confirm captions are available, accurate, and in sync with the audio.',
+  'aria-live-region-text':       'Trigger the dynamic content update with a screen reader active. Confirm the announcement is clear and not overly verbose.',
+  'select-name':                 'Use a screen reader to navigate to each dropdown and confirm the announced label describes what to select.',
+  'frame-title':                 'Use a screen reader to navigate into each frame and confirm the announced title describes the frame\'s purpose.',
+}
+
 const WCAG_RULES: Record<string, { name: string; wcag: string; what: string }> = {
   'html-has-lang':           { name: 'Page Language',           wcag: 'WCAG 3.1.1 (A)',   what: "The page must declare its language so screen readers pronounce words correctly." },
   'image-alt':               { name: 'Image Alt Text',           wcag: 'WCAG 1.1.1 (A)',   what: 'Images must have a text description so screen reader users know what the image shows.' },
@@ -265,6 +284,11 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
             New
           </span>
         )}
+        {NEEDS_REVIEW[pattern.rule] && !triaged && (
+          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
+            Human Review
+          </span>
+        )}
         <div className="flex-1 min-w-0">
           <span className="font-semibold text-[#1D1D1F] text-sm">{ruleInfo.name}</span>
           <span className="text-xs text-[#3A3A3C] font-medium ml-2 bg-[#ECECEE] px-1.5 py-0.5 rounded">{ruleInfo.wcag}</span>
@@ -302,6 +326,19 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                   <p className="mt-1.5 leading-5">{pattern.fixSuggestion}</p>
                 </details>
               )}
+            </div>
+          )}
+
+          {/* Human Review Recommended */}
+          {NEEDS_REVIEW[pattern.rule] && (
+            <div className="mx-5 mb-4 rounded-lg border-l-4 border-amber-400 bg-amber-50 px-3 py-2.5 ring-1 ring-amber-100">
+              <div className="flex items-center gap-1.5 mb-1">
+                <svg className="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-2.194-.833-2.964 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wide">Human Review Recommended</span>
+              </div>
+              <p className="text-xs text-amber-900 leading-5">{NEEDS_REVIEW[pattern.rule]}</p>
             </div>
           )}
 
