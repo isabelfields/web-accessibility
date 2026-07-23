@@ -101,13 +101,6 @@ function truncateHtml(html: string, max = 120) {
   return single.length > max ? single.slice(0, max) + '…' : single
 }
 
-function firstSentence(text: string, max = 180) {
-  const single = text.replace(/\s+/g, ' ').trim()
-  const sentenceEnd = single.match(/[.!?](?:\s|$)/)
-  const end = sentenceEnd?.index !== undefined ? sentenceEnd.index + 1 : max
-  const concise = single.slice(0, Math.min(end, max)).trim()
-  return single.length > concise.length ? concise.replace(/[.,;:]$/, '') + '…' : concise
-}
 
 const SHOW_LIMIT = 5
 const PENDING_JIRA_TICKET_KEY = 'pendingJiraTicket'
@@ -288,9 +281,6 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
   const visibleNodes = showAll ? nodes : nodes.slice(0, SHOW_LIMIT)
   const hiddenCount = nodes.length - SHOW_LIMIT
-  const conciseFix = pattern.fixSuggestion ? firstSentence(pattern.fixSuggestion) : null
-  const hasMoreFixCopy = Boolean(pattern.fixSuggestion && conciseFix && conciseFix !== pattern.fixSuggestion)
-
   return (
     <div className={`bg-white border border-[#D1D5DB] border-l-4 rounded-xl overflow-hidden shadow-sm ${triaged ? 'opacity-60' : ''}`}
       style={{ borderLeftColor: c.hex }}>
@@ -345,24 +335,39 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
         <div className="border-t border-[#D1D5DB] bg-white">
 
           {/* How to fix */}
-          {pattern.fixSuggestion && conciseFix && (
-            <div className="mx-5 mt-4 mb-4 rounded-lg border-l-4 border-blue-500 bg-white px-3 py-2.5 shadow-sm ring-1 ring-blue-100">
-              <div className="text-[11px] font-bold text-blue-700 mb-1 uppercase tracking-wide">Fix</div>
-              <p className="text-xs text-slate-900 leading-5">{conciseFix}</p>
-              {hasMoreFixCopy && (
-                <details className="mt-1.5 text-xs text-slate-700">
-                  <summary className="cursor-pointer font-medium text-blue-700 hover:text-blue-900">More detail</summary>
-                  <p className="mt-1.5 leading-5">{pattern.fixSuggestion}</p>
-                </details>
-              )}
+          {pattern.fixSuggestion && (
+            <div className="mx-5 mt-4 mb-4 rounded-lg border-l-4 border-emerald-500 bg-emerald-50 px-3 py-3 ring-1 ring-emerald-100">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <svg className="w-3.5 h-3.5 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                </svg>
+                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide">How to Fix</span>
+              </div>
+              <p className="text-xs text-emerald-950 leading-5">{pattern.fixSuggestion}</p>
+              <a
+                href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 mt-2 text-[11px] font-medium text-emerald-700 hover:text-emerald-900 hover:underline"
+              >
+                WCAG technical reference
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
             </div>
           )}
 
           {/* How This Affects Users */}
           {USER_IMPACT[pattern.rule] && (
-            <div className="mx-5 mb-4 rounded-lg border-l-4 border-slate-400 bg-slate-50 px-3 py-2.5 ring-1 ring-slate-200">
-              <div className="text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wide">How This Affects Users</div>
-              <p className="text-xs text-slate-800 leading-5">{USER_IMPACT[pattern.rule]}</p>
+            <div className="mx-5 mb-4 rounded-lg border-l-4 border-violet-400 bg-violet-50 px-3 py-2.5 ring-1 ring-violet-100">
+              <div className="flex items-center gap-1.5 mb-1">
+                <svg className="w-3.5 h-3.5 text-violet-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="text-[11px] font-bold text-violet-700 uppercase tracking-wide">How This Affects Users</span>
+              </div>
+              <p className="text-xs text-violet-950 leading-5">{USER_IMPACT[pattern.rule]}</p>
             </div>
           )}
 
