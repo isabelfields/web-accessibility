@@ -291,13 +291,13 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
   const activeDetailTab = detailTabs.some(t => t.id === activeTab) ? activeTab : (detailTabs[0]?.id ?? 'fix')
 
   return (
-    <div className={`bg-white border border-[#E5E5EA] border-l-4 rounded-xl overflow-hidden ${triaged ? 'opacity-60' : ''}`}
+    <div className={`bg-white border border-[#E5E5EA] border-l-4 rounded-xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)] ${triaged ? 'opacity-60' : ''}`}
       style={{ borderLeftColor: c.hex }}>
 
       {/* ── Collapsed header row ── */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full text-left px-5 py-4 flex items-center gap-3 hover:bg-[#FAFAFA] transition-colors"
+        className="w-full text-left px-5 py-5 flex items-center gap-3 hover:bg-[#FAFAFA] transition-colors"
       >
         <span className={`shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md ${c.bg} ${c.text}`}>
           {tierLabel}
@@ -318,15 +318,10 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
           </div>
           <p className="text-xs text-[#6E6E73] mt-0.5 truncate">{pattern.description}</p>
         </div>
-        <div className="hidden sm:flex items-center gap-4 shrink-0">
-          <div className="text-right">
-            <div className="text-sm font-semibold text-[#1D1D1F] tabular-nums">{instanceCount}</div>
-            <div className="text-[10px] text-[#8E8E93]">instance{instanceCount !== 1 ? 's' : ''}</div>
-          </div>
-          <div className="text-right">
-            <div className="text-sm font-semibold text-[#1D1D1F] tabular-nums">{pageCount}</div>
-            <div className="text-[10px] text-[#8E8E93]">page{pageCount !== 1 ? 's' : ''}</div>
-          </div>
+        <div className="hidden sm:flex items-center shrink-0">
+          <span className="text-xs text-[#8E8E93] tabular-nums whitespace-nowrap">
+            {instanceCount} instance{instanceCount !== 1 ? 's' : ''} · {pageCount} page{pageCount !== 1 ? 's' : ''}
+          </span>
         </div>
         <svg className={`shrink-0 w-4 h-4 text-[#8E8E93] transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -438,9 +433,9 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
       )}
 
       {/* Footer */}
-      <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex flex-nowrap items-center justify-between gap-3 overflow-x-auto bg-[#F5F5F7]">
+      <div className="px-5 py-3 border-t border-[#E5E5EA] flex flex-nowrap items-center justify-between gap-3 overflow-x-auto bg-white">
             {siteId && (
-              <div className="flex shrink-0 items-center gap-3">
+              <div className="flex shrink-0 items-center gap-2.5">
                 <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-medium text-[#6E6E73]">Status</label>
                 <select
                   id={`triage-${pattern.fingerprint}`}
@@ -451,7 +446,16 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                 >
                   {TRIAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
-                <span className="text-[11px] text-[#3A3A3C]">Triaged issues are excluded from active counts; the rule still appears here.</span>
+                <span
+                  title="Triaged issues are excluded from active counts; the rule still appears here."
+                  className="text-[#8E8E93] cursor-default select-none"
+                  aria-label="Triage info"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
+                  </svg>
+                </span>
               </div>
             )}
             <div className="ml-auto flex shrink-0 flex-nowrap items-center justify-end gap-3">
