@@ -282,51 +282,46 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
   const visibleNodes = showAll ? nodes : nodes.slice(0, SHOW_LIMIT)
   const hiddenCount = nodes.length - SHOW_LIMIT
   return (
-    <div className={`bg-white border border-[#D1D5DB] border-l-4 rounded-xl overflow-hidden shadow-sm ${triaged ? 'opacity-60' : ''}`}
+    <div className={`bg-white border border-[#E5E5EA] border-l-4 rounded-xl overflow-hidden ${triaged ? 'opacity-60' : ''}`}
       style={{ borderLeftColor: c.hex }}>
 
       {/* ── Collapsed header row ── */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full text-left px-5 py-4 flex items-center gap-3 hover:bg-slate-50 transition-colors"
+        className="w-full text-left px-5 py-4 flex items-center gap-3 hover:bg-[#FAFAFA] transition-colors"
       >
-        <span className={`shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md ${c.bg} ${c.text} ring-1 ring-inset ${c.border}`}>
+        <span className={`shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md ${c.bg} ${c.text}`}>
           {tierLabel}
         </span>
-        {triaged && (
-          <span className={`shrink-0 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded ${TRIAGE_BADGE[triage as Exclude<TriageStatus, 'open'>]}`}>
-            {TRIAGE_OPTIONS.find(o => o.value === triage)?.label}
-          </span>
-        )}
-        {pattern.isNew && !triaged && (
-          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 text-red-700" title="Not present in the previous scan">
-            New
-          </span>
-        )}
-        {NEEDS_REVIEW[pattern.rule] && !triaged && (
-          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
-            Human Review
-          </span>
-        )}
         <div className="flex-1 min-w-0">
-          <span className="font-semibold text-[#1D1D1F] text-sm">{ruleInfo.name}</span>
-          <span className="text-xs text-[#3A3A3C] font-medium ml-2 bg-[#ECECEE] px-1.5 py-0.5 rounded">{ruleInfo.wcag}</span>
-          <span className="text-xs text-[#8A8A8E] mx-1.5">·</span>
-          <span className="text-xs text-[#3A3A3C] truncate">{pattern.description}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-[#1D1D1F] text-[15px]">{ruleInfo.name}</span>
+            <span className="text-xs text-[#8E8E93]">{ruleInfo.wcag}</span>
+            {pattern.isNew && !triaged && (
+              <span className="text-[11px] font-semibold text-red-500" title="Not present in the previous scan">New</span>
+            )}
+            {NEEDS_REVIEW[pattern.rule] && !triaged && (
+              <span className="text-[11px] font-medium text-amber-600">Needs review</span>
+            )}
+            {triaged && (
+              <span className="text-[11px] font-medium text-[#8E8E93]">{TRIAGE_OPTIONS.find(o => o.value === triage)?.label}</span>
+            )}
+          </div>
+          <p className="text-xs text-[#6E6E73] mt-0.5 truncate">{pattern.description}</p>
         </div>
-        <div className="hidden sm:flex items-center gap-5 shrink-0 text-right">
-          <div>
+        <div className="hidden sm:flex items-center gap-4 shrink-0">
+          <div className="text-right">
             <div className="text-sm font-semibold text-[#1D1D1F] tabular-nums">{instanceCount}</div>
-            <div className="text-[10px] text-[#3A3A3C] uppercase tracking-wide">instance{instanceCount !== 1 ? 's' : ''}</div>
+            <div className="text-[10px] text-[#8E8E93]">instance{instanceCount !== 1 ? 's' : ''}</div>
           </div>
-          <div>
+          <div className="text-right">
             <div className="text-sm font-semibold text-[#1D1D1F] tabular-nums">{pageCount}</div>
-            <div className="text-[10px] text-[#3A3A3C] uppercase tracking-wide">page{pageCount !== 1 ? 's' : ''}</div>
+            <div className="text-[10px] text-[#8E8E93]">page{pageCount !== 1 ? 's' : ''}</div>
           </div>
         </div>
-        <svg className={`shrink-0 w-4 h-4 text-[#3A3A3C] transition-transform ${open ? 'rotate-180' : ''}`}
+        <svg className={`shrink-0 w-4 h-4 text-[#8E8E93] transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
@@ -336,13 +331,8 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
           {/* How to fix */}
           {pattern.fixSuggestion && (
-            <div className="px-5 pt-4 pb-4">
-              <div className="flex items-center gap-1.5 mb-2">
-                <svg className="w-3.5 h-3.5 text-[#6E6E73] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
-                </svg>
-                <span className="text-[11px] font-semibold text-[#6E6E73]">How to fix</span>
-              </div>
+            <div className="px-5 pt-5 pb-4">
+              <p className="text-[11px] font-semibold text-[#8E8E93] mb-1.5 uppercase tracking-wider">How to fix</p>
               <p className="text-sm text-[#1D1D1F] leading-relaxed">{pattern.fixSuggestion}</p>
               <a
                 href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}`}
@@ -350,7 +340,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 mt-2.5 text-xs font-medium text-[#0071E3] hover:underline"
               >
-                WCAG technical reference
+                WCAG reference
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
@@ -363,12 +353,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
             <>
               <div className="mx-5 border-t border-[#F2F2F7]" />
               <div className="px-5 py-4">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <svg className="w-3.5 h-3.5 text-[#6E6E73] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span className="text-[11px] font-semibold text-[#6E6E73]">How this affects users</span>
-                </div>
+                <p className="text-[11px] font-semibold text-[#8E8E93] mb-1.5 uppercase tracking-wider">How this affects users</p>
                 <p className="text-sm text-[#1D1D1F] leading-relaxed">{USER_IMPACT[pattern.rule]}</p>
               </div>
             </>
@@ -376,49 +361,47 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
           {/* Human Review Recommended */}
           {NEEDS_REVIEW[pattern.rule] && (
-            <div className="mx-5 mb-4 rounded-xl bg-[#FFF8EC] border border-[#F5E4BB] px-4 py-3">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <svg className="w-3.5 h-3.5 text-[#B45309] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-2.194-.833-2.964 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-                <span className="text-[11px] font-semibold text-[#92400E]">Human review recommended</span>
+            <>
+              <div className="mx-5 border-t border-[#F2F2F7]" />
+              <div className="px-5 py-4">
+                <p className="text-[11px] font-semibold text-amber-600 mb-1.5 uppercase tracking-wider">Needs manual review</p>
+                <p className="text-sm text-[#1D1D1F] leading-relaxed">{NEEDS_REVIEW[pattern.rule]}</p>
               </div>
-              <p className="text-xs text-[#78350F] leading-5">{NEEDS_REVIEW[pattern.rule]}</p>
-            </div>
+            </>
           )}
 
           {/* Failing elements */}
           {nodes.length > 0 && (
-            <div className="mx-5 mb-4 overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm">
-              <div className="px-3 py-2 flex items-center justify-between bg-white">
-                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <div className="mx-5 mb-4 overflow-hidden rounded-xl border border-[#E5E5EA] bg-white">
+              <div className="px-4 py-2.5 border-b border-[#F2F2F7]">
+                <span className="text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">
                   Failing elements · {nodes.length}
                 </span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-y border-blue-100 bg-blue-50">
-                    <th className="text-left px-3 py-1.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider w-8">#</th>
-                    <th className="text-left px-2.5 py-1.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider w-36">Page</th>
-                    <th className="text-left px-2.5 py-1.5 text-[10px] font-bold text-slate-700 uppercase tracking-wider">Element</th>
+                  <tr className="border-b border-[#F2F2F7]">
+                    <th className="text-left px-4 py-2 text-[10px] font-semibold text-[#8E8E93] w-8">#</th>
+                    <th className="text-left px-3 py-2 text-[10px] font-semibold text-[#8E8E93] w-36">Page</th>
+                    <th className="text-left px-3 py-2 text-[10px] font-semibold text-[#8E8E93]">Element</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-blue-50">
+                <tbody className="divide-y divide-[#F2F2F7]">
                   {visibleNodes.map((node, i) => (
-                    <tr key={i} className="align-top hover:bg-blue-50/40">
-                      <td className="px-3 py-2 text-slate-700 font-mono">{i + 1}</td>
-                      <td className="px-2.5 py-2">
+                    <tr key={i} className="align-top hover:bg-[#FAFAFA] transition-colors">
+                      <td className="px-4 py-2.5 text-[#8E8E93] font-mono text-xs">{i + 1}</td>
+                      <td className="px-3 py-2.5">
                         {node.url ? (
                           <a href={node.url} target="_blank" rel="noopener noreferrer"
-                            className="text-blue-700 hover:underline font-mono truncate block max-w-[180px]"
+                            className="text-[#0071E3] hover:underline font-mono truncate block max-w-[180px]"
                             title={node.url}>
                             {pagePath(node.url)}
                           </a>
-                        ) : <span className="text-[#3A3A3C]">—</span>}
+                        ) : <span className="text-[#8E8E93]">—</span>}
                       </td>
-                      <td className="px-2.5 py-2">
-                        <code className="block max-w-full whitespace-pre-wrap break-words rounded border border-blue-100 bg-white px-1.5 py-1 font-mono text-[11px] leading-4 text-slate-800">
+                      <td className="px-3 py-2.5">
+                        <code className="block max-w-full whitespace-pre-wrap break-words rounded-lg border border-[#E5E5EA] bg-[#F5F5F7] px-2 py-1.5 font-mono text-[11px] leading-4 text-[#3A3A3C]">
                           {truncateHtml(node.html)}
                         </code>
                       </td>
@@ -430,9 +413,9 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
               {hiddenCount > 0 && !showAll && (
                 <button
                   onClick={() => setShowAll(true)}
-                  className="w-full text-center text-xs font-medium text-blue-700 hover:text-blue-900 py-2 border-t border-blue-100 hover:bg-blue-50 transition-colors"
+                  className="w-full text-center text-xs font-medium text-[#0071E3] py-2.5 border-t border-[#F2F2F7] hover:bg-[#FAFAFA] transition-colors"
                 >
-                  + {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
+                  Show {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
                 </button>
               )}
             </div>
@@ -442,7 +425,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
           <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex flex-nowrap items-center justify-between gap-3 overflow-x-auto bg-[#F5F5F7]">
             {siteId && (
               <div className="flex shrink-0 items-center gap-3">
-                <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-semibold text-[#3A3A3C] uppercase tracking-wider">Status</label>
+                <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-medium text-[#6E6E73]">Status</label>
                 <select
                   id={`triage-${pattern.fingerprint}`}
                   value={triage}
