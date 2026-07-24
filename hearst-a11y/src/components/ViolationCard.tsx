@@ -327,12 +327,12 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
       {/* ── Expanded body ── */}
       {open && (
-        <div className="border-t border-[#D1D5DB] bg-white">
+        <div className="border-t border-[#E5E5EA] bg-[#FAFAFA]">
 
           {/* How to fix */}
           {pattern.fixSuggestion && (
             <div className="px-5 pt-5 pb-4">
-              <p className="text-[11px] font-semibold text-[#8E8E93] mb-1.5 uppercase tracking-wider">How to fix</p>
+              <p className="text-xs font-medium text-[#8E8E93] mb-1.5">How to fix</p>
               <p className="text-sm text-[#1D1D1F] leading-relaxed">{pattern.fixSuggestion}</p>
               <a
                 href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}`}
@@ -351,9 +351,9 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
           {/* How This Affects Users */}
           {USER_IMPACT[pattern.rule] && (
             <>
-              <div className="mx-5 border-t border-[#F2F2F7]" />
+              <div className="mx-5 border-t border-[#E5E5EA]" />
               <div className="px-5 py-4">
-                <p className="text-[11px] font-semibold text-[#8E8E93] mb-1.5 uppercase tracking-wider">How this affects users</p>
+                <p className="text-xs font-medium text-[#8E8E93] mb-1.5">How this affects users</p>
                 <p className="text-sm text-[#1D1D1F] leading-relaxed">{USER_IMPACT[pattern.rule]}</p>
               </div>
             </>
@@ -362,9 +362,9 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
           {/* Human Review Recommended */}
           {NEEDS_REVIEW[pattern.rule] && (
             <>
-              <div className="mx-5 border-t border-[#F2F2F7]" />
-              <div className="px-5 py-4">
-                <p className="text-[11px] font-semibold text-amber-600 mb-1.5 uppercase tracking-wider">Needs manual review</p>
+              <div className="mx-5 border-t border-[#E5E5EA]" />
+              <div className="px-5 py-4 border-l-2 border-amber-400 ml-5 pl-4 mr-5 my-3 rounded-sm bg-white">
+                <p className="text-xs font-medium text-amber-600 mb-1.5">Needs manual review</p>
                 <p className="text-sm text-[#1D1D1F] leading-relaxed">{NEEDS_REVIEW[pattern.rule]}</p>
               </div>
             </>
@@ -374,7 +374,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
           {nodes.length > 0 && (
             <div className="mx-5 mb-4 overflow-hidden rounded-xl border border-[#E5E5EA] bg-white">
               <div className="px-4 py-2.5 border-b border-[#F2F2F7]">
-                <span className="text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">
+                <span className="text-xs font-medium text-[#8E8E93]">
                   Failing elements · {nodes.length}
                 </span>
               </div>
@@ -382,9 +382,9 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                 <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-[#F2F2F7]">
-                    <th className="text-left px-4 py-2 text-[10px] font-semibold text-[#8E8E93] w-8">#</th>
-                    <th className="text-left px-3 py-2 text-[10px] font-semibold text-[#8E8E93] w-36">Page</th>
-                    <th className="text-left px-3 py-2 text-[10px] font-semibold text-[#8E8E93]">Element</th>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-[#8E8E93] w-8">#</th>
+                    <th className="text-left px-3 py-2 text-xs font-medium text-[#8E8E93] w-36">Page</th>
+                    <th className="text-left px-3 py-2 text-xs font-medium text-[#8E8E93]">Element</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F2F2F7]">
