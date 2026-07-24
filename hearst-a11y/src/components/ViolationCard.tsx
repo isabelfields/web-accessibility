@@ -336,19 +336,19 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
           {/* How to fix */}
           {pattern.fixSuggestion && (
-            <div className="mx-5 mt-4 mb-4 rounded-lg border-l-4 border-emerald-500 bg-emerald-50 px-3 py-3 ring-1 ring-emerald-100">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <svg className="w-3.5 h-3.5 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+            <div className="px-5 pt-4 pb-4">
+              <div className="flex items-center gap-1.5 mb-2">
+                <svg className="w-3.5 h-3.5 text-[#6E6E73] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
                 </svg>
-                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide">How to Fix</span>
+                <span className="text-[11px] font-semibold text-[#6E6E73]">How to fix</span>
               </div>
-              <p className="text-xs text-emerald-950 leading-5">{pattern.fixSuggestion}</p>
+              <p className="text-sm text-[#1D1D1F] leading-relaxed">{pattern.fixSuggestion}</p>
               <a
                 href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 mt-2 text-[11px] font-medium text-emerald-700 hover:text-emerald-900 hover:underline"
+                className="inline-flex items-center gap-1 mt-2.5 text-xs font-medium text-[#0071E3] hover:underline"
               >
                 WCAG technical reference
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -360,27 +360,30 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
           {/* How This Affects Users */}
           {USER_IMPACT[pattern.rule] && (
-            <div className="mx-5 mb-4 rounded-lg border-l-4 border-violet-400 bg-violet-50 px-3 py-2.5 ring-1 ring-violet-100">
-              <div className="flex items-center gap-1.5 mb-1">
-                <svg className="w-3.5 h-3.5 text-violet-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span className="text-[11px] font-bold text-violet-700 uppercase tracking-wide">How This Affects Users</span>
+            <>
+              <div className="mx-5 border-t border-[#F2F2F7]" />
+              <div className="px-5 py-4">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <svg className="w-3.5 h-3.5 text-[#6E6E73] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span className="text-[11px] font-semibold text-[#6E6E73]">How this affects users</span>
+                </div>
+                <p className="text-sm text-[#1D1D1F] leading-relaxed">{USER_IMPACT[pattern.rule]}</p>
               </div>
-              <p className="text-xs text-violet-950 leading-5">{USER_IMPACT[pattern.rule]}</p>
-            </div>
+            </>
           )}
 
           {/* Human Review Recommended */}
           {NEEDS_REVIEW[pattern.rule] && (
-            <div className="mx-5 mb-4 rounded-lg border-l-4 border-amber-400 bg-amber-50 px-3 py-2.5 ring-1 ring-amber-100">
-              <div className="flex items-center gap-1.5 mb-1">
-                <svg className="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-2.194-.833-2.964 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            <div className="mx-5 mb-4 rounded-xl bg-[#FFF8EC] border border-[#F5E4BB] px-4 py-3">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <svg className="w-3.5 h-3.5 text-[#B45309] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-2.194-.833-2.964 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
-                <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wide">Human Review Recommended</span>
+                <span className="text-[11px] font-semibold text-[#92400E]">Human review recommended</span>
               </div>
-              <p className="text-xs text-amber-900 leading-5">{NEEDS_REVIEW[pattern.rule]}</p>
+              <p className="text-xs text-[#78350F] leading-5">{NEEDS_REVIEW[pattern.rule]}</p>
             </div>
           )}
 
