@@ -361,7 +361,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
             )}
 
             {/* Tab content */}
-            <div className="px-5 py-4 bg-[#FAFAFA]">
+            <div className="px-5 py-4 bg-white">
               {activeDetailTab === 'fix' && pattern.fixSuggestion && (
                 <>
                   <p className="text-sm text-[#1D1D1F] leading-relaxed">{pattern.fixSuggestion}</p>
@@ -415,7 +415,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                             ) : <span className="text-[#8E8E93]">—</span>}
                           </td>
                           <td className="px-3 py-2">
-                            <code className="block max-w-full whitespace-pre-wrap break-words rounded-lg bg-[#F5F5F7] px-2 py-1.5 font-mono text-[11px] leading-4 text-[#3A3A3C]">
+                            <code className="block max-w-full whitespace-pre-wrap break-words rounded-lg bg-[#F0F4FF] border border-[#E0E8FF] px-2 py-1.5 font-mono text-[11px] leading-4 text-[#1D1D1F]">
                               {truncateHtml(node.html)}
                             </code>
                           </td>
