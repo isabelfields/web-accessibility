@@ -130,6 +130,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
+  const [activeTab, setActiveTab] = useState<'fix' | 'impact' | 'review'>('fix')
   const [triage, setTriage] = useState<TriageStatus>(pattern.triageStatus ?? 'open')
   const [savingTriage, setSavingTriage] = useState(false)
   const [creatingJira, setCreatingJira] = useState(false)
@@ -281,6 +282,14 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
   const visibleNodes = showAll ? nodes : nodes.slice(0, SHOW_LIMIT)
   const hiddenCount = nodes.length - SHOW_LIMIT
+
+  const detailTabs = [
+    ...(pattern.fixSuggestion        ? [{ id: 'fix'    as const, label: 'How to fix',  amber: false }] : []),
+    ...(USER_IMPACT[pattern.rule]    ? [{ id: 'impact' as const, label: 'User impact', amber: false }] : []),
+    ...(NEEDS_REVIEW[pattern.rule]   ? [{ id: 'review' as const, label: 'Needs review', amber: true }] : []),
+  ]
+  const activeDetailTab = detailTabs.some(t => t.id === activeTab) ? activeTab : (detailTabs[0]?.id ?? 'fix')
+
   return (
     <div className={`bg-white border border-[#E5E5EA] border-l-4 rounded-xl overflow-hidden ${triaged ? 'opacity-60' : ''}`}
       style={{ borderLeftColor: c.hex }}>
@@ -327,102 +336,109 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
       {/* ── Expanded body ── */}
       {open && (
-        <div className="border-t border-[#E5E5EA] bg-[#FAFAFA]">
+          <div className="border-t border-[#E5E5EA]">
 
-          {/* How to fix */}
-          {pattern.fixSuggestion && (
-            <div className="px-5 pt-5 pb-4">
-              <p className="text-xs font-medium text-[#8E8E93] mb-1.5">How to fix</p>
-              <p className="text-sm text-[#1D1D1F] leading-relaxed">{pattern.fixSuggestion}</p>
-              <a
-                href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 mt-2.5 text-xs font-medium text-[#0071E3] hover:underline"
-              >
-                WCAG reference
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            </div>
-          )}
+            {/* Tab bar */}
+            {detailTabs.length > 0 && (
+              <div className="flex gap-0 border-b border-[#E5E5EA] bg-white px-4">
+                {detailTabs.map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => setActiveTab(t.id)}
+                    className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 -mb-px transition-colors ${
+                      activeDetailTab === t.id
+                        ? t.amber
+                          ? 'text-amber-600 border-amber-400'
+                          : 'text-[#1D1D1F] border-[#1D1D1F]'
+                        : 'text-[#8E8E93] border-transparent hover:text-[#3A3A3C]'
+                    }`}
+                  >
+                    {t.amber && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
-          {/* How This Affects Users */}
-          {USER_IMPACT[pattern.rule] && (
-            <>
-              <div className="mx-5 border-t border-[#E5E5EA]" />
-              <div className="px-5 py-4">
-                <p className="text-xs font-medium text-[#8E8E93] mb-1.5">How this affects users</p>
+            {/* Tab content */}
+            <div className="px-5 py-4 bg-[#FAFAFA]">
+              {activeDetailTab === 'fix' && pattern.fixSuggestion && (
+                <>
+                  <p className="text-sm text-[#1D1D1F] leading-relaxed">{pattern.fixSuggestion}</p>
+                  <a
+                    href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 mt-2.5 text-xs font-medium text-[#0071E3] hover:underline"
+                  >
+                    WCAG reference
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </>
+              )}
+              {activeDetailTab === 'impact' && USER_IMPACT[pattern.rule] && (
                 <p className="text-sm text-[#1D1D1F] leading-relaxed">{USER_IMPACT[pattern.rule]}</p>
-              </div>
-            </>
-          )}
-
-          {/* Human Review Recommended */}
-          {NEEDS_REVIEW[pattern.rule] && (
-            <>
-              <div className="mx-5 border-t border-[#E5E5EA]" />
-              <div className="px-5 py-4 border-l-2 border-amber-400 ml-5 pl-4 mr-5 my-3 rounded-sm bg-white">
-                <p className="text-xs font-medium text-amber-600 mb-1.5">Needs manual review</p>
+              )}
+              {activeDetailTab === 'review' && NEEDS_REVIEW[pattern.rule] && (
                 <p className="text-sm text-[#1D1D1F] leading-relaxed">{NEEDS_REVIEW[pattern.rule]}</p>
-              </div>
-            </>
-          )}
-
-          {/* Failing elements */}
-          {nodes.length > 0 && (
-            <div className="mx-5 mb-4 overflow-hidden rounded-xl border border-[#E5E5EA] bg-white">
-              <div className="px-4 py-2.5 border-b border-[#F2F2F7]">
-                <span className="text-xs font-medium text-[#8E8E93]">
-                  Failing elements · {nodes.length}
-                </span>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-[#F2F2F7]">
-                    <th className="text-left px-4 py-2 text-xs font-medium text-[#8E8E93] w-8">#</th>
-                    <th className="text-left px-3 py-2 text-xs font-medium text-[#8E8E93] w-36">Page</th>
-                    <th className="text-left px-3 py-2 text-xs font-medium text-[#8E8E93]">Element</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F2F2F7]">
-                  {visibleNodes.map((node, i) => (
-                    <tr key={i} className="align-top hover:bg-[#FAFAFA] transition-colors">
-                      <td className="px-4 py-2.5 text-[#8E8E93] font-mono text-xs">{i + 1}</td>
-                      <td className="px-3 py-2.5">
-                        {node.url ? (
-                          <a href={node.url} target="_blank" rel="noopener noreferrer"
-                            className="text-[#0071E3] hover:underline font-mono truncate block max-w-[180px]"
-                            title={node.url}>
-                            {pagePath(node.url)}
-                          </a>
-                        ) : <span className="text-[#8E8E93]">—</span>}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <code className="block max-w-full whitespace-pre-wrap break-words rounded-lg border border-[#E5E5EA] bg-[#F5F5F7] px-2 py-1.5 font-mono text-[11px] leading-4 text-[#3A3A3C]">
-                          {truncateHtml(node.html)}
-                        </code>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
-              {hiddenCount > 0 && !showAll && (
-                <button
-                  onClick={() => setShowAll(true)}
-                  className="w-full text-center text-xs font-medium text-[#0071E3] py-2.5 border-t border-[#F2F2F7] hover:bg-[#FAFAFA] transition-colors"
-                >
-                  Show {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
-                </button>
               )}
             </div>
-          )}
 
-          {/* Footer */}
-          <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex flex-nowrap items-center justify-between gap-3 overflow-x-auto bg-[#F5F5F7]">
+            {/* Failing elements */}
+            {nodes.length > 0 && (
+              <div className="border-t border-[#E5E5EA]">
+                <div className="px-5 py-2.5 flex items-center justify-between bg-white">
+                  <span className="text-xs font-medium text-[#8E8E93]">Failing elements · {nodes.length}</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-y border-[#F2F2F7] bg-white">
+                        <th className="text-left px-5 py-2 text-xs font-medium text-[#8E8E93] w-8">#</th>
+                        <th className="text-left px-3 py-2 text-xs font-medium text-[#8E8E93] w-36">Page</th>
+                        <th className="text-left px-3 py-2 text-xs font-medium text-[#8E8E93]">Element</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F2F2F7]">
+                      {visibleNodes.map((node, i) => (
+                        <tr key={i} className="align-top hover:bg-[#FAFAFA] transition-colors">
+                          <td className="px-5 py-2 text-[#8E8E93] font-mono">{i + 1}</td>
+                          <td className="px-3 py-2">
+                            {node.url ? (
+                              <a href={node.url} target="_blank" rel="noopener noreferrer"
+                                className="text-[#0071E3] hover:underline font-mono truncate block max-w-[180px]"
+                                title={node.url}>
+                                {pagePath(node.url)}
+                              </a>
+                            ) : <span className="text-[#8E8E93]">—</span>}
+                          </td>
+                          <td className="px-3 py-2">
+                            <code className="block max-w-full whitespace-pre-wrap break-words rounded-lg bg-[#F5F5F7] px-2 py-1.5 font-mono text-[11px] leading-4 text-[#3A3A3C]">
+                              {truncateHtml(node.html)}
+                            </code>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {hiddenCount > 0 && !showAll && (
+                  <button
+                    onClick={() => setShowAll(true)}
+                    className="w-full text-center text-xs font-medium text-[#0071E3] py-2.5 border-t border-[#F2F2F7] hover:bg-[#FAFAFA] transition-colors"
+                  >
+                    Show {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+      )}
+
+      {/* Footer */}
+      <div className="px-5 py-2.5 border-t border-[#E5E5EA] flex flex-nowrap items-center justify-between gap-3 overflow-x-auto bg-[#F5F5F7]">
             {siteId && (
               <div className="flex shrink-0 items-center gap-3">
                 <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-medium text-[#6E6E73]">Status</label>
@@ -501,8 +517,6 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
               </a>
             </div>
           </div>
-        </div>
-      )}
     </div>
   )
 }
