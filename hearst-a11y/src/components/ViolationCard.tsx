@@ -126,7 +126,7 @@ interface JiraProject {
   name: string
 }
 
-export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; siteId?: string }) {
+export function ViolationCard({ pattern, siteId, tierHex }: { pattern: ViolationPattern; siteId?: string; tierHex?: string }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
@@ -290,52 +290,48 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
   ]
   const activeDetailTab = detailTabs.some(t => t.id === activeTab) ? activeTab : (detailTabs[0]?.id ?? 'fix')
 
-  return (
-    <div className={`bg-white border border-[#E5E5EA] border-l-4 rounded-xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)] ${triaged ? 'opacity-60' : ''}`}
-      style={{ borderLeftColor: c.hex }}>
+  const accentColor = tierHex ?? c.hex
 
-      {/* ── Collapsed header row ── */}
+  return (
+    <div className={`border-l-[3px] ${triaged ? 'opacity-60' : ''}`} style={{ borderLeftColor: accentColor }}>
+
+      {/* ── Row ── */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full text-left px-5 py-5 flex items-center gap-3 hover:bg-[#FAFAFA] transition-colors"
+        className="w-full text-left px-4 py-3.5 flex items-center gap-3 hover:bg-[#FAFAFA] transition-colors"
       >
-        <span className={`shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md ${c.bg} ${c.text}`}>
-          {tierLabel}
-        </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-[#1D1D1F] text-[15px]">{ruleInfo.name}</span>
-            <span className="text-xs text-[#8E8E93]">{ruleInfo.wcag}</span>
+            <span className="font-semibold text-[#1D1D1F] text-sm">{ruleInfo.name}</span>
+            <span className="text-[11px] text-[#8E8E93]">{ruleInfo.wcag}</span>
             {pattern.isNew && !triaged && (
               <span className="text-[11px] font-semibold text-red-500" title="Not present in the previous scan">New</span>
             )}
             {NEEDS_REVIEW[pattern.rule] && !triaged && (
-              <span className="text-[11px] font-medium text-amber-600">Needs review</span>
+              <span className="text-[11px] font-medium text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">Needs review</span>
             )}
             {triaged && (
               <span className="text-[11px] font-medium text-[#8E8E93]">{TRIAGE_OPTIONS.find(o => o.value === triage)?.label}</span>
             )}
           </div>
-          <p className="text-xs text-[#6E6E73] mt-0.5 truncate">{pattern.description}</p>
+          <p className="text-[11px] text-[#6E6E73] mt-0.5 truncate">{pattern.description}</p>
         </div>
-        <div className="hidden sm:flex items-center shrink-0">
-          <span className="text-xs text-[#8E8E93] tabular-nums whitespace-nowrap">
-            {instanceCount} instance{instanceCount !== 1 ? 's' : ''} · {pageCount} page{pageCount !== 1 ? 's' : ''}
-          </span>
-        </div>
-        <svg className={`shrink-0 w-4 h-4 text-[#8E8E93] transition-transform ${open ? 'rotate-180' : ''}`}
+        <span className="text-[11px] text-[#8E8E93] tabular-nums whitespace-nowrap shrink-0 hidden sm:block">
+          {instanceCount} instance{instanceCount !== 1 ? 's' : ''} · {pageCount} page{pageCount !== 1 ? 's' : ''}
+        </span>
+        <svg className={`shrink-0 w-3.5 h-3.5 text-[#C7C7CC] transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 9l-7 7-7-7" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
-      {/* ── Expanded body ── */}
+      {/* ── Expanded panel ── */}
       {open && (
-          <div className="border-t border-[#E5E5EA]">
+          <div className="border-t border-[#F2F2F7]">
 
             {/* Tab bar */}
             {detailTabs.length > 0 && (
-              <div className="flex gap-0 border-b border-[#E5E5EA] bg-white px-4">
+              <div className="flex gap-0 border-b border-[#F2F2F7] bg-white px-4">
                 {detailTabs.map(t => (
                   <button
                     key={t.id}
@@ -383,14 +379,14 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
 
             {/* Failing elements */}
             {nodes.length > 0 && (
-              <div className="border-t border-[#E5E5EA]">
-                <div className="px-5 py-2.5 flex items-center justify-between bg-white">
-                  <span className="text-xs font-medium text-[#8E8E93]">Failing elements · {nodes.length}</span>
+              <div className="border-t border-[#F2F2F7]">
+                <div className="px-5 py-2 flex items-center justify-between bg-white">
+                  <span className="text-[11px] font-medium text-[#8E8E93] uppercase tracking-wide">Failing elements · {nodes.length}</span>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-y border-[#F2F2F7] bg-white">
+                      <tr className="border-y border-[#F2F2F7] bg-[#FAFAFA]">
                         <th className="text-left px-5 py-2 text-xs font-medium text-[#8E8E93] w-8">#</th>
                         <th className="text-left px-3 py-2 text-xs font-medium text-[#8E8E93] w-36">Page</th>
                         <th className="text-left px-3 py-2 text-xs font-medium text-[#8E8E93]">Element</th>
@@ -422,7 +418,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
                 {hiddenCount > 0 && !showAll && (
                   <button
                     onClick={() => setShowAll(true)}
-                    className="w-full text-center text-xs font-medium text-[#0071E3] py-2.5 border-t border-[#F2F2F7] hover:bg-[#FAFAFA] transition-colors"
+                    className="w-full text-center text-xs font-medium text-[#0071E3] py-2.5 border-t border-[#F2F2F7] hover:bg-[#F5F5F7] transition-colors"
                   >
                     Show {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
                   </button>
@@ -433,7 +429,7 @@ export function ViolationCard({ pattern, siteId }: { pattern: ViolationPattern; 
       )}
 
       {/* Footer */}
-      <div className="px-5 py-3 border-t border-[#E5E5EA] flex flex-nowrap items-center justify-between gap-3 overflow-x-auto bg-white">
+      <div className="px-4 py-3 border-t border-[#F2F2F7] flex flex-nowrap items-center justify-between gap-3 overflow-x-auto bg-[#FAFAFA]">
             {siteId && (
               <div className="flex shrink-0 items-center gap-2.5">
                 <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-medium text-[#6E6E73]">Status</label>

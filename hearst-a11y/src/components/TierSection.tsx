@@ -15,44 +15,50 @@ interface Props {
 
 export function TierSection({ tier, label, color, patterns, defaultOpen = true, siteId }: Props) {
   const [open, setOpen] = useState(defaultOpen)
+  const collapsible = !defaultOpen
+
+  const container = (
+    <div className="bg-white rounded-xl border border-[#E5E5EA] shadow-[0_1px_4px_rgba(0,0,0,0.06)] overflow-hidden divide-y divide-[#F2F2F7]">
+      {patterns.map(p => (
+        <ViolationCard key={p.fingerprint} pattern={p} siteId={siteId} tierHex={color.hex} />
+      ))}
+    </div>
+  )
+
+  if (collapsible) {
+    return (
+      <div className="mb-6">
+        <button
+          onClick={() => setOpen(o => !o)}
+          className="flex items-center gap-2 mb-2 px-1 w-full hover:opacity-80 transition-opacity"
+        >
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color.hex }} />
+          <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#8E8E93]">{label}</span>
+          <span className="text-[11px] text-[#8E8E93]">
+            {patterns.length} issue type{patterns.length !== 1 ? 's' : ''}
+          </span>
+          <svg
+            className={`ml-auto w-3.5 h-3.5 text-[#8E8E93] transition-transform ${open ? 'rotate-180' : ''}`}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {open && container}
+      </div>
+    )
+  }
 
   return (
-    <div style={{ marginBottom: 24 }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '6px 0',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          textAlign: 'left',
-          marginBottom: 8,
-        }}
-      >
-        <span style={{ width: 10, height: 10, borderRadius: '50%', background: color.hex, flexShrink: 0 }} />
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#1D1D1F', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{label}</span>
-        <span style={{ fontSize: 12, color: '#57575A' }}>
+    <div className="mb-6">
+      <div className="flex items-center gap-2 mb-2 px-1">
+        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color.hex }} />
+        <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#1D1D1F]">{label}</span>
+        <span className="text-[11px] text-[#8E8E93]">
           {patterns.length} issue type{patterns.length !== 1 ? 's' : ''}
         </span>
-        <svg
-          style={{ marginLeft: 'auto', width: 14, height: 14, color: '#57575A', transition: 'transform 0.15s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      {open && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {patterns.map((p) => (
-            <ViolationCard key={p.fingerprint} pattern={p} siteId={siteId} />
-          ))}
-        </div>
-      )}
+      </div>
+      {container}
     </div>
   )
 }
