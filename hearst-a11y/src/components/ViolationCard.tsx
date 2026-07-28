@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ViolationPattern, TriageStatus } from '@/types'
 import { impactToTier, TIER_COLOR, TIER_LABEL } from '@/lib/tiers'
@@ -11,12 +11,6 @@ const TRIAGE_OPTIONS: { value: TriageStatus; label: string }[] = [
   { value: 'wontfix', label: "Won't fix" },
   { value: 'false_positive', label: 'False positive' },
 ]
-
-const TRIAGE_BADGE: Record<Exclude<TriageStatus, 'open'>, string> = {
-  fixed: 'bg-emerald-100 text-emerald-700',
-  wontfix: 'bg-gray-200 text-gray-600',
-  false_positive: 'bg-amber-100 text-amber-700',
-}
 
 const NEEDS_REVIEW: Record<string, string> = {
   'color-contrast':              'Verify contrast manually: automated tools can miss issues on gradients, text over images, and elements that change color on hover or focus.',
@@ -98,28 +92,6 @@ function truncateHtml(html: string, max = 120) {
 }
 
 const SHOW_LIMIT = 5
-const PENDING_JIRA_TICKET_KEY = 'pendingJiraTicket'
-
-interface JiraIssuePayload {
-  siteId?: string
-  scanUrl: string
-  projectKey?: string
-  pattern: {
-    fingerprint: string
-    rule: string
-    impact: string
-    description: string
-    fixSuggestion?: string
-    occurrences: number
-    affectedPages: string[]
-    sampleHtml?: string
-  }
-}
-
-interface JiraProject {
-  key: string
-  name: string
-}
 
 export function ViolationCard({ pattern, siteId, tierHex }: { pattern: ViolationPattern; siteId?: string; tierHex?: string }) {
   const router = useRouter()
@@ -127,53 +99,6 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
   const [showAll, setShowAll] = useState(false)
   const [triage, setTriage] = useState<TriageStatus>(pattern.triageStatus ?? 'open')
   const [savingTriage, setSavingTriage] = useState(false)
-  const [creatingJira, setCreatingJira] = useState(false)
-  const [jiraResult, setJiraResult] = useState<{ key?: string; url?: string; error?: string; needsAuth?: boolean; needsProject?: boolean } | null>(null)
-  const [jiraProjectKey, setJiraProjectKey] = useState('')
-  const [jiraProjects, setJiraProjects] = useState<JiraProject[]>([])
-  const [loadingJiraProjects, setLoadingJiraProjects] = useState(false)
-
-  useEffect(() => {
-    const storedProjectKey = window.localStorage.getItem('jiraProjectKey') ?? ''
-    setJiraProjectKey(storedProjectKey)
-
-    const params = new URLSearchParams(window.location.search)
-    const pendingRaw = window.localStorage.getItem(PENDING_JIRA_TICKET_KEY)
-    if (params.get('jira') !== 'connected' || !pendingRaw) return
-
-    try {
-      const pending = JSON.parse(pendingRaw) as JiraIssuePayload
-      if (pending.pattern.fingerprint !== pattern.fingerprint) return
-      window.localStorage.removeItem(PENDING_JIRA_TICKET_KEY)
-      setOpen(true)
-      setJiraProjectKey(pending.projectKey ?? storedProjectKey)
-      void submitJiraIssue(pending, { redirectOnAuth: false })
-    } catch {
-      window.localStorage.removeItem(PENDING_JIRA_TICKET_KEY)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pattern.fingerprint])
-
-  useEffect(() => {
-    if (!open) return
-    let cancelled = false
-    async function loadJiraProjects() {
-      setLoadingJiraProjects(true)
-      try {
-        const res = await fetch('/api/integrations/jira/projects')
-        if (!res.ok) return
-        const data = await res.json().catch(() => ({}))
-        if (cancelled || !Array.isArray(data.projects)) return
-        setJiraProjects(data.projects)
-        const stored = window.localStorage.getItem('jiraProjectKey')
-        if (!stored && data.projects[0]?.key) setJiraProjectKey(data.projects[0].key)
-      } finally {
-        if (!cancelled) setLoadingJiraProjects(false)
-      }
-    }
-    void loadJiraProjects()
-    return () => { cancelled = true }
-  }, [open])
 
   async function changeTriage(status: TriageStatus) {
     if (!siteId) return
@@ -193,70 +118,6 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
     } finally {
       setSavingTriage(false)
     }
-  }
-
-  function buildJiraPayload(): JiraIssuePayload {
-    const normalizedProjectKey = jiraProjectKey.trim().toUpperCase()
-    return {
-      siteId,
-      scanUrl: window.location.href,
-      projectKey: normalizedProjectKey || undefined,
-      pattern: {
-        fingerprint: pattern.fingerprint,
-        rule: pattern.rule,
-        impact: pattern.impact,
-        description: pattern.description,
-        fixSuggestion: pattern.fixSuggestion,
-        occurrences: pattern.occurrences,
-        affectedPages: pattern.affectedPages ?? [],
-        sampleHtml: pattern.sampleHtml ?? pattern.nodes?.[0]?.html,
-      },
-    }
-  }
-
-  function redirectToJiraLogin(payload: JiraIssuePayload) {
-    window.localStorage.setItem(PENDING_JIRA_TICKET_KEY, JSON.stringify(payload))
-    window.location.href = `/api/integrations/jira/oauth/start?returnTo=${encodeURIComponent(window.location.href)}`
-  }
-
-  function changeJiraProjectKey(value: string) {
-    setJiraProjectKey(value.toUpperCase())
-    setJiraResult(current => current?.needsProject ? null : current)
-  }
-
-  async function submitJiraIssue(payload: JiraIssuePayload, options = { redirectOnAuth: true }) {
-    setCreatingJira(true)
-    setJiraResult(null)
-    try {
-      const res = await fetch('/api/integrations/jira/issues', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        if (data.code === 'jira_auth_required' && options.redirectOnAuth) {
-          redirectToJiraLogin(payload)
-          return
-        }
-        setJiraResult({
-          error: data.error ?? 'Could not create Jira ticket.',
-          needsAuth: data.code === 'jira_auth_required',
-          needsProject: data.code === 'jira_project_required',
-        })
-        return
-      }
-      if (payload.projectKey) window.localStorage.setItem('jiraProjectKey', payload.projectKey.toUpperCase())
-      setJiraResult({ key: data.key, url: data.url })
-    } catch {
-      setJiraResult({ error: 'Could not create Jira ticket.' })
-    } finally {
-      setCreatingJira(false)
-    }
-  }
-
-  async function createJiraIssue() {
-    await submitJiraIssue(buildJiraPayload())
   }
 
   const triaged = triage !== 'open'
@@ -284,18 +145,16 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
         onClick={() => setOpen(o => !o)}
         className="w-full text-left px-5 py-4 flex items-center gap-4 hover:bg-[#FAFAFA] transition-colors"
       >
-        {/* Tier badge */}
         <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap ${c.bg} ${c.text}`}>
           {tierLabel}
         </span>
 
-        {/* Rule info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-[14px] font-semibold text-[#1D1D1F] tracking-tight">{ruleInfo.name}</span>
             <span className="text-[11px] text-[#57575A]">{ruleInfo.wcag}</span>
             {pattern.isNew && !triaged && (
-              <span className="text-[10px] font-semibold text-red-500" title="Not present in the previous scan">New</span>
+              <span className="text-[10px] font-semibold text-red-600" title="Not present in the previous scan">New</span>
             )}
             {NEEDS_REVIEW[pattern.rule] && !triaged && (
               <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">Needs review</span>
@@ -307,12 +166,10 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
           <p className="text-[12px] text-[#57575A] mt-0.5 truncate">{pattern.description}</p>
         </div>
 
-        {/* Stats */}
         <span className="text-[11px] text-[#57575A] tabular-nums whitespace-nowrap shrink-0 hidden sm:block">
           {instanceCount} instance{instanceCount !== 1 ? 's' : ''} · {pageCount} page{pageCount !== 1 ? 's' : ''}
         </span>
 
-        {/* Chevron */}
         <svg className={`shrink-0 w-4 h-4 text-[#8E8E93] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 9l-7 7-7-7" />
@@ -328,14 +185,14 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
 
             {USER_IMPACT[pattern.rule] && (
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8E8E93] mb-2">How it affects users</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#57575A] mb-2">How it affects users</p>
                 <p className="text-[13px] text-[#3A3A3C] leading-relaxed">{USER_IMPACT[pattern.rule]}</p>
               </div>
             )}
 
             {pattern.fixSuggestion && (
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8E8E93] mb-2">How to fix</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#57575A] mb-2">How to fix</p>
                 <p className="text-[13px] text-[#1D1D1F] leading-relaxed">{pattern.fixSuggestion}</p>
                 <a
                   href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}`}
@@ -369,7 +226,7 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
           {nodes.length > 0 && (
             <div className="border-t border-[#F2F2F7]">
               <div className="px-6 py-2.5 bg-white">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#8E8E93]">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#57575A]">
                   Failing elements · {nodes.length}
                 </span>
               </div>
@@ -408,7 +265,7 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
               {hiddenCount > 0 && !showAll && (
                 <button
                   onClick={() => setShowAll(true)}
-                  className="w-full text-center text-[12px] font-medium text-[#0071E3] py-2.5 border-t border-[#F2F2F7] hover:bg-[#F5F5F7] transition-colors"
+                  className="w-full text-center text-[12px] font-medium text-[#0071E3] py-2.5 border-t border-[#F2F2F7] hover:bg-[#FAFAFA] transition-colors"
                 >
                   Show {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
                 </button>
@@ -416,96 +273,38 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
             </div>
           )}
 
-          {/* Footer: status + jira */}
-          <div className="px-5 py-3 border-t border-[#F2F2F7] flex flex-nowrap items-center justify-between gap-3 overflow-x-auto bg-[#FAFAFA]">
-            {siteId && (
-              <div className="flex shrink-0 items-center gap-2.5">
-                <label htmlFor={`triage-${pattern.fingerprint}`} className="text-[12px] font-medium text-[#3A3A3C]">Status</label>
-                <select
-                  id={`triage-${pattern.fingerprint}`}
-                  value={triage}
-                  disabled={savingTriage}
-                  onChange={e => changeTriage(e.target.value as TriageStatus)}
-                  className="text-[12px] border border-[#E5E5EA] rounded-lg px-2.5 py-1.5 bg-white text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                >
-                  {TRIAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-                <span
-                  title="Triaged issues are excluded from active counts; the rule still appears here."
-                  className="text-[#8E8E93] cursor-default select-none"
-                  aria-label="Triage info"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
-                  </svg>
-                </span>
-              </div>
-            )}
-            <div className="ml-auto flex shrink-0 flex-nowrap items-center justify-end gap-2.5">
-              {jiraResult?.error && (
-                <span className="text-[12px] text-red-600 max-w-sm">{jiraResult.error}</span>
-              )}
-              {jiraResult?.needsAuth && (
-                <button
-                  type="button"
-                  onClick={() => redirectToJiraLogin(buildJiraPayload())}
-                  className="inline-flex items-center rounded-lg border border-[#007AFF] bg-white px-3 py-1.5 text-[12px] font-semibold text-[#007AFF] hover:bg-blue-50 transition-colors"
-                >
-                  Connect Jira
-                </button>
-              )}
-              <label className="flex items-center gap-1.5 text-[12px] font-medium text-[#3A3A3C]">
-                Project
-                {jiraProjects.length > 0 ? (
-                  <select
-                    value={jiraProjectKey}
-                    onChange={e => changeJiraProjectKey(e.target.value)}
-                    aria-label="Jira project"
-                    className={`max-w-[180px] rounded-lg border px-2.5 py-1.5 text-[12px] font-semibold text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      jiraResult?.needsProject ? 'border-red-400 bg-red-50' : 'border-[#D1D1D6] bg-white'
-                    }`}
-                  >
-                    {jiraProjects.map(project => (
-                      <option key={project.key} value={project.key}>{project.key} — {project.name}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    value={jiraProjectKey}
-                    onChange={e => changeJiraProjectKey(e.target.value)}
-                    placeholder={loadingJiraProjects ? 'Loading…' : 'Enter key'}
-                    aria-label="Jira project key"
-                    title="Type your Jira project key, for example A11Y"
-                    className={`w-24 rounded-lg border px-2.5 py-1.5 text-[12px] font-semibold uppercase text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      jiraResult?.needsProject ? 'border-red-400 bg-red-50' : 'border-[#D1D1D6] bg-white'
-                    }`}
-                  />
-                )}
-              </label>
-              {jiraResult?.url && (
-                <a href={jiraResult.url} target="_blank" rel="noopener noreferrer"
-                  className="text-[12px] font-medium text-emerald-700 hover:underline">
-                  Open {jiraResult.key ?? 'Jira issue'} →
-                </a>
-              )}
-              <button
-                type="button"
-                onClick={createJiraIssue}
-                disabled={creatingJira}
-                className="inline-flex items-center gap-1 rounded-lg bg-[#007AFF] px-3.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#0066D6] disabled:cursor-not-allowed disabled:bg-[#A1A1A6]"
+          {/* Footer: status only */}
+          {siteId && (
+            <div className="px-5 py-3 border-t border-[#F2F2F7] flex items-center gap-3 bg-[#FAFAFA]">
+              <label htmlFor={`triage-${pattern.fingerprint}`} className="text-[12px] font-medium text-[#3A3A3C]">Status</label>
+              <select
+                id={`triage-${pattern.fingerprint}`}
+                value={triage}
+                disabled={savingTriage}
+                onChange={e => changeTriage(e.target.value as TriageStatus)}
+                className="text-[12px] border border-[#E5E5EA] rounded-lg px-2.5 py-1.5 bg-white text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
               >
-                {creatingJira ? 'Creating…' : 'Create Jira ticket'}
-              </button>
+                {TRIAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+              <span
+                title="Triaged issues are excluded from active counts; the rule still appears here."
+                className="text-[#8E8E93] cursor-default select-none"
+                aria-label="Triage info"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
+                </svg>
+              </span>
               <a
                 href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}?application=axeAPI`}
                 target="_blank" rel="noopener noreferrer"
-                className="text-[12px] font-medium text-[#007AFF] hover:underline whitespace-nowrap"
+                className="ml-auto text-[12px] font-medium text-[#0071E3] hover:underline"
               >
                 View WCAG guidance →
               </a>
             </div>
-          </div>
+          )}
 
         </div>
       )}
