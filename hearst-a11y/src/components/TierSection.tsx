@@ -33,8 +33,8 @@ export function TierSection({ tier, label, color, patterns, defaultOpen = true, 
           className="flex items-center gap-2 mb-2 px-1 w-full hover:opacity-80 transition-opacity"
         >
           <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color.hex }} />
-          <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#8E8E93]">{label}</span>
-          <span className="text-[11px] text-[#8E8E93]">
+          <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#57575A]">{label}</span>
+          <span className="text-[11px] text-[#57575A]">
             {patterns.length} issue type{patterns.length !== 1 ? 's' : ''}
           </span>
           <svg

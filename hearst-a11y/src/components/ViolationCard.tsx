@@ -130,7 +130,6 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
-  const [activeTab, setActiveTab] = useState<'fix' | 'impact' | 'review'>('fix')
   const [triage, setTriage] = useState<TriageStatus>(pattern.triageStatus ?? 'open')
   const [savingTriage, setSavingTriage] = useState(false)
   const [creatingJira, setCreatingJira] = useState(false)
@@ -283,13 +282,6 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
   const visibleNodes = showAll ? nodes : nodes.slice(0, SHOW_LIMIT)
   const hiddenCount = nodes.length - SHOW_LIMIT
 
-  const detailTabs = [
-    ...(pattern.fixSuggestion        ? [{ id: 'fix'    as const, label: 'How to fix',  amber: false }] : []),
-    ...(USER_IMPACT[pattern.rule]    ? [{ id: 'impact' as const, label: 'User impact', amber: false }] : []),
-    ...(NEEDS_REVIEW[pattern.rule]   ? [{ id: 'review' as const, label: 'Needs review', amber: true }] : []),
-  ]
-  const activeDetailTab = detailTabs.some(t => t.id === activeTab) ? activeTab : (detailTabs[0]?.id ?? 'fix')
-
   const accentColor = tierHex ?? c.hex
 
   return (
@@ -303,7 +295,7 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-[#1D1D1F] text-sm">{ruleInfo.name}</span>
-            <span className="text-[11px] text-[#8E8E93]">{ruleInfo.wcag}</span>
+            <span className="text-[11px] text-[#57575A]">{ruleInfo.wcag}</span>
             {pattern.isNew && !triaged && (
               <span className="text-[11px] font-semibold text-red-500" title="Not present in the previous scan">New</span>
             )}
@@ -314,12 +306,12 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
               <span className="text-[11px] font-medium text-[#8E8E93]">{TRIAGE_OPTIONS.find(o => o.value === triage)?.label}</span>
             )}
           </div>
-          <p className="text-[11px] text-[#6E6E73] mt-0.5 truncate">{pattern.description}</p>
+          <p className="text-[11px] text-[#57575A] mt-0.5 truncate">{pattern.description}</p>
         </div>
-        <span className="text-[11px] text-[#8E8E93] tabular-nums whitespace-nowrap shrink-0 hidden sm:block">
+        <span className="text-[11px] text-[#57575A] tabular-nums whitespace-nowrap shrink-0 hidden sm:block">
           {instanceCount} instance{instanceCount !== 1 ? 's' : ''} · {pageCount} page{pageCount !== 1 ? 's' : ''}
         </span>
-        <svg className={`shrink-0 w-3.5 h-3.5 text-[#C7C7CC] transition-transform ${open ? 'rotate-180' : ''}`}
+        <svg className={`shrink-0 w-3.5 h-3.5 text-[#8E8E93] transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -329,73 +321,70 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
       {open && (
           <div className="border-t border-[#F2F2F7]">
 
-            {/* Tab bar */}
-            {detailTabs.length > 0 && (
-              <div className="flex gap-0 border-b border-[#F2F2F7] bg-white px-4">
-                {detailTabs.map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => setActiveTab(t.id)}
-                    className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 -mb-px transition-colors ${
-                      activeDetailTab === t.id
-                        ? t.amber
-                          ? 'text-amber-600 border-amber-400'
-                          : 'text-[#1D1D1F] border-[#1D1D1F]'
-                        : 'text-[#8E8E93] border-transparent hover:text-[#3A3A3C]'
-                    }`}
-                  >
-                    {t.amber && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Detail sections — all visible at once, no tabs */}
+            <div className="px-5 py-5 bg-white space-y-5">
 
-            {/* Tab content */}
-            <div className="px-5 py-4 bg-white">
-              {activeDetailTab === 'fix' && pattern.fixSuggestion && (
-                <>
+              {/* How it affects users */}
+              {USER_IMPACT[pattern.rule] && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#57575A] mb-1.5">How it affects users</p>
+                  <p className="text-sm text-[#3A3A3C] leading-relaxed">{USER_IMPACT[pattern.rule]}</p>
+                </div>
+              )}
+
+              {/* How to fix */}
+              {pattern.fixSuggestion && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#57575A] mb-1.5">How to fix</p>
                   <p className="text-sm text-[#1D1D1F] leading-relaxed">{pattern.fixSuggestion}</p>
                   <a
                     href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 mt-2.5 text-xs font-medium text-[#0071E3] hover:underline"
+                    className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-[#0071E3] hover:underline"
                   >
                     WCAG reference
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </a>
-                </>
+                </div>
               )}
-              {activeDetailTab === 'impact' && USER_IMPACT[pattern.rule] && (
-                <p className="text-sm text-[#1D1D1F] leading-relaxed">{USER_IMPACT[pattern.rule]}</p>
+
+              {/* Needs human review callout */}
+              {NEEDS_REVIEW[pattern.rule] && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    </svg>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700">Needs human review</p>
+                  </div>
+                  <p className="text-sm text-amber-900 leading-relaxed">{NEEDS_REVIEW[pattern.rule]}</p>
+                </div>
               )}
-              {activeDetailTab === 'review' && NEEDS_REVIEW[pattern.rule] && (
-                <p className="text-sm text-[#1D1D1F] leading-relaxed">{NEEDS_REVIEW[pattern.rule]}</p>
-              )}
+
             </div>
 
             {/* Failing elements */}
             {nodes.length > 0 && (
               <div className="border-t border-[#F2F2F7]">
                 <div className="px-5 py-2 flex items-center justify-between bg-white">
-                  <span className="text-[11px] font-medium text-[#8E8E93] uppercase tracking-wide">Failing elements · {nodes.length}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#57575A]">Failing elements · {nodes.length}</span>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-y border-[#F2F2F7] bg-[#FAFAFA]">
-                        <th className="text-left px-5 py-2 text-xs font-medium text-[#8E8E93] w-8">#</th>
-                        <th className="text-left px-3 py-2 text-xs font-medium text-[#8E8E93] w-36">Page</th>
-                        <th className="text-left px-3 py-2 text-xs font-medium text-[#8E8E93]">Element</th>
+                        <th className="text-left px-5 py-2 text-[11px] font-semibold text-[#3A3A3C] w-8">#</th>
+                        <th className="text-left px-3 py-2 text-[11px] font-semibold text-[#3A3A3C] w-36">Page</th>
+                        <th className="text-left px-3 py-2 text-[11px] font-semibold text-[#3A3A3C]">Element</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#F2F2F7]">
                       {visibleNodes.map((node, i) => (
                         <tr key={i} className="align-top hover:bg-[#FAFAFA] transition-colors">
-                          <td className="px-5 py-2 text-[#8E8E93] font-mono">{i + 1}</td>
+                          <td className="px-5 py-2 text-[#57575A] font-mono">{i + 1}</td>
                           <td className="px-3 py-2">
                             {node.url ? (
                               <a href={node.url} target="_blank" rel="noopener noreferrer"
@@ -432,7 +421,7 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
       <div className="px-4 py-3 border-t border-[#F2F2F7] flex flex-nowrap items-center justify-between gap-3 overflow-x-auto bg-[#FAFAFA]">
             {siteId && (
               <div className="flex shrink-0 items-center gap-2.5">
-                <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-medium text-[#6E6E73]">Status</label>
+                <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-medium text-[#3A3A3C]">Status</label>
                 <select
                   id={`triage-${pattern.fingerprint}`}
                   value={triage}
