@@ -18,8 +18,6 @@ const TRIAGE_BADGE: Record<Exclude<TriageStatus, 'open'>, string> = {
   false_positive: 'bg-amber-100 text-amber-700',
 }
 
-// Rules where automated scanning cannot confirm the full context, interaction
-// behavior, or user impact — a human must verify the specific aspect listed.
 const NEEDS_REVIEW: Record<string, string> = {
   'color-contrast':              'Verify contrast manually: automated tools can miss issues on gradients, text over images, and elements that change color on hover or focus.',
   'image-alt':                   'Read each alt text and confirm it conveys the image\'s purpose — not just its appearance. Confirm purely decorative images use alt="".',
@@ -37,8 +35,6 @@ const NEEDS_REVIEW: Record<string, string> = {
   'frame-title':                 'Use a screen reader to navigate into each frame and confirm the announced title describes the frame\'s purpose.',
 }
 
-// Plain-language description of the barrier from the user's perspective.
-// Placed directly below the Fix block in the expanded card.
 const USER_IMPACT: Record<string, string> = {
   'html-has-lang':               "Screen readers use the declared language to choose the correct pronunciation engine. Without it, words may be read with the wrong accent or mispronounced entirely, making content hard to follow for blind users.",
   'image-alt':                   "A screen-reader user hears alt text in place of the image. Without it, they may hear only a filename or nothing at all, and cannot tell what the image shows or why it is there.",
@@ -100,7 +96,6 @@ function truncateHtml(html: string, max = 120) {
   const single = html.replace(/\s+/g, ' ').trim()
   return single.length > max ? single.slice(0, max) + '…' : single
 }
-
 
 const SHOW_LIMIT = 5
 const PENDING_JIRA_TICKET_KEY = 'pendingJiraTicket'
@@ -192,7 +187,7 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
         body: JSON.stringify({ siteId, fingerprint: pattern.fingerprint, status }),
       })
       if (!res.ok) { setTriage(previous); return }
-      router.refresh() // recompute active counts server-side
+      router.refresh()
     } catch {
       setTriage(previous)
     } finally {
@@ -265,7 +260,6 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
   }
 
   const triaged = triage !== 'open'
-
   const tier = impactToTier(pattern.impact)
   const c = TIER_COLOR[tier]
   const tierLabel = TIER_LABEL[tier]
@@ -282,152 +276,157 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
   const visibleNodes = showAll ? nodes : nodes.slice(0, SHOW_LIMIT)
   const hiddenCount = nodes.length - SHOW_LIMIT
 
-  const accentColor = tierHex ?? c.hex
-
   return (
-    <div className={`border-l-[3px] ${triaged ? 'opacity-60' : ''}`} style={{ borderLeftColor: accentColor }}>
+    <div className={triaged ? 'opacity-60' : ''}>
 
-      {/* ── Row ── */}
+      {/* ── Collapsed row ── */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full text-left px-4 py-3.5 flex items-center gap-3 hover:bg-[#FAFAFA] transition-colors"
+        className="w-full text-left px-5 py-4 flex items-center gap-4 hover:bg-[#FAFAFA] transition-colors"
       >
+        {/* Tier badge */}
+        <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap ${c.bg} ${c.text}`}>
+          {tierLabel}
+        </span>
+
+        {/* Rule info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-[#1D1D1F] text-sm">{ruleInfo.name}</span>
+            <span className="text-[14px] font-semibold text-[#1D1D1F] tracking-tight">{ruleInfo.name}</span>
             <span className="text-[11px] text-[#57575A]">{ruleInfo.wcag}</span>
             {pattern.isNew && !triaged && (
-              <span className="text-[11px] font-semibold text-red-500" title="Not present in the previous scan">New</span>
+              <span className="text-[10px] font-semibold text-red-500" title="Not present in the previous scan">New</span>
             )}
             {NEEDS_REVIEW[pattern.rule] && !triaged && (
-              <span className="text-[11px] font-medium text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">Needs review</span>
+              <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">Needs review</span>
             )}
             {triaged && (
-              <span className="text-[11px] font-medium text-[#8E8E93]">{TRIAGE_OPTIONS.find(o => o.value === triage)?.label}</span>
+              <span className="text-[11px] text-[#57575A]">{TRIAGE_OPTIONS.find(o => o.value === triage)?.label}</span>
             )}
           </div>
-          <p className="text-[11px] text-[#57575A] mt-0.5 truncate">{pattern.description}</p>
+          <p className="text-[12px] text-[#57575A] mt-0.5 truncate">{pattern.description}</p>
         </div>
+
+        {/* Stats */}
         <span className="text-[11px] text-[#57575A] tabular-nums whitespace-nowrap shrink-0 hidden sm:block">
           {instanceCount} instance{instanceCount !== 1 ? 's' : ''} · {pageCount} page{pageCount !== 1 ? 's' : ''}
         </span>
-        <svg className={`shrink-0 w-3.5 h-3.5 text-[#8E8E93] transition-transform ${open ? 'rotate-180' : ''}`}
+
+        {/* Chevron */}
+        <svg className={`shrink-0 w-4 h-4 text-[#8E8E93] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
       {/* ── Expanded panel ── */}
       {open && (
-          <div className="border-t border-[#F2F2F7]">
+        <div className="border-t border-[#F2F2F7]">
 
-            {/* Detail sections — all visible at once, no tabs */}
-            <div className="px-5 py-5 bg-white space-y-5">
+          {/* Context sections */}
+          <div className="px-6 py-5 space-y-5 bg-white">
 
-              {/* How it affects users */}
-              {USER_IMPACT[pattern.rule] && (
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#57575A] mb-1.5">How it affects users</p>
-                  <p className="text-sm text-[#3A3A3C] leading-relaxed">{USER_IMPACT[pattern.rule]}</p>
-                </div>
-              )}
-
-              {/* How to fix */}
-              {pattern.fixSuggestion && (
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#57575A] mb-1.5">How to fix</p>
-                  <p className="text-sm text-[#1D1D1F] leading-relaxed">{pattern.fixSuggestion}</p>
-                  <a
-                    href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-[#0071E3] hover:underline"
-                  >
-                    WCAG reference
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                </div>
-              )}
-
-              {/* Needs human review callout */}
-              {NEEDS_REVIEW[pattern.rule] && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                    </svg>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700">Needs human review</p>
-                  </div>
-                  <p className="text-sm text-amber-900 leading-relaxed">{NEEDS_REVIEW[pattern.rule]}</p>
-                </div>
-              )}
-
-            </div>
-
-            {/* Failing elements */}
-            {nodes.length > 0 && (
-              <div className="border-t border-[#F2F2F7]">
-                <div className="px-5 py-2 flex items-center justify-between bg-white">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#57575A]">Failing elements · {nodes.length}</span>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-y border-[#F2F2F7] bg-[#FAFAFA]">
-                        <th className="text-left px-5 py-2 text-[11px] font-semibold text-[#3A3A3C] w-8">#</th>
-                        <th className="text-left px-3 py-2 text-[11px] font-semibold text-[#3A3A3C] w-36">Page</th>
-                        <th className="text-left px-3 py-2 text-[11px] font-semibold text-[#3A3A3C]">Element</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#F2F2F7]">
-                      {visibleNodes.map((node, i) => (
-                        <tr key={i} className="align-top hover:bg-[#FAFAFA] transition-colors">
-                          <td className="px-5 py-2 text-[#57575A] font-mono">{i + 1}</td>
-                          <td className="px-3 py-2">
-                            {node.url ? (
-                              <a href={node.url} target="_blank" rel="noopener noreferrer"
-                                className="text-[#0071E3] hover:underline font-mono truncate block max-w-[180px]"
-                                title={node.url}>
-                                {pagePath(node.url)}
-                              </a>
-                            ) : <span className="text-[#8E8E93]">—</span>}
-                          </td>
-                          <td className="px-3 py-2">
-                            <code className="block max-w-full whitespace-pre-wrap break-words rounded-lg bg-[#F0F4FF] border border-[#E0E8FF] px-2 py-1.5 font-mono text-[11px] leading-4 text-[#1D1D1F]">
-                              {truncateHtml(node.html)}
-                            </code>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {hiddenCount > 0 && !showAll && (
-                  <button
-                    onClick={() => setShowAll(true)}
-                    className="w-full text-center text-xs font-medium text-[#0071E3] py-2.5 border-t border-[#F2F2F7] hover:bg-[#F5F5F7] transition-colors"
-                  >
-                    Show {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
-                  </button>
-                )}
+            {USER_IMPACT[pattern.rule] && (
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8E8E93] mb-2">How it affects users</p>
+                <p className="text-[13px] text-[#3A3A3C] leading-relaxed">{USER_IMPACT[pattern.rule]}</p>
               </div>
             )}
-          </div>
-      )}
 
-      {/* Footer */}
-      <div className="px-4 py-3 border-t border-[#F2F2F7] flex flex-nowrap items-center justify-between gap-3 overflow-x-auto bg-[#FAFAFA]">
+            {pattern.fixSuggestion && (
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8E8E93] mb-2">How to fix</p>
+                <p className="text-[13px] text-[#1D1D1F] leading-relaxed">{pattern.fixSuggestion}</p>
+                <a
+                  href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 mt-2 text-[12px] font-medium text-[#0071E3] hover:underline"
+                >
+                  WCAG reference
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            )}
+
+            {NEEDS_REVIEW[pattern.rule] && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700">Needs human review</p>
+                </div>
+                <p className="text-[13px] text-amber-900 leading-relaxed">{NEEDS_REVIEW[pattern.rule]}</p>
+              </div>
+            )}
+
+          </div>
+
+          {/* Failing elements */}
+          {nodes.length > 0 && (
+            <div className="border-t border-[#F2F2F7]">
+              <div className="px-6 py-2.5 bg-white">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#8E8E93]">
+                  Failing elements · {nodes.length}
+                </span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-y border-[#F2F2F7] bg-[#FAFAFA]">
+                      <th className="text-left px-6 py-2 text-[11px] font-semibold text-[#3A3A3C] w-8">#</th>
+                      <th className="text-left px-3 py-2 text-[11px] font-semibold text-[#3A3A3C] w-40">Page</th>
+                      <th className="text-left px-3 py-2 text-[11px] font-semibold text-[#3A3A3C]">Element</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F2F2F7]">
+                    {visibleNodes.map((node, i) => (
+                      <tr key={i} className="align-top hover:bg-[#FAFAFA] transition-colors">
+                        <td className="px-6 py-2.5 text-[#57575A] font-mono text-[11px]">{i + 1}</td>
+                        <td className="px-3 py-2.5">
+                          {node.url ? (
+                            <a href={node.url} target="_blank" rel="noopener noreferrer"
+                              className="text-[#0071E3] hover:underline font-mono text-[11px] truncate block max-w-[200px]"
+                              title={node.url}>
+                              {pagePath(node.url)}
+                            </a>
+                          ) : <span className="text-[#57575A]">—</span>}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <code className="block max-w-full whitespace-pre-wrap break-words rounded-lg bg-[#F0F4FF] border border-[#E0E8FF] px-2.5 py-1.5 font-mono text-[11px] leading-[1.5] text-[#1D1D1F]">
+                            {truncateHtml(node.html)}
+                          </code>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {hiddenCount > 0 && !showAll && (
+                <button
+                  onClick={() => setShowAll(true)}
+                  className="w-full text-center text-[12px] font-medium text-[#0071E3] py-2.5 border-t border-[#F2F2F7] hover:bg-[#F5F5F7] transition-colors"
+                >
+                  Show {hiddenCount} more element{hiddenCount !== 1 ? 's' : ''}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Footer: status + jira */}
+          <div className="px-5 py-3 border-t border-[#F2F2F7] flex flex-nowrap items-center justify-between gap-3 overflow-x-auto bg-[#FAFAFA]">
             {siteId && (
               <div className="flex shrink-0 items-center gap-2.5">
-                <label htmlFor={`triage-${pattern.fingerprint}`} className="text-xs font-medium text-[#3A3A3C]">Status</label>
+                <label htmlFor={`triage-${pattern.fingerprint}`} className="text-[12px] font-medium text-[#3A3A3C]">Status</label>
                 <select
                   id={`triage-${pattern.fingerprint}`}
                   value={triage}
                   disabled={savingTriage}
                   onChange={e => changeTriage(e.target.value as TriageStatus)}
-                  className="text-xs border border-[#E5E5EA] rounded-md px-2 py-1 bg-white text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="text-[12px] border border-[#E5E5EA] rounded-lg px-2.5 py-1.5 bg-white text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 >
                   {TRIAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
@@ -443,27 +442,27 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
                 </span>
               </div>
             )}
-            <div className="ml-auto flex shrink-0 flex-nowrap items-center justify-end gap-3">
+            <div className="ml-auto flex shrink-0 flex-nowrap items-center justify-end gap-2.5">
               {jiraResult?.error && (
-                <span className="text-xs text-red-600 max-w-sm">{jiraResult.error}</span>
+                <span className="text-[12px] text-red-600 max-w-sm">{jiraResult.error}</span>
               )}
               {jiraResult?.needsAuth && (
                 <button
                   type="button"
                   onClick={() => redirectToJiraLogin(buildJiraPayload())}
-                  className="inline-flex items-center rounded-md border border-[#007AFF] bg-white px-3 py-1.5 text-xs font-semibold text-[#007AFF] shadow-sm hover:bg-blue-50"
+                  className="inline-flex items-center rounded-lg border border-[#007AFF] bg-white px-3 py-1.5 text-[12px] font-semibold text-[#007AFF] hover:bg-blue-50 transition-colors"
                 >
                   Connect Jira
                 </button>
               )}
-              <label className="flex items-center gap-1 text-xs font-medium text-[#3A3A3C]">
+              <label className="flex items-center gap-1.5 text-[12px] font-medium text-[#3A3A3C]">
                 Project
                 {jiraProjects.length > 0 ? (
                   <select
                     value={jiraProjectKey}
                     onChange={e => changeJiraProjectKey(e.target.value)}
                     aria-label="Jira project"
-                    className={`max-w-[180px] rounded-md border px-2 py-1 text-xs font-semibold text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`max-w-[180px] rounded-lg border px-2.5 py-1.5 text-[12px] font-semibold text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       jiraResult?.needsProject ? 'border-red-400 bg-red-50' : 'border-[#D1D1D6] bg-white'
                     }`}
                   >
@@ -478,14 +477,15 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
                     placeholder={loadingJiraProjects ? 'Loading…' : 'Enter key'}
                     aria-label="Jira project key"
                     title="Type your Jira project key, for example A11Y"
-                    className={`w-24 rounded-md border px-2 py-1 text-xs font-semibold uppercase text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-24 rounded-lg border px-2.5 py-1.5 text-[12px] font-semibold uppercase text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       jiraResult?.needsProject ? 'border-red-400 bg-red-50' : 'border-[#D1D1D6] bg-white'
                     }`}
                   />
                 )}
               </label>
               {jiraResult?.url && (
-                <a href={jiraResult.url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-emerald-700 hover:underline">
+                <a href={jiraResult.url} target="_blank" rel="noopener noreferrer"
+                  className="text-[12px] font-medium text-emerald-700 hover:underline">
                   Open {jiraResult.key ?? 'Jira issue'} →
                 </a>
               )}
@@ -493,19 +493,23 @@ export function ViolationCard({ pattern, siteId, tierHex }: { pattern: Violation
                 type="button"
                 onClick={createJiraIssue}
                 disabled={creatingJira}
-                className="inline-flex items-center gap-1 rounded-md border border-[#007AFF] bg-[#007AFF] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#0066D6] disabled:cursor-not-allowed disabled:border-[#A1A1A6] disabled:bg-[#A1A1A6]"
+                className="inline-flex items-center gap-1 rounded-lg bg-[#007AFF] px-3.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#0066D6] disabled:cursor-not-allowed disabled:bg-[#A1A1A6]"
               >
-                {creatingJira ? 'Creating Jira…' : 'Create Jira ticket'}
+                {creatingJira ? 'Creating…' : 'Create Jira ticket'}
               </button>
               <a
                 href={`https://dequeuniversity.com/rules/axe/4.10/${pattern.rule}?application=axeAPI`}
                 target="_blank" rel="noopener noreferrer"
-                className="text-xs font-medium text-[#007AFF] hover:underline"
+                className="text-[12px] font-medium text-[#007AFF] hover:underline whitespace-nowrap"
               >
                 View WCAG guidance →
               </a>
             </div>
           </div>
+
+        </div>
+      )}
+
     </div>
   )
 }

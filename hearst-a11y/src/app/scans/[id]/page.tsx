@@ -429,7 +429,7 @@ export default async function ScanDetailPage({ params }: RouteContext) {
               {dismissedWcagPatterns.length > 0 ? 'No active component issues — all WCAG issues have been dismissed.' : 'No WCAG component issues found — great job!'}
             </div>
           ) : (
-            <div>
+            <div className="bg-white rounded-2xl border border-[#E5E5EA] shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden divide-y divide-[#F2F2F7]">
               {(['tier1', 'tier2', 'tier3', 'tier4'] as const).map(tier => {
                 const group = byTier[tier]
                 if (group.length === 0) return null
